@@ -1,0 +1,11 @@
+{
+  "name": "portfolio-apps-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build:portfolio": "npm run build --prefix portfolio",
+    "build:tftduos": "npm run build --prefix apps/tftduos",
+    "dev:tftduos:client": "npm --prefix apps/tftduos/client run dev",
+    "dev:tftduos:server": "npm --prefix apps/tftduos/server run start"
+  }
+}

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brian Portfolio Hub</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(145deg, #f4f6fa 0%, #e8edf7 100%);
+        color: #182133;
+      }
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 64px 24px;
+      }
+      h1 {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        margin: 0 0 16px;
+      }
+      p {
+        font-size: 1.1rem;
+        line-height: 1.5;
+        margin: 0 0 24px;
+        color: #3b4661;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+      }
+      a.card {
+        display: block;
+        padding: 18px;
+        border-radius: 14px;
+        border: 1px solid #ced7ea;
+        background: rgba(255, 255, 255, 0.9);
+        text-decoration: none;
+        color: inherit;
+      }
+      a.card:hover {
+        border-color: #95a9d2;
+        transform: translateY(-1px);
+      }
+      .label {
+        font-size: 0.9rem;
+        color: #607096;
+      }
+      .title {
+        font-size: 1.2rem;
+        margin-top: 6px;
+        font-weight: 650;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Portfolio Hub</h1>
+      <p>Central launch page for apps and projects hosted on subdomains.</p>
+      <section class="grid">
+        <a class="card" href="https://app1.yourname.com">
+          <div class="label">Live App</div>
+          <div class="title">App 1</div>
+        </a>
+        <a class="card" href="https://app2.yourname.com">
+          <div class="label">Coming Soon</div>
+          <div class="title">App 2</div>
+        </a>
+      </section>
+    </main>
+  </body>
+</html>

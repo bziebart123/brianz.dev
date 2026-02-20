@@ -1,0 +1,135 @@
+﻿import {
+  Alert,
+  Button,
+  Card,
+  Heading,
+  Pane,
+  Select,
+  Spinner,
+  Strong,
+  Tab,
+  Tablist,
+  Text,
+} from "evergreen-ui";
+import { VIEW_TABS } from "../config/constants";
+
+export default function Sidebar({
+  activeTab,
+  setActiveTab,
+  payload,
+  timelineDays,
+  setTimelineDays,
+  setFilter,
+  setSetFilter,
+  patchFilter,
+  setPatchFilter,
+  currentPatch,
+  availableSets,
+  availablePatches,
+  matches,
+  filteredMatches,
+  loading,
+  loadDuoAnalysis,
+  displayedError,
+}) {
+  return (
+    <Pane
+      width={340}
+      padding={24}
+      borderRight="default"
+      background="rgba(255,255,255,0.02)"
+      position="sticky"
+      top={0}
+      alignSelf="flex-start"
+      height="100vh"
+      display="flex"
+      flexDirection="column"
+    >
+      <Pane>
+        <Heading size={700}>Duo TFT Coach</Heading>
+        <Text size={500} color="muted" display="block" marginTop={8} marginBottom={22}>
+          Evergreen UI refresh
+        </Text>
+
+        <Tablist marginBottom={18} display="flex" flexDirection="column" gap={10}>
+          {VIEW_TABS.map((tab) => (
+            <Tab
+              key={tab.id}
+              isSelected={activeTab === tab.id}
+              onSelect={() => setActiveTab(tab.id)}
+              justifyContent="flex-start"
+              height={54}
+            >
+              {tab.label}
+            </Tab>
+          ))}
+        </Tablist>
+
+        {payload ? (
+          <Card elevation={0} border="default" background="rgba(255,255,255,0.03)" padding={14} marginBottom={12}>
+            <Pane display="grid" gap={10}>
+              <Pane>
+                <Text size={500}>Timeline</Text>
+                <Select height={44} marginTop={8} width="100%" value={timelineDays} onChange={(e) => setTimelineDays(e.target.value)}>
+                  <option value="7">Last 7 days</option>
+                  <option value="30">Last 30 days</option>
+                  <option value="90">Last 90 days</option>
+                  <option value="0">All time</option>
+                </Select>
+              </Pane>
+              <Pane>
+                <Text size={500}>Set</Text>
+                <Select height={44} marginTop={8} width="100%" value={setFilter} onChange={(e) => setSetFilter(e.target.value)}>
+                  <option value="all">All sets</option>
+                  {availableSets.map((setNumber) => (
+                    <option key={String(setNumber)} value={String(setNumber)}>
+                      Set {setNumber}
+                    </option>
+                  ))}
+                </Select>
+              </Pane>
+              <Pane>
+                <Text size={500}>Patch</Text>
+                <Select height={44} marginTop={8} width="100%" value={patchFilter} onChange={(e) => setPatchFilter(e.target.value)}>
+                  <option value="__current">Current patch {currentPatch || ""}</option>
+                  <option value="all">All patches</option>
+                  {availablePatches.map((patch) => (
+                    <option key={patch} value={patch}>
+                      Patch {patch}
+                    </option>
+                  ))}
+                </Select>
+              </Pane>
+            </Pane>
+          </Card>
+        ) : null}
+
+        <Card elevation={0} border="default" background="rgba(255,255,255,0.03)" padding={14}>
+          <Pane display="flex" justifyContent="space-between" marginBottom={10}>
+            <Text size={500}>Loaded</Text>
+            <Strong>{matches.length}</Strong>
+          </Pane>
+          <Pane display="flex" justifyContent="space-between">
+            <Text size={500}>Filtered</Text>
+            <Strong>{filteredMatches.length}</Strong>
+          </Pane>
+        </Card>
+      </Pane>
+
+      <Pane marginTop="auto">
+        <Button type="button" appearance="primary" height={44} width="100%" disabled={loading} onClick={loadDuoAnalysis}>
+          {loading ? "Refreshing..." : "Refresh Data"}
+        </Button>
+        {loading ? (
+          <Pane marginTop={10}>
+            <Spinner size={22} />
+          </Pane>
+        ) : null}
+        {displayedError ? (
+          <Alert intent="danger" title={displayedError} marginTop={12} />
+        ) : null}
+      </Pane>
+    </Pane>
+  );
+}
+

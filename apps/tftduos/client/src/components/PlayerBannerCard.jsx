@@ -1,0 +1,76 @@
+﻿import { useEffect, useMemo, useState } from "react";
+import { Card, Heading, Pane, Text } from "evergreen-ui";
+import { companionArtCandidates, iconCandidates } from "../utils/tft";
+
+export default function PlayerBannerCard({ displayName, riotName, tagLine, rank, companion, fallbackUnitToken = "" }) {
+  const companionUrls = useMemo(() => companionArtCandidates(companion), [companion]);
+  const unitFallbackUrls = useMemo(
+    () => (fallbackUnitToken ? iconCandidates("unit", fallbackUnitToken) : []),
+    [fallbackUnitToken]
+  );
+  const urls = companionUrls.length ? companionUrls : unitFallbackUrls;
+  const [index, setIndex] = useState(0);
+  const [showFallback, setShowFallback] = useState(false);
+
+  useEffect(() => {
+    setIndex(0);
+    setShowFallback(false);
+  }, [companion]);
+
+  function handleError() {
+    if (index + 1 < urls.length) {
+      setIndex((value) => value + 1);
+      return;
+    }
+    setShowFallback(true);
+  }
+
+  return (
+    <Card elevation={1} padding={0} overflow="hidden" border="default">
+      <Pane
+        position="relative"
+        minHeight={220}
+        background={
+          showFallback
+            ? "linear-gradient(135deg, rgba(38,44,58,1) 0%, rgba(23,28,40,1) 100%)"
+            : "rgba(255,255,255,0.04)"
+        }
+      >
+        {!showFallback && urls[index] ? (
+          <img
+            src={urls[index]}
+            alt=""
+            onError={handleError}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+        ) : null}
+        <Pane
+          position="absolute"
+          inset={0}
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.35) 52%, rgba(0,0,0,0.72) 100%)",
+          }}
+        />
+        <Pane position="absolute" left={16} right={16} bottom={16}>
+          <Text size={400} style={{ color: "#fff", opacity: 0.9, textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+            {displayName}
+          </Text>
+          <Heading size={700} marginTop={4} style={{ color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,0.7)" }}>
+            {riotName || displayName}#{tagLine || ""}
+          </Heading>
+          <Text size={400} marginTop={6} style={{ color: "#fff", opacity: 0.85, textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+            {rank || "Unranked"}
+          </Text>
+        </Pane>
+      </Pane>
+    </Card>
+  );
+}
+

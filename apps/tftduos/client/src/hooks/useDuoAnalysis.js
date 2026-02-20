@@ -1,0 +1,525 @@
+﻿import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  DISPLAY_NAME_A,
+  DISPLAY_NAME_B,
+  HARD_CODED_QUERY,
+} from "../config/constants";
+import {
+  asArray,
+  comparePatchVersionsDesc,
+  patchFromVersion,
+  prettyName,
+  summarizeFromMatches,
+  toEpochMs,
+} from "../utils/tft";
+
+export default function useDuoAnalysis() {
+  const [activeTab, setActiveTab] = useState("history");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
+  const [rateLimitMessage, setRateLimitMessage] = useState("");
+  const [retryQuery, setRetryQuery] = useState("");
+  const [payload, setPayload] = useState(null);
+
+  const [timelineDays, setTimelineDays] = useState("30");
+  const [setFilter, setSetFilter] = useState("all");
+  const [patchFilter, setPatchFilter] = useState("__current");
+  const [currentPatch, setCurrentPatch] = useState("");
+  const [didAutoSelectFilters, setDidAutoSelectFilters] = useState(false);
+
+  const [coachMatchId, setCoachMatchId] = useState("");
+  const [planAt32, setPlanAt32] = useState("");
+  const [executedPlan, setExecutedPlan] = useState("");
+  const [tagPanicRoll, setTagPanicRoll] = useState(false);
+  const [tagMissedGift, setTagMissedGift] = useState(false);
+  const [tagBothRoll, setTagBothRoll] = useState(false);
+  const [quickStage, setQuickStage] = useState("3.2");
+  const [quickActor, setQuickActor] = useState("A");
+  const [coachSaving, setCoachSaving] = useState(false);
+  const [coachMessage, setCoachMessage] = useState("");
+  const [iconManifest, setIconManifest] = useState({ traits: {}, augments: {} });
+  const hasAutoLoadedRef = useRef(false);
+
+  useEffect(() => {
+    let active = true;
+    async function loadCurrentPatch() {
+      try {
+        const response = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
+        const versions = await response.json();
+        const patch = patchFromVersion(Array.isArray(versions) ? versions[0] : "");
+        if (active && patch) setCurrentPatch(patch);
+      } catch {
+        if (active) setCurrentPatch("");
+      }
+    }
+    loadCurrentPatch();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const matches = asArray(payload?.matches);
+  const duoId = payload?.duoId || "";
+
+  const availableSets = useMemo(() => {
+    const setValues = [...new Set(matches.map((m) => m.setNumber).filter((x) => x !== null))];
+    return setValues.sort((a, b) => b - a);
+  }, [matches]);
+
+  const availablePatches = useMemo(() => {
+    const patchValues = [...new Set(matches.map((m) => m.patch).filter(Boolean))];
+    return patchValues.sort(comparePatchVersionsDesc);
+  }, [matches]);
+
+  useEffect(() => {
+    setDidAutoSelectFilters(false);
+  }, [payload]);
+
+  useEffect(() => {
+    if (!matches.length || didAutoSelectFilters) return;
+
+    const timelineCandidates = ["7", "30", "90", "0"];
+    const now = Date.now();
+    let nextTimeline = "0";
+
+    for (const candidate of timelineCandidates) {
+      const days = Number(candidate);
+      const cutoff = days > 0 ? now - days * 24 * 60 * 60 * 1000 : null;
+      const hasData = matches.some((m) => toEpochMs(m.gameDatetime) >= (cutoff || 0));
+      if (hasData) {
+        nextTimeline = candidate;
+        break;
+      }
+    }
+
+    const timelineCutoff = Number(nextTimeline) > 0 ? now - Number(nextTimeline) * 24 * 60 * 60 * 1000 : null;
+    const timelineMatches = timelineCutoff
+      ? matches.filter((m) => toEpochMs(m.gameDatetime) >= timelineCutoff)
+      : matches;
+
+    const setValues = [...new Set(timelineMatches.map((m) => m.setNumber).filter((x) => x !== null))].sort((a, b) => b - a);
+    const nextSet = setValues.length ? String(setValues[0]) : "all";
+
+    const setScoped = nextSet === "all" ? timelineMatches : timelineMatches.filter((m) => String(m.setNumber) === nextSet);
+    const setPatches = [...new Set(setScoped.map((m) => m.patch).filter(Boolean))].sort(comparePatchVersionsDesc);
+
+    let nextPatch = "all";
+    if (setPatches.length) {
+      nextPatch = currentPatch && setPatches.includes(currentPatch) ? "__current" : setPatches[0];
+    }
+
+    setTimelineDays(nextTimeline);
+    setSetFilter(nextSet);
+    setPatchFilter(nextPatch);
+    setDidAutoSelectFilters(true);
+  }, [matches, currentPatch, didAutoSelectFilters]);
+
+  const filteredMatches = useMemo(() => {
+    const now = Date.now();
+    const days = Number(timelineDays);
+    const cutoff = Number.isFinite(days) && days > 0 ? now - days * 24 * 60 * 60 * 1000 : null;
+
+    return matches.filter((match) => {
+      if (cutoff && toEpochMs(match.gameDatetime) < cutoff) return false;
+      if (setFilter !== "all" && String(match.setNumber) !== String(setFilter)) return false;
+      if (patchFilter === "__current" && currentPatch) {
+        if (match.patch !== currentPatch) return false;
+      } else if (patchFilter !== "all" && patchFilter !== "__current") {
+        if (match.patch !== patchFilter) return false;
+      }
+      return true;
+    });
+  }, [matches, timelineDays, setFilter, patchFilter, currentPatch]);
+
+  const computed = useMemo(() => summarizeFromMatches(filteredMatches), [filteredMatches]);
+  const kpis = computed.kpis;
+  const hasFilteredMatches = filteredMatches.length > 0;
+  const latestMatchForBanner = useMemo(() => {
+    return [...matches].sort((a, b) => toEpochMs(b.gameDatetime) - toEpochMs(a.gameDatetime))[0] || null;
+  }, [matches]);
+  const recentTeamPlacements = useMemo(() => {
+    return [...filteredMatches]
+      .sort((a, b) => toEpochMs(b.gameDatetime) - toEpochMs(a.gameDatetime))
+      .slice(0, 8)
+      .map((m) => Math.max(m.playerA?.placement || 8, m.playerB?.placement || 8));
+  }, [filteredMatches]);
+  const placementTrend = useMemo(() => {
+    return [...filteredMatches]
+      .sort((a, b) => toEpochMs(a.gameDatetime) - toEpochMs(b.gameDatetime))
+      .map((m) => Math.max(m.playerA?.placement || 8, m.playerB?.placement || 8));
+  }, [filteredMatches]);
+
+  const coachingInsights = useMemo(() => {
+    const summary = {
+      a: {
+        lowGoldLosses: 0,
+        lowDamageLosses: 0,
+        itemCounts: {},
+      },
+      b: {
+        lowGoldLosses: 0,
+        lowDamageLosses: 0,
+        itemCounts: {},
+      },
+    };
+
+    filteredMatches.forEach((match) => {
+      const players = [
+        { key: "a", data: match.playerA },
+        { key: "b", data: match.playerB },
+      ];
+
+      players.forEach(({ key, data }) => {
+        if (!data) return;
+        const placement = Number(data.placement || 8);
+        const goldLeft = Number(data.goldLeft ?? 0);
+        const damage = Number(data.totalDamageToPlayers ?? 0);
+        if (placement > 4 && goldLeft <= 5) summary[key].lowGoldLosses += 1;
+        if (placement > 4 && damage < 40) summary[key].lowDamageLosses += 1;
+
+        asArray(data.units).forEach((unit) => {
+          const names = asArray(unit.itemNames || unit.items).filter(Boolean);
+          names.forEach((itemName) => {
+            summary[key].itemCounts[itemName] = (summary[key].itemCounts[itemName] || 0) + 1;
+          });
+        });
+      });
+    });
+
+    const topItemsA = Object.entries(summary.a.itemCounts)
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 6);
+    const topItemsB = Object.entries(summary.b.itemCounts)
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 6);
+
+    const blame = [];
+    if (summary.a.lowGoldLosses > summary.b.lowGoldLosses + 1) {
+      blame.push(`${DISPLAY_NAME_A}: frequent low-gold losses. Consider fewer panic roll-downs.`);
+    }
+    if (summary.b.lowGoldLosses > summary.a.lowGoldLosses + 1) {
+      blame.push(`${DISPLAY_NAME_B}: frequent low-gold losses. Preserve econ one stage longer.`);
+    }
+    if (summary.a.lowDamageLosses > summary.b.lowDamageLosses + 1) {
+      blame.push(`${DISPLAY_NAME_A}: low damage in losses. Push stronger carry itemization earlier.`);
+    }
+    if (summary.b.lowDamageLosses > summary.a.lowDamageLosses + 1) {
+      blame.push(`${DISPLAY_NAME_B}: low damage in losses. Shift priority to stable backline carries.`);
+    }
+    if (!blame.length) {
+      blame.push("No clear single-player blame signal; most losses look team-level.");
+    }
+
+    return {
+      summary,
+      topItemsA,
+      topItemsB,
+      blame,
+    };
+  }, [filteredMatches]);
+
+  const scorecard = payload?.analysisV2 || null;
+  const playbook = payload?.playbook || null;
+  const highlights = asArray(payload?.highlights?.highlights);
+  const decisionGrade = Number(scorecard?.decisionQuality?.grade || 0);
+  const decisionLeaks = asArray(scorecard?.decisionQuality?.biggestLeaks).slice(0, 4);
+  const coachingBranches = asArray(scorecard?.coachingReplay?.ifThenExamples).slice(0, 4);
+  const giftMetrics = scorecard?.giftEfficiency?.metrics || {};
+  const rescueRate = Number(scorecard?.rescueIndex?.rescueRate || 0);
+  const clutchIndex = Number(scorecard?.rescueIndex?.clutchIndex || 0);
+  const openerCards = asArray(playbook?.topOpeners).slice(0, 3);
+  const staggerSuggestions = asArray(scorecard?.econCoordination?.staggerSuggestions).slice(0, 3);
+
+  const leakCount = Number(scorecard?.decisionQuality?.leakCount || decisionLeaks.length || 0);
+  const lowGoldLossA = Number(coachingInsights?.summary?.a?.lowGoldLosses || 0);
+  const lowGoldLossB = Number(coachingInsights?.summary?.b?.lowGoldLosses || 0);
+  const lowDamageLossA = Number(coachingInsights?.summary?.a?.lowDamageLosses || 0);
+  const lowDamageLossB = Number(coachingInsights?.summary?.b?.lowDamageLosses || 0);
+  const totalPressureA = lowGoldLossA + lowDamageLossA;
+  const totalPressureB = lowGoldLossB + lowDamageLossB;
+  const duoRisk = Math.max(0, Math.min(100, Math.round((leakCount * 12) + (totalPressureA + totalPressureB) * 8)));
+
+  const suggestionCards = [
+    ...decisionLeaks.map((item, idx) => ({
+      id: `leak-${idx}-${item?.leak || "unknown"}`,
+      title: item?.leak || "Leak detected",
+      why: item?.whyItMatters || "Weak execution pattern detected in current sample.",
+      fix: item?.doInstead || "Play lower variance lines and pre-assign roles.",
+      icon: "warning-sign",
+    })),
+    ...coachingInsights.blame.map((item, idx) => ({
+      id: `blame-${idx}`,
+      title: `Blame Signal ${idx + 1}`,
+      why: item,
+      fix: "Review the stage where this pattern appears and assign one owner.",
+      icon: "issue",
+    })),
+  ].slice(0, 6);
+
+  useEffect(() => {
+    if (!filteredMatches.length) {
+      setCoachMatchId("");
+      return;
+    }
+    setCoachMatchId((prev) => {
+      if (prev && filteredMatches.some((m) => m.id === prev)) return prev;
+      return filteredMatches[0].id;
+    });
+  }, [filteredMatches]);
+
+  useEffect(() => {
+    const sets = [...new Set(matches.map((match) => String(match.setNumber || "")).filter(Boolean))];
+    if (!sets.length) {
+      setIconManifest({ traits: {}, augments: {} });
+      return;
+    }
+
+    let active = true;
+    async function loadIconManifest() {
+      try {
+        const response = await fetch(`/api/tft/icon-manifest?sets=${encodeURIComponent(sets.join(","))}`);
+        const data = await response.json();
+        if (!response.ok || !active) return;
+
+        const merged = { traits: {}, augments: {} };
+        Object.values(data?.sets || {}).forEach((setEntry) => {
+          Object.assign(merged.traits, setEntry?.traits || {});
+          Object.assign(merged.augments, setEntry?.augments || {});
+        });
+        setIconManifest(merged);
+      } catch {
+        if (active) setIconManifest({ traits: {}, augments: {} });
+      }
+    }
+
+    loadIconManifest();
+    return () => {
+      active = false;
+    };
+  }, [matches]);
+
+  async function runDuoAnalysis(queryString, isAutoRetry = false) {
+    setLoading(true);
+    if (!isAutoRetry) {
+      setError("");
+      setRateLimitSeconds(0);
+      setRateLimitMessage("");
+      setRetryQuery("");
+    }
+
+    try {
+      const response = await fetch(`/api/tft/duo-history?${queryString}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        const retryAfterSeconds = Number(data?.retryAfterSeconds || 0);
+        if (response.status === 429 && retryAfterSeconds > 0) {
+          setRateLimitSeconds(retryAfterSeconds);
+          setRateLimitMessage(data.error || "Riot rate limit hit.");
+          setRetryQuery(queryString);
+          setError("");
+          return;
+        }
+        throw new Error(data.error || "Failed to load duo analysis.");
+      }
+
+      setRetryQuery("");
+      setRateLimitSeconds(0);
+      setRateLimitMessage("");
+      setPayload(data);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function buildQueryString() {
+    const params = new URLSearchParams({
+      gameNameA: HARD_CODED_QUERY.gameNameA,
+      tagLineA: HARD_CODED_QUERY.tagLineA,
+      gameNameB: HARD_CODED_QUERY.gameNameB,
+      tagLineB: HARD_CODED_QUERY.tagLineB,
+      region: HARD_CODED_QUERY.region,
+      platform: HARD_CODED_QUERY.platform,
+      count: "40",
+      maxHistory: "200",
+      deltaHours: "24",
+    });
+    return params.toString();
+  }
+
+  async function loadDuoAnalysis() {
+    await runDuoAnalysis(buildQueryString());
+  }
+
+  useEffect(() => {
+    if (hasAutoLoadedRef.current) return;
+    hasAutoLoadedRef.current = true;
+    loadDuoAnalysis();
+  }, []);
+
+  useEffect(() => {
+    if (rateLimitSeconds <= 0) return undefined;
+    const timer = setTimeout(() => setRateLimitSeconds((value) => Math.max(0, value - 1)), 1000);
+    return () => clearTimeout(timer);
+  }, [rateLimitSeconds]);
+
+  useEffect(() => {
+    if (!retryQuery || rateLimitSeconds > 0 || loading) return;
+    runDuoAnalysis(retryQuery, true);
+  }, [retryQuery, rateLimitSeconds, loading]);
+
+  async function submitJournal() {
+    if (!duoId) return;
+    setCoachSaving(true);
+    setCoachMessage("");
+    try {
+      const tags = [];
+      if (tagPanicRoll) tags.push("panic_roll");
+      if (tagMissedGift) tags.push("missed_gift");
+      if (tagBothRoll) tags.push("both_roll_same_stage");
+
+      const response = await fetch("/api/duo/journal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          duoId,
+          matchId: coachMatchId || null,
+          planAt32,
+          executed: executedPlan,
+          tags,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to save journal.");
+
+      setCoachMessage("Journal saved.");
+      await runDuoAnalysis(buildQueryString(), true);
+    } catch (submitError) {
+      setCoachMessage(submitError.message);
+    } finally {
+      setCoachSaving(false);
+    }
+  }
+
+  async function submitQuickEvent(type) {
+    if (!duoId) return;
+    setCoachSaving(true);
+    setCoachMessage("");
+    try {
+      const payloadByType = {
+        gift_sent: { giftType: "item", partnerState: "bleeding", outcome: "became_carry" },
+        rescue_arrival: { teammateAtRisk: true, roundOutcomeBefore: "loss_likely", roundOutcomeAfter: "won" },
+        roll_down: { goldBefore: 52, goldAfter: 18, reason: "stabilize" },
+      };
+
+      const [stageMajorRaw, stageMinorRaw] = quickStage.split(".");
+      const stageMajor = Number(stageMajorRaw);
+      const stageMinor = Number(stageMinorRaw);
+
+      const response = await fetch("/api/duo/events/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          duoId,
+          matchId: coachMatchId || null,
+          events: [
+            {
+              type,
+              stageMajor: Number.isFinite(stageMajor) ? stageMajor : 3,
+              stageMinor: Number.isFinite(stageMinor) ? stageMinor : 2,
+              actorSlot: quickActor,
+              payload: payloadByType[type] || {},
+            },
+          ],
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to save event.");
+
+      setCoachMessage(`Logged ${type}.`);
+      await runDuoAnalysis(buildQueryString(), true);
+    } catch (submitError) {
+      setCoachMessage(submitError.message);
+    } finally {
+      setCoachSaving(false);
+    }
+  }
+
+  const displayedError =
+    rateLimitSeconds > 0
+      ? `${rateLimitMessage || "Riot rate limit hit."} Auto retry in ${rateLimitSeconds}s.`
+      : error;
+
+  return {
+    activeTab,
+    setActiveTab,
+    payload,
+    timelineDays,
+    setTimelineDays,
+    setFilter,
+    setSetFilter,
+    patchFilter,
+    setPatchFilter,
+    currentPatch,
+    availableSets,
+    availablePatches,
+    matches,
+    filteredMatches,
+    loading,
+    loadDuoAnalysis,
+    displayedError,
+    latestMatchForBanner,
+    kpis,
+    recentTeamPlacements,
+    hasFilteredMatches,
+    iconManifest,
+    computed,
+    duoRisk,
+    decisionGrade,
+    leakCount,
+    rescueRate,
+    clutchIndex,
+    placementTrend,
+    totalPressureA,
+    totalPressureB,
+    lowGoldLossA,
+    lowGoldLossB,
+    lowDamageLossA,
+    lowDamageLossB,
+    suggestionCards,
+    scorecard,
+    coachingBranches,
+    giftMetrics,
+    staggerSuggestions,
+    openerCards,
+    coachingInsights,
+    highlights,
+    coachMatchId,
+    setCoachMatchId,
+    planAt32,
+    setPlanAt32,
+    executedPlan,
+    setExecutedPlan,
+    tagPanicRoll,
+    setTagPanicRoll,
+    tagMissedGift,
+    setTagMissedGift,
+    tagBothRoll,
+    setTagBothRoll,
+    submitJournal,
+    duoId,
+    coachSaving,
+    quickStage,
+    setQuickStage,
+    quickActor,
+    setQuickActor,
+    submitQuickEvent,
+    coachMessage,
+  };
+}
