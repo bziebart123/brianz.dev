@@ -13,6 +13,12 @@ import {
   toEpochMs,
 } from "../utils/tft";
 
+const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").trim().replace(/\/+$/, "");
+function apiUrl(path) {
+  if (!API_BASE_URL) return path;
+  return `${API_BASE_URL}${path}`;
+}
+
 export default function useDuoAnalysis() {
   const [activeTab, setActiveTab] = useState("history");
 
@@ -279,7 +285,7 @@ export default function useDuoAnalysis() {
     let active = true;
     async function loadIconManifest() {
       try {
-        const response = await fetch(`/api/tft/icon-manifest?sets=${encodeURIComponent(sets.join(","))}`);
+        const response = await fetch(apiUrl(`/api/tft/icon-manifest?sets=${encodeURIComponent(sets.join(","))}`));
         const data = await response.json();
         if (!response.ok || !active) return;
 
@@ -310,7 +316,7 @@ export default function useDuoAnalysis() {
     }
 
     try {
-      const response = await fetch(`/api/tft/duo-history?${queryString}`);
+      const response = await fetch(apiUrl(`/api/tft/duo-history?${queryString}`));
       const data = await response.json();
 
       if (!response.ok) {
@@ -382,7 +388,7 @@ export default function useDuoAnalysis() {
       if (tagMissedGift) tags.push("missed_gift");
       if (tagBothRoll) tags.push("both_roll_same_stage");
 
-      const response = await fetch("/api/duo/journal", {
+      const response = await fetch(apiUrl("/api/duo/journal"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -421,7 +427,7 @@ export default function useDuoAnalysis() {
       const stageMajor = Number(stageMajorRaw);
       const stageMinor = Number(stageMinorRaw);
 
-      const response = await fetch("/api/duo/events/batch", {
+      const response = await fetch(apiUrl("/api/duo/events/batch"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

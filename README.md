@@ -14,19 +14,17 @@ Create a personal portfolio site at the root domain and host multiple sub-apps o
 
 ```txt
 /portfolio          # Static site for brianz.dev
-/apps/tftduos       # Web Service for tftduos.brianz.dev
+/apps/tftduos       # TFTDuos app sources
   /client           # Vite React app
-  /server           # Express API + static hosting of client/dist
+  /server           # Express API service
 ```
 
-## TFTDuos Deployment Model (single Render Web Service)
+## TFTDuos Deployment Model (recommended)
 
-- Build: client is built to `apps/tftduos/client/dist`
-- Start: Node server in `apps/tftduos/server/index.js`
-- API routes: mounted under `/api`
-- Static hosting: serves `../client/dist`
-- SPA fallback: non-`/api` routes return `index.html`
-- Port: uses `process.env.PORT`
+- Frontend: Render **Static Site** (subdomain `tftduos.brianz.dev`)
+- Backend: Render **Web Service** (API only, e.g. `tftduos-api.onrender.com`)
+- Frontend calls backend via `VITE_API_BASE_URL`
+- Riot API key stays only on backend via `RIOT_API_KEY`
 
 ## Local commands
 
@@ -54,21 +52,37 @@ From `apps/tftduos`:
 
 ### TFTDuos (Web Service)
 
-- Service type: `Web Service`
-- Root Directory: `apps/tftduos`
+### TFTDuos Frontend (Static Site)
+
+- Service type: `Static Site`
+- Root Directory: `apps/tftduos/client`
 - Build Command: `npm ci && npm run build`
-- Start Command: `npm start`
+- Publish Directory: `dist`
 - Domain: `tftduos.brianz.dev`
-- Env vars: configure in Render dashboard (`RIOT_API_KEY`, etc.)
+- Env vars:
+  - `VITE_API_BASE_URL=https://<your-tftduos-api-service>.onrender.com`
+  - `VITE_RIOT_GAME_NAME_A`, `VITE_RIOT_TAG_LINE_A`, `VITE_RIOT_GAME_NAME_B`, `VITE_RIOT_TAG_LINE_B`
+  - `VITE_RIOT_ROUTING_REGION`, `VITE_RIOT_PLATFORM_REGION`
+
+### TFTDuos API (Web Service)
+
+- Service type: `Web Service`
+- Root Directory: `apps/tftduos/server`
+- Build Command: `npm ci`
+- Start Command: `npm start`
+- Domain: optional custom API domain (or keep Render URL)
+- Env vars:
+  - `RIOT_API_KEY=<your key>`
+  - `ALLOWED_ORIGINS=https://tftduos.brianz.dev,https://brianz.dev,https://www.brianz.dev`
 
 ## Standard Render Commands
 
-For Web Service apps in this repo, keep commands consistent:
+For backend Web Service apps in this repo:
 
-- Build Command: `npm ci && npm run build`
+- Build Command: `npm ci`
 - Start Command: `npm start`
 
-For static portfolio:
+For static sites:
 
 - Build Command: `npm ci && npm run build`
 - Publish Directory: `dist`
@@ -79,6 +93,7 @@ Use exactly what Render Custom Domains asks for:
 
 - Apex/root domain (`brianz.dev`): Render-provided apex records (A/ALIAS/ANAME per Render)
 - Subdomain (`tftduos.brianz.dev`): typically CNAME to Render target
+- API subdomain (optional): CNAME to API Render service target
 - `www`: usually CNAME if used
 
 ## Notes

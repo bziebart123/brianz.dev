@@ -13,9 +13,9 @@ Build and maintain a **personal portfolio hub with sub-apps**:
 ## Current Architecture
 - Monorepo layout:
   - `portfolio/` -> static portfolio hub (Render Static Site, root domain)
-  - `apps/tftduos/` -> TFT app (Render Web Service, subdomain)
+  - `apps/tftduos/` -> TFT app split into frontend + backend services
   - `apps/tftduos/client/` -> Vite + React + Evergreen UI frontend
-  - `apps/tftduos/server/` -> Node + Express backend + `/api` routes + static SPA hosting
+  - `apps/tftduos/server/` -> Node + Express backend API (`/api` routes)
 - Canonical frontend entry:
   - `apps/tftduos/client/src/App.jsx`
 - `src/App.jsx` at repo root is a re-export shim for editor convenience.
@@ -24,12 +24,13 @@ Build and maintain a **personal portfolio hub with sub-apps**:
 - Root domain serves portfolio (`brianz.dev`, optional `www`).
 - Subdomains serve apps (`tftduos.brianz.dev`, `app2.brianz.dev`, etc.).
 - Deploys should be GitHub push -> Render auto deploy.
-- Render commands should stay standardized:
-  - Build: `npm ci && npm run build`
-  - Start: `npm start` (for Web Services)
+- TFTDuos should deploy as:
+  - frontend Static Site (`apps/tftduos/client`)
+  - backend Web Service (`apps/tftduos/server`)
 
 ## Data And Config
 - Frontend Riot IDs/regions come from client env vars:
+  - `VITE_API_BASE_URL`
   - `VITE_RIOT_GAME_NAME_A`
   - `VITE_RIOT_TAG_LINE_A`
   - `VITE_RIOT_GAME_NAME_B`
@@ -38,6 +39,7 @@ Build and maintain a **personal portfolio hub with sub-apps**:
   - `VITE_RIOT_PLATFORM_REGION`
 - Server Riot key comes from:
   - `apps/tftduos/.env` (`RIOT_API_KEY`)
+  - `ALLOWED_ORIGINS` for CORS allowlist
 - Never hardcode secrets.
 
 ## UI/UX Priorities
