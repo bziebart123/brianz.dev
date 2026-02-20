@@ -18,7 +18,10 @@ const allowedOrigins = String(process.env.ALLOWED_ORIGINS || "")
   .split(",")
   .map((value) => value.trim())
   .filter(Boolean);
+const rateLimitWindowMs = Math.max(1000, Number(process.env.RATE_LIMIT_WINDOW_MS || 60000));
+const rateLimitMaxRequests = Math.max(1, Number(process.env.RATE_LIMIT_MAX_REQUESTS || 90));
 const cache = new Map();
+const requestBuckets = new Map();
 app.use(express.json({ limit: "1mb" }));
 
 app.use((req, res, next) => {
@@ -42,6 +45,31 @@ app.use((req, res, next) => {
   }
 
   return res.status(403).json({ error: "Origin not allowed." });
+});
+
+app.use("/api", (req, res, next) => {
+  const now = Date.now();
+  const key = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown")
+    .split(",")[0]
+    .trim();
+  const bucket = requestBuckets.get(key);
+
+  if (!bucket || now - bucket.windowStart > rateLimitWindowMs) {
+    requestBuckets.set(key, { windowStart: now, count: 1 });
+    return next();
+  }
+
+  if (bucket.count >= rateLimitMaxRequests) {
+    const retryAfter = Math.max(1, Math.ceil((rateLimitWindowMs - (now - bucket.windowStart)) / 1000));
+    res.setHeader("Retry-After", String(retryAfter));
+    return res.status(429).json({
+      error: "Too many requests. Please try again shortly.",
+      retryAfterSeconds: retryAfter,
+    });
+  }
+
+  bucket.count += 1;
+  return next();
 });
 const PERSISTED_CACHE_PATH = path.join(process.cwd(), ".cache", "duo-history-cache.json");
 const PERSISTED_CACHE_VERSION = 1;

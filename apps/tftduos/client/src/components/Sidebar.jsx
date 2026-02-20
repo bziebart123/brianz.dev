@@ -32,6 +32,8 @@ export default function Sidebar({
   loadDuoAnalysis,
   displayedError,
 }) {
+  const portfolioUrl = String(import.meta.env.VITE_PORTFOLIO_URL || "https://brianz.dev").trim();
+
   return (
     <Pane
       width={340}
@@ -46,7 +48,28 @@ export default function Sidebar({
       flexDirection="column"
     >
       <Pane>
-        <Heading size={700}>Duo TFT Coach</Heading>
+        <Pane display="flex" alignItems="center" gap={10}>
+          <a
+            href={portfolioUrl}
+            title="Back to Portfolio"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 34,
+              height: 34,
+              borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.14)",
+              color: "inherit",
+              textDecoration: "none",
+              fontWeight: 700,
+              lineHeight: 1,
+            }}
+          >
+            {"<"}
+          </a>
+          <Heading size={700}>Duo TFT Coach</Heading>
+        </Pane>
         <Text size={500} color="muted" display="block" marginTop={8} marginBottom={22}>
           Evergreen UI refresh
         </Text>

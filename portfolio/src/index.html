@@ -3,76 +3,155 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Brian Portfolio Hub</title>
+    <title>Brian Z Portfolio</title>
     <style>
       :root {
-        color-scheme: light;
-        font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+        --bg-0: #0a0f1c;
+        --bg-1: #10182a;
+        --card: #141f34;
+        --card-border: #2a3b62;
+        --text: #e8edff;
+        --muted: #9bb0da;
+        --accent: #6fc2ff;
+        --accent-2: #e0bd72;
+        --radius: 18px;
       }
       body {
         margin: 0;
         min-height: 100vh;
-        background: linear-gradient(145deg, #f4f6fa 0%, #e8edf7 100%);
-        color: #182133;
+        color: var(--text);
+        background:
+          radial-gradient(900px 450px at 85% -10%, rgba(111, 194, 255, 0.2), transparent 60%),
+          radial-gradient(700px 380px at 10% 100%, rgba(224, 189, 114, 0.18), transparent 60%),
+          linear-gradient(150deg, var(--bg-0), var(--bg-1));
+        font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
       }
       main {
-        max-width: 980px;
+        max-width: 1040px;
         margin: 0 auto;
-        padding: 64px 24px;
+        padding: 72px 24px;
+      }
+      .hero {
+        margin-bottom: 28px;
       }
       h1 {
-        font-size: clamp(2rem, 5vw, 3.5rem);
-        margin: 0 0 16px;
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        margin: 0;
+        letter-spacing: 0.02em;
       }
       p {
-        font-size: 1.1rem;
-        line-height: 1.5;
-        margin: 0 0 24px;
-        color: #3b4661;
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 1.05rem;
       }
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
       }
       a.card {
         display: block;
-        padding: 18px;
-        border-radius: 14px;
-        border: 1px solid #ced7ea;
-        background: rgba(255, 255, 255, 0.9);
+        padding: 18px 18px 16px;
+        border-radius: var(--radius);
+        border: 1px solid var(--card-border);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
         text-decoration: none;
-        color: inherit;
+        color: var(--text);
+        transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
       }
       a.card:hover {
-        border-color: #95a9d2;
-        transform: translateY(-1px);
+        border-color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(6, 10, 20, 0.36);
       }
       .label {
-        font-size: 0.9rem;
-        color: #607096;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
       }
       .title {
-        font-size: 1.2rem;
-        margin-top: 6px;
-        font-weight: 650;
+        font-size: 1.28rem;
+        margin-top: 7px;
+        font-weight: 700;
+      }
+      .description {
+        color: var(--muted);
+        margin-top: 8px;
+        font-size: 0.96rem;
+      }
+      .meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 14px;
+      }
+      .pill {
+        border-radius: 999px;
+        border: 1px solid rgba(111, 194, 255, 0.4);
+        color: var(--accent);
+        padding: 4px 10px;
+        font-size: 0.78rem;
+      }
+      .logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 25% 25%, #2a3962, #121b31);
+        border: 1px solid #3a5187;
+        margin-bottom: 10px;
+      }
+      .logo svg {
+        width: 38px;
+        height: 38px;
       }
     </style>
   </head>
   <body>
     <main>
-      <h1>Portfolio Hub</h1>
-      <p>Central launch page for apps and projects hosted on subdomains.</p>
+      <section class="hero">
+        <h1>Brian Z Project Hub</h1>
+        <p>Launchpad for deployed side-projects and experiments.</p>
+      </section>
       <section class="grid">
-        <a class="card" href="https://app1.yourname.com">
+        <a class="card" id="tftduos-link" href="https://tftduos.brianz.dev">
+          <div class="logo" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 24L32 10L56 24L32 38L8 24Z" fill="#E0BD72"/>
+              <path d="M8 40L32 26L56 40L32 54L8 40Z" fill="#6FC2FF" fill-opacity="0.95"/>
+            </svg>
+          </div>
           <div class="label">Live App</div>
-          <div class="title">App 1</div>
+          <div class="title">TFT Duos Coach</div>
+          <div class="description">Duo match analysis, coaching insights, and trend tracking.</div>
+          <div class="meta">
+            <span class="pill">brianz.dev</span>
+          </div>
         </a>
-        <a class="card" href="https://app2.yourname.com">
+        <a class="card" href="https://app2.brianz.dev">
           <div class="label">Coming Soon</div>
           <div class="title">App 2</div>
+          <div class="description">Reserved slot for the next project.</div>
+          <div class="meta">
+            <span class="pill">planned</span>
+          </div>
         </a>
       </section>
     </main>
+    <script>
+      (function () {
+        var link = document.getElementById("tftduos-link");
+        if (!link) return;
+        var host = window.location.hostname;
+        var isLocal = host === "localhost" || host === "127.0.0.1";
+        if (isLocal) {
+          link.setAttribute("href", "http://localhost:5173");
+        } else {
+          link.setAttribute("href", "https://tftduos.brianz.dev");
+        }
+      })();
+    </script>
   </body>
 </html>
