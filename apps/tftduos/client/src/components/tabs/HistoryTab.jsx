@@ -3,7 +3,7 @@ import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
 import PlayerBannerCard from "../PlayerBannerCard";
 import StatCard from "../StatCard";
 import IconWithLabel from "../IconWithLabel";
-import { asArray, formatDuration, formatTime, placementBadgeColor, prettyName } from "../../utils/tft";
+import { asArray, formatDuration, formatTime, placementBadgeColor, prettyName, teamPlacementFromMatch } from "../../utils/tft";
 
 export default function HistoryTab({
   payload,
@@ -75,13 +75,15 @@ export default function HistoryTab({
         <Alert intent="warning" title={`Loaded ${matches.length} matches but none match current filters.`} />
       ) : null}
 
-      {filteredMatches.map((match) => (
+      {filteredMatches.map((match) => {
+        const teamPlacement = teamPlacementFromMatch(match);
+        return (
         <Card key={match.id} elevation={0} padding={14} background="rgba(255,255,255,0.03)">
           <Pane display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={8}>
             <Pane display="flex" alignItems="center" gap={10}>
               <Heading size={500}>{match.queueLabel}</Heading>
-              <Badge color={placementBadgeColor(Math.max(match.playerA?.placement || 8, match.playerB?.placement || 8))}>
-                Team #{Math.max(match.playerA?.placement || 8, match.playerB?.placement || 8)}
+              <Badge color={placementBadgeColor(teamPlacement)}>
+                Team #{teamPlacement}
               </Badge>
             </Pane>
             <Badge color="neutral">{formatDuration(match.gameLength)}</Badge>
@@ -174,7 +176,8 @@ export default function HistoryTab({
             </Card>
           </Pane>
         </Card>
-      ))}
+        );
+      })}
     </Pane>
   );
 }

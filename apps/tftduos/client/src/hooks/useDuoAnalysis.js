@@ -10,6 +10,7 @@ import {
   patchFromVersion,
   prettyName,
   summarizeFromMatches,
+  teamPlacementFromMatch,
   toEpochMs,
 } from "../utils/tft";
 
@@ -190,12 +191,12 @@ export default function useDuoAnalysis() {
     return [...filteredMatches]
       .sort((a, b) => toEpochMs(b.gameDatetime) - toEpochMs(a.gameDatetime))
       .slice(0, 8)
-      .map((m) => Math.max(m.playerA?.placement || 8, m.playerB?.placement || 8));
+      .map((m) => teamPlacementFromMatch(m));
   }, [filteredMatches]);
   const placementTrend = useMemo(() => {
     return [...filteredMatches]
       .sort((a, b) => toEpochMs(a.gameDatetime) - toEpochMs(b.gameDatetime))
-      .map((m) => Math.max(m.playerA?.placement || 8, m.playerB?.placement || 8));
+      .map((m) => teamPlacementFromMatch(m));
   }, [filteredMatches]);
 
   const coachingInsights = useMemo(() => {

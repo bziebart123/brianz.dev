@@ -70,10 +70,7 @@ export default function PlayerBannerCard({
           }}
         />
         <Pane position="absolute" left={16} right={16} bottom={16}>
-          <Text size={400} style={{ color: "#fff", opacity: 0.9, textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
-            {displayName}
-          </Text>
-          <Heading size={700} marginTop={4} style={{ color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,0.7)" }}>
+          <Heading size={700} marginTop={0} style={{ color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,0.7)" }}>
             {riotName || displayName}#{tagLine || ""}
           </Heading>
           <Text size={400} marginTop={6} style={{ color: "#fff", opacity: 0.85, textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>

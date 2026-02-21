@@ -179,6 +179,55 @@ export function comparePatchVersionsDesc(a, b) {
   return 0;
 }
 
+export function teamPlacementFromMatch(match) {
+  if (!match || typeof match !== "object") return 8;
+
+  const fallbackIndividual = Math.max(match.playerA?.placement || 8, match.playerB?.placement || 8);
+  const groupIdA = match.playerA?.partnerGroupId;
+  const groupIdB = match.playerB?.partnerGroupId;
+  const duoGroupId = groupIdA && groupIdB && groupIdA === groupIdB ? groupIdA : null;
+
+  const lobby = asArray(match.lobby).filter(
+    (player) => Number.isFinite(Number(player?.placement)) && Number(player?.placement) > 0
+  );
+  if (duoGroupId && lobby.length) {
+    const groups = new Map();
+    for (const player of lobby) {
+      const groupId = player?.partnerGroupId;
+      const placement = Number(player?.placement);
+      if (!groupId || !Number.isFinite(placement) || placement <= 0) continue;
+      const existing = groups.get(groupId) || [];
+      existing.push(placement);
+      groups.set(groupId, existing);
+    }
+
+    const rankedGroups = [...groups.entries()]
+      .map(([groupId, placements]) => {
+        const sum = placements.reduce((acc, value) => acc + value, 0);
+        return {
+          groupId,
+          avgPlacement: sum / placements.length,
+          bestPlacement: Math.min(...placements),
+          worstPlacement: Math.max(...placements),
+        };
+      })
+      .sort(
+        (left, right) =>
+          left.avgPlacement - right.avgPlacement ||
+          left.bestPlacement - right.bestPlacement ||
+          left.worstPlacement - right.worstPlacement
+      );
+
+    const rank = rankedGroups.findIndex((entry) => entry.groupId === duoGroupId);
+    if (rank >= 0) return rank + 1;
+  }
+
+  if (match.sameTeam) {
+    return Math.max(1, Math.min(4, Math.ceil(fallbackIndividual / 2)));
+  }
+  return fallbackIndividual;
+}
+
 export function summarizeFromMatches(matches) {
   if (!matches.length) {
     return {
@@ -202,9 +251,9 @@ export function summarizeFromMatches(matches) {
   const aPlacements = matches.map((m) => m.playerA?.placement || 8);
   const bPlacements = matches.map((m) => m.playerB?.placement || 8);
   const sameTeam = matches.filter((m) => m.sameTeam);
-  const sameTeamPlacements = sameTeam.map((m) => Math.max(m.playerA?.placement || 8, m.playerB?.placement || 8));
+  const sameTeamPlacements = sameTeam.map((m) => teamPlacementFromMatch(m));
   const top4Count = sameTeamPlacements.filter((p) => p <= 4).length;
-  const teamPlacements = matches.map((m) => Math.max(m.playerA?.placement || 8, m.playerB?.placement || 8));
+  const teamPlacements = matches.map((m) => teamPlacementFromMatch(m));
   const teamTop4Count = teamPlacements.filter((p) => p <= 4).length;
   const teamWinCount = teamPlacements.filter((p) => p === 1).length;
 
@@ -247,7 +296,7 @@ export function summarizeFromMatches(matches) {
   if (sameTeam.length < 5) {
     suggestions.push("Small same-team sample size. Queue together in Double Up for stronger trend confidence.");
   }
-  if (avgTeam !== null && avgTeam > 4.5) {
+  if (avgTeam !== null && avgTeam > 2.5) {
     suggestions.push("Team average is outside Top 4. Stabilize one board early and let the other greed economy.");
   }
   if (metaTraits.length >= 3) {
