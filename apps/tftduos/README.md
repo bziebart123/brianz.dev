@@ -52,7 +52,7 @@ Server env vars (see `.env.example` and server code):
 - Trait icons are tier-colored with distinct bronze/silver/gold/prismatic styles.
 - UI text/icons are scaled up for readability.
 - Left sidebar keeps the Refresh Data action anchored at the viewport bottom while upper sidebar content scrolls independently.
-- Global shell `zoom` scaling was removed; text sizing now comes from `TEXT_SCALE` in `client/src/config/constants.js`, applied to typography only so layout dimensions stay stable.
+- Global shell `zoom` scaling was removed; text sizing now comes from `TEXT_SCALE` in `client/src/config/constants.js` (currently `1.45`), applied to typography/UI text surfaces (headings, tabs, buttons, selects, badges) while layout dimensions stay stable.
 
 ## Testing
 
