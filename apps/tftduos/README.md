@@ -106,8 +106,17 @@ Server env vars (see `.env.example` and server code):
 - Test runner: Vitest + Testing Library (client)
 - Config: `client/vitest.config.js`
 - Test setup: `client/src/test/setup.js`
-- Initial UI coverage includes History page rendering behavior:
-  - `client/src/components/tabs/HistoryTab.test.jsx`
+- Current coverage includes:
+  - History tab rendering and board-slot behavior:
+    - `client/src/components/tabs/HistoryTab.test.jsx`
+  - Core TFT utility logic (placement mapping, KPI/meta summarization):
+    - `client/src/utils/tft.test.js`
+  - Coaching inference engine modules (tilt/fingerprints/win-conditions/autopsy/coordination/wild signals):
+    - `client/src/utils/coachingIntel.test.js`
+  - Coaching tab integration rendering for new intelligence sections:
+    - `client/src/components/tabs/CoachingTab.test.jsx`
+  - Wild Correlations tab integration rendering and generator interactions:
+    - `client/src/components/tabs/WildCorrelationsTab.test.jsx`
 
 CI:
 
