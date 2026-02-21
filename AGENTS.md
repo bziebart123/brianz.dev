@@ -81,6 +81,21 @@ Build and maintain a **personal portfolio hub with sub-apps**:
 4. Production secrets must be configured in Render Environment settings, not local `.env`.
 5. DNS in Porkbun must match exactly what Render Custom Domains requests.
 
+## Branching And Publish Rules (Required)
+- Never make code/doc changes directly on `main`.
+- Every change must be done on a feature branch.
+- Branch naming convention:
+  - `feature/<short-description>` for features
+  - `fix/<short-description>` for bug fixes
+  - `docs/<short-description>` for docs-only changes
+- After each meaningful change set, create a commit immediately (small, atomic commits).
+- Do not leave working changes uncommitted unless explicitly requested.
+- When user says `publish`, interpret it as:
+  1. ensure feature branch is up to date and clean
+  2. merge feature branch into `main`
+  3. push `main` to origin
+- If merge conflicts occur during publish, resolve them and continue unless user requests manual intervention.
+
 ## What To Optimize Next
 1. Better coaching insight quality (more actionable, less generic).
 2. Stable and transparent filtering behavior.
