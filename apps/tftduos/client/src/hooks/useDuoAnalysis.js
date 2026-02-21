@@ -19,10 +19,42 @@ const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").trim().repl
 const EMPTY_MATCHES = [];
 const EMPTY_ICON_MANIFEST = { traits: {}, augments: {} };
 const EMPTY_COMPANION_MANIFEST = { byItemId: {}, byContentId: {} };
+const AI_COACH_CACHE_KEY_PREFIX = "tftduos-ai-coach-v1";
 
 function apiUrl(path) {
   if (!API_BASE_URL) return path;
   return `${API_BASE_URL}${path}`;
+}
+
+function aiCoachCacheKey({ duoId, timelineDays, setFilter, patchFilter }) {
+  return [
+    AI_COACH_CACHE_KEY_PREFIX,
+    String(duoId || "unknown"),
+    String(timelineDays || "30"),
+    String(setFilter || "all"),
+    String(patchFilter || "all"),
+  ].join(":");
+}
+
+function readAiCoachCache(cacheKey) {
+  try {
+    const raw = localStorage.getItem(cacheKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return null;
+    if (!parsed.response || typeof parsed.response !== "object") return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeAiCoachCache(cacheKey, payload) {
+  try {
+    localStorage.setItem(cacheKey, JSON.stringify(payload));
+  } catch {
+    // Ignore cache write failures (private mode/quota).
+  }
 }
 
 function compactMatchForAi(match) {
@@ -562,6 +594,23 @@ export default function useDuoAnalysis() {
 
   async function loadAiCoaching(force = false) {
     if (!payload || !filteredMatches.length) return;
+    const resolvedPatch = patchFilter === "__current" && currentPatch ? currentPatch : patchFilter;
+    const cacheKey = aiCoachCacheKey({
+      duoId,
+      timelineDays,
+      setFilter,
+      patchFilter: resolvedPatch,
+    });
+    const newestSharedMatch = [...filteredMatches]
+      .filter((match) => Boolean(match?.sameTeam))
+      .sort((left, right) => toEpochMs(right?.gameDatetime) - toEpochMs(left?.gameDatetime))[0];
+    const newestAnyMatch = [...filteredMatches]
+      .sort((left, right) => toEpochMs(right?.gameDatetime) - toEpochMs(left?.gameDatetime))[0];
+    const newestRelevantMatch = newestSharedMatch || newestAnyMatch || null;
+    const newestMatchToken = newestRelevantMatch
+      ? `${String(newestRelevantMatch?.id || "unknown")}:${Number(toEpochMs(newestRelevantMatch?.gameDatetime) || 0)}`
+      : "none";
+
     const compactMatches = [...filteredMatches]
       .sort((left, right) => toEpochMs(right?.gameDatetime) - toEpochMs(left?.gameDatetime))
       .slice(0, 32)
@@ -571,7 +620,7 @@ export default function useDuoAnalysis() {
       filter: {
         timelineDays: Number(timelineDays || 30),
         set: setFilter,
-        patch: patchFilter === "__current" && currentPatch ? currentPatch : patchFilter,
+        patch: resolvedPatch,
       },
       players: {
         a: DISPLAY_NAME_A,
@@ -607,6 +656,17 @@ export default function useDuoAnalysis() {
       metrics: requestBody.metrics,
       matches: requestBody.matches.map((m) => m.id),
     });
+
+    if (!force) {
+      const cached = readAiCoachCache(cacheKey);
+      if (cached && cached.newestMatchToken === newestMatchToken) {
+        aiRequestKeyRef.current = requestKey;
+        setAiCoaching(cached.response);
+        setAiCoachingError("");
+        return;
+      }
+    }
+
     if (!force && aiRequestKeyRef.current === requestKey) return;
     aiRequestKeyRef.current = requestKey;
 
@@ -623,6 +683,11 @@ export default function useDuoAnalysis() {
         throw new Error(data?.error || "Failed to generate AI coaching.");
       }
       setAiCoaching(data);
+      writeAiCoachCache(cacheKey, {
+        newestMatchToken,
+        generatedAt: Date.now(),
+        response: data,
+      });
     } catch (requestError) {
       const fallbackMessage = "AI coach network request failed. Try Refresh AI or a smaller timeline window.";
       setAiCoachingError(String(requestError?.message || fallbackMessage));
