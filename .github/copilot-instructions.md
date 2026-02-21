@@ -12,14 +12,14 @@ This monorepo hosts a personal portfolio site and multiple sub-apps.
 
 - `portfolio/`: static portfolio site.
 - `apps/tftduos/client`: Vite + React + Evergreen UI frontend.
-- `apps/tftduos/server`: Node + Express API backend for Riot/TFT data.
-- Root legacy app/server files were removed; use `apps/tftduos/*` only.
+- `apps/backend`: Node + Express shared API backend for Riot/TFT data + site performance metrics.
+- Root legacy app/server files were removed; use `portfolio/` and `apps/*` paths only.
 
 ## Deployment Model (Render)
 
 - Portfolio: Render Static Site from `portfolio/`.
 - TFT frontend: Render Static Site from `apps/tftduos/client`.
-- TFT backend: Render Web Service from `apps/tftduos/server`.
+- Shared backend: Render Web Service from `apps/backend`.
 - Frontend calls backend via `VITE_API_BASE_URL`.
 
 ## Environment Variables
@@ -34,7 +34,7 @@ Frontend (`apps/tftduos/client`):
 - `VITE_RIOT_ROUTING_REGION`
 - `VITE_RIOT_PLATFORM_REGION`
 
-Backend (`apps/tftduos/server`):
+Backend (`apps/backend`):
 
 - `RIOT_API_KEY`
 - `ALLOWED_ORIGINS`
@@ -59,10 +59,10 @@ Never hardcode secrets.
 
 - Prefer small focused components/hooks/utils over large files.
 - Keep UI changes in `client/src/components`, logic in `client/src/utils`/hooks.
-- Keep backend API logic in `apps/tftduos/server/index.js` and `server/lib/*`.
+- Keep backend API logic in `apps/backend/index.js` and `apps/backend/lib/*`.
 - Validate with builds after meaningful changes:
   - `npm --prefix apps/tftduos/client run build`
-  - `node --check apps/tftduos/server/index.js`
+  - `node --check apps/backend/index.js`
 
 ## When Making Changes
 

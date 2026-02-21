@@ -5,19 +5,19 @@ TFT duo coaching/analysis sub-app in the portfolio monorepo.
 ## Architecture
 
 - `client/`: Vite + React + Evergreen UI
-- `server/`: Express API (Riot integration + analytics helpers)
+- Shared backend lives at `apps/backend/`: brianz backend Express API (Riot integration + analytics helpers)
 
 ## Local Development
 
 From repo root:
 
 - `npm run dev:tftduos:client`
-- `npm run dev:tftduos:server`
+- `npm run dev:brianz:backend` (`npm run dev:tftduos:server` still works as an alias)
 
 From `apps/tftduos`:
 
 - `npm run dev:client`
-- `npm run dev:server`
+- `npm run dev:server` (starts `apps/backend`)
 - `npm run build`
 - `npm start`
 
@@ -42,6 +42,9 @@ Server env vars (see `.env.example` and server code):
 - `OPENAI_MODEL` (optional, default `gpt-4o-mini`)
 - `OPENAI_TIMEOUT_MS` (optional request timeout, default `15000`)
 - `OPENAI_WEB_SEARCH_ENABLED` (optional, default `1`; enables OpenAI web search tool for live meta lookups)
+- `RENDER_API_KEY` (required for Site Performance dashboard routes)
+- `RENDER_API_BASE_URL` (optional, default `https://api.render.com/v1`)
+- `RENDER_DASHBOARD_SERVICE_IDS` (optional comma-separated Render service IDs to scope Site Performance dashboard)
 
 ## Current Product Behavior
 
@@ -129,6 +132,8 @@ Server env vars (see `.env.example` and server code):
   - Includes disclaimer, cosmic summary + copy action, cursed/blessed queue windows, generated nonsense takes, and transparent joke "method" labels
 - Timeline auto-default selection now prioritizes `30` days before shorter windows.
 - Quick event stage default for manual logging is now `4.1` to better align with late-stage clutch/rescue signal capture.
+- Shared backend now also exposes Site Performance metrics routes:
+  - `GET /api/site-performance/render/overview` (Render service/metric rollups for the Site Performance dashboard)
 
 ## Testing
 
@@ -153,7 +158,7 @@ CI:
 - Runs on `pull_request` and `push` for `main`.
 - Validates:
   - `apps/tftduos/client` tests + production build
-  - `apps/tftduos/server` syntax (`node --check`)
+  - `apps/backend` syntax (`node --check`)
   - `portfolio` static build (`npm run build:portfolio`)
 - Recommended Render frontend build command:
   - `npm ci && npm run test && npm run build`
@@ -164,7 +169,7 @@ CI:
   - `client/src/utils/tft.js`
   - `client/src/components/tabs/HistoryTab.jsx`
   - `.github/copilot-instructions.md`
-- Legacy root runtime files were removed; use only `apps/tftduos/client` and `apps/tftduos/server` paths for dev/deploy.
+- Legacy root runtime files were removed; use `apps/tftduos/client` and `apps/backend` paths for dev/deploy.
 - `client/src/hooks/useDuoAnalysis.js` keeps an identity-stable empty `matches` list and skips redundant manifest resets to prevent React effect loops (`Maximum update depth exceeded`) before payload data loads.
 - Coaching client-state cleanup (no user-facing behavior change):
   - `client/src/App.jsx` now passes only actively consumed `CoachingTab` props.
@@ -174,3 +179,4 @@ CI:
     - `major.minor` from `client/package.json`
     - `build` from current commit epoch (`git show -s --format=%ct HEAD`), fallback: UTC build timestamp when git metadata is unavailable
   - `__TFTDUOS_RELEASE_NOTES__` from recent GitHub commits API (repo slug resolved from render/git env), with `git log` fallback and final static fallback notes if both are unavailable
+

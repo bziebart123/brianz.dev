@@ -1,4 +1,4 @@
-﻿# Project Context For Codex
+# Project Context For Codex
 
 ## Primary Goal
 Build and maintain a **personal portfolio hub with sub-apps**:
@@ -13,20 +13,24 @@ Build and maintain a **personal portfolio hub with sub-apps**:
 ## Current Architecture
 - Monorepo layout:
   - `portfolio/` -> static portfolio hub (Render Static Site, root domain)
-  - `apps/tftduos/` -> TFT app split into frontend + backend services
+  - `apps/site-performance/client/` -> Render meta dashboard frontend (Vite + React)
+  - `apps/backend/` -> Node + Express brianz backend API (`/api/tft*`, `/api/duo*`, `/api/coach*`, `/api/site-performance*`)
+  - `apps/tftduos/` -> TFT frontend app sources
   - `apps/tftduos/client/` -> Vite + React + Evergreen UI frontend
-  - `apps/tftduos/server/` -> Node + Express backend API (`/api` routes)
 - Canonical frontend entry:
   - `apps/tftduos/client/src/App.jsx`
 - Root-level legacy app/server files have been removed; do not add alternate root runtimes.
 
 ## Deployment Intent
 - Root domain serves portfolio (`brianz.dev`, optional `www`).
-- Subdomains serve apps (`tftduos.brianz.dev`, `app2.brianz.dev`, etc.).
+- Subdomains serve apps (`tftduos.brianz.dev`, `site-performance.brianz.dev`, etc.).
 - Deploys should be GitHub push -> Render auto deploy.
 - TFTDuos should deploy as:
   - frontend Static Site (`apps/tftduos/client`)
-  - backend Web Service (`apps/tftduos/server`)
+  - backend Web Service (`apps/backend`)
+- Site Performance should deploy as:
+  - frontend Static Site (`apps/site-performance/client`)
+  - shared backend remains `apps/backend` (no separate Site Performance backend service)
 
 ## Data And Config
 - Frontend Riot IDs/regions come from client env vars:
@@ -101,4 +105,5 @@ Build and maintain a **personal portfolio hub with sub-apps**:
 2. Stable and transparent filtering behavior.
 3. Maintainable code structure (continue splitting large modules when needed).
 4. Reliable Render deployment workflow.
+
 

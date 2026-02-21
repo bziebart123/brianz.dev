@@ -32,7 +32,7 @@ jobs:
       - name: Build client
         run: npm run build
 
-  verify-tftduos-server:
+  verify-brianz-backend:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -43,8 +43,8 @@ jobs:
         with:
           node-version: 20
 
-      - name: Check server syntax
-        run: node --check apps/tftduos/server/index.js
+      - name: Check backend syntax
+        run: node --check apps/backend/index.js
 
   verify-portfolio:
     runs-on: ubuntu-latest
@@ -59,3 +59,25 @@ jobs:
 
       - name: Build portfolio
         run: npm run build:portfolio
+
+  verify-site-performance-client:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/site-performance/client
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/site-performance/client/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site-performance client
+        run: npm run build
