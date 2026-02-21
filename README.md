@@ -80,6 +80,9 @@ From `apps/tftduos/client`:
 - Env vars:
   - `RIOT_API_KEY=<your key>`
   - `ALLOWED_ORIGINS=https://tftduos.brianz.dev,https://brianz.dev,https://www.brianz.dev`
+  - `OPENAI_API_KEY=<optional, enables AI coaching brief>`
+  - `OPENAI_MODEL=gpt-4o-mini` (optional)
+  - `OPENAI_TIMEOUT_MS=15000` (optional)
 
 ## Standard Render Commands
 
@@ -118,6 +121,7 @@ Use exactly what Render Custom Domains asks for:
 - TFTDuos client builds now embed release metadata (`major.minor.build` + recent commit subjects) for in-app release notes display, using commit-epoch build IDs and GitHub-API-first commit notes so local/prod stay consistent even with shallow clones.
 - TFTDuos Analysis tab now renders a dashboard-style analytics view with a full-width team rank trend chart, team trend KPIs, patch performance, and per-player breakdowns from filtered match data.
 - TFTDuos Coaching tab now renders a dynamic coaching command center with team priorities, individualized player plans, and a stage-based action workflow driven by filtered match + event data.
+- TFTDuos backend now supports optional OpenAI-powered coaching synthesis (`/api/coach/llm-brief`) with deterministic fallback output when model access is unavailable.
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.
 

@@ -38,6 +38,9 @@ Server env vars (see `.env.example` and server code):
 
 - `RIOT_API_KEY` (required)
 - `ALLOWED_ORIGINS`
+- `OPENAI_API_KEY` (optional, enables live AI coaching brief generation)
+- `OPENAI_MODEL` (optional, default `gpt-4o-mini`)
+- `OPENAI_TIMEOUT_MS` (optional request timeout, default `15000`)
 
 ## Current Product Behavior
 
@@ -87,6 +90,12 @@ Server env vars (see `.env.example` and server code):
   - Stage-based dynamic plan from scorecard replay fields and branches
   - Journal + Quick Event panels preserved for feedback-loop logging
 - Coaching recommendations are rule-driven and data-adaptive (not hardcoded static text), and become more specific as event sample size grows.
+- Coaching now includes an `AI Coach Brief` card that calls `POST /api/coach/llm-brief` with current filtered metrics/match summaries and returns:
+  - headline + summary
+  - team-level actions
+  - per-player focus/actions
+  - confidence + model metadata
+- If OpenAI is unavailable (missing key, timeout, provider failure), server returns a deterministic fallback brief so coaching remains functional.
 - Coaching now includes additional inferred modules:
   - Tilt & streak detection banner with reset-rule recommendation
   - Playstyle fingerprints (per player + duo)

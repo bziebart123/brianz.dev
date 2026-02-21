@@ -13,6 +13,9 @@ const app = express();
 const clientDistPath = path.resolve(__dirname, "../client/dist");
 const port = Number(process.env.PORT || 3001);
 const riotApiKey = process.env.RIOT_API_KEY;
+const openAiApiKey = String(process.env.OPENAI_API_KEY || "").trim();
+const openAiModel = String(process.env.OPENAI_MODEL || "gpt-4o-mini").trim();
+const openAiTimeoutMs = Math.max(3000, Number(process.env.OPENAI_TIMEOUT_MS || 15000));
 const debugTftPayload = process.env.DEBUG_TFT_PAYLOAD === "1";
 const allowedOrigins = String(process.env.ALLOWED_ORIGINS || "")
   .split(",")
@@ -724,6 +727,156 @@ function analyzeDuoTrends(matches) {
   };
 }
 
+function stripMarkdownCodeFence(text) {
+  const value = String(text || "").trim();
+  if (!value.startsWith("```")) return value;
+  return value.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+}
+
+function safeJsonParse(text, fallback) {
+  try {
+    return JSON.parse(stripMarkdownCodeFence(text));
+  } catch {
+    return fallback;
+  }
+}
+
+function fallbackAiCoaching(payload) {
+  const decisionGrade = Number(payload?.metrics?.decisionGrade || 0);
+  const top2Rate = Number(payload?.metrics?.top2Rate || 0);
+  const avgPlacement = Number(payload?.metrics?.avgPlacement || 0);
+  const momentum = Number(payload?.metrics?.momentum || 0);
+  const duoRisk = Number(payload?.metrics?.duoRisk || 0);
+  const playerAName = String(payload?.players?.a || "Player A");
+  const playerBName = String(payload?.players?.b || "Player B");
+  const fallback = {
+    headline: "LLM unavailable - deterministic coaching fallback",
+    summary: `Decision ${decisionGrade}/100, Top2 ${top2Rate.toFixed(1)}%, Avg ${avgPlacement.toFixed(
+      2
+    )}, Momentum ${momentum >= 0 ? "+" : ""}${momentum.toFixed(2)}, Risk ${duoRisk}%.`,
+    teamPlan: [
+      "Commit one tempo and one econ role by Stage 2 carousel.",
+      "If both players are bleeding, only one player rolls hard at a time.",
+      "Log one event each game (gift/rescue/roll) to improve coaching precision.",
+    ],
+    playerPlans: [
+      {
+        player: playerAName,
+        focus: "Stability and conversion",
+        actions: [
+          "Avoid panic roll below 10 gold before Stage 4 unless lethal is imminent.",
+          "Slam one DPS component earlier when damage trend is low.",
+        ],
+      },
+      {
+        player: playerBName,
+        focus: "Support timing and clutch setup",
+        actions: [
+          "Pre-call one rescue trigger each stage and execute immediately.",
+          "Send gifts only when partner has immediate spike conversion.",
+        ],
+      },
+    ],
+    confidence: "low",
+    sources: ["local-fallback"],
+  };
+  return fallback;
+}
+
+async function fetchOpenAiCoaching(payload) {
+  if (!openAiApiKey) {
+    return { fallback: true, data: fallbackAiCoaching(payload), reason: "OPENAI_API_KEY missing" };
+  }
+
+  const systemPrompt = [
+    "You are a TFT Double Up coach.",
+    "Return strict JSON only.",
+    "Use only supplied numbers; never invent stats.",
+    "Keep advice concise and actionable.",
+  ].join(" ");
+
+  const userPrompt = JSON.stringify({
+    task: "Generate coaching briefing for this duo.",
+    schema: {
+      headline: "string",
+      summary: "string",
+      teamPlan: ["string"],
+      playerPlans: [{ player: "string", focus: "string", actions: ["string"] }],
+      confidence: "low|medium|high",
+      sources: ["string"],
+    },
+    input: payload,
+  });
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), openAiTimeoutMs);
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${openAiApiKey}`,
+      },
+      body: JSON.stringify({
+        model: openAiModel,
+        temperature: 0.2,
+        max_tokens: 900,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      }),
+      signal: controller.signal,
+    });
+
+    const raw = await response.text();
+    if (!response.ok) {
+      return {
+        fallback: true,
+        data: fallbackAiCoaching(payload),
+        reason: `OpenAI request failed (${response.status})`,
+        detail: raw.slice(0, 500),
+      };
+    }
+
+    const parsedResponse = safeJsonParse(raw, {});
+    const content = parsedResponse?.choices?.[0]?.message?.content || "{}";
+    const modelOutput = safeJsonParse(content, {});
+
+    const normalized = {
+      headline: String(modelOutput?.headline || "AI Coaching Brief"),
+      summary: String(modelOutput?.summary || ""),
+      teamPlan: asArray(modelOutput?.teamPlan).map((x) => String(x)).filter(Boolean).slice(0, 5),
+      playerPlans: asArray(modelOutput?.playerPlans)
+        .map((row) => ({
+          player: String(row?.player || ""),
+          focus: String(row?.focus || ""),
+          actions: asArray(row?.actions).map((x) => String(x)).filter(Boolean).slice(0, 4),
+        }))
+        .filter((row) => row.player && (row.focus || row.actions.length))
+        .slice(0, 3),
+      confidence: ["low", "medium", "high"].includes(String(modelOutput?.confidence || ""))
+        ? String(modelOutput.confidence)
+        : "medium",
+      sources: asArray(modelOutput?.sources).map((x) => String(x)).filter(Boolean).slice(0, 8),
+    };
+
+    if (!normalized.summary && !normalized.teamPlan.length) {
+      return { fallback: true, data: fallbackAiCoaching(payload), reason: "Empty model response" };
+    }
+    return { fallback: false, data: normalized, reason: null };
+  } catch (error) {
+    return {
+      fallback: true,
+      data: fallbackAiCoaching(payload),
+      reason: error?.name === "AbortError" ? "OpenAI request timed out" : "OpenAI request error",
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 app.get("/api/tft/duo-history", async (req, res) => {
   try {
     if (!riotApiKey) {
@@ -1172,6 +1325,71 @@ app.get("/api/duo/highlights", async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ error: error.message || "Failed to load highlights." });
+  }
+});
+
+app.post("/api/coach/llm-brief", async (req, res) => {
+  try {
+    const input = req.body && typeof req.body === "object" ? req.body : {};
+    const matches = asArray(input?.matches).slice(0, 60);
+    const payload = {
+      filter: {
+        timelineDays: Number(input?.filter?.timelineDays || 30),
+        set: String(input?.filter?.set || "all"),
+        patch: String(input?.filter?.patch || "all"),
+      },
+      players: {
+        a: String(input?.players?.a || "Player A"),
+        b: String(input?.players?.b || "Player B"),
+      },
+      metrics: {
+        duoRisk: Number(input?.metrics?.duoRisk || 0),
+        decisionGrade: Number(input?.metrics?.decisionGrade || 0),
+        top2Rate: Number(input?.metrics?.top2Rate || 0),
+        winRate: Number(input?.metrics?.winRate || 0),
+        avgPlacement: Number(input?.metrics?.avgPlacement || 0),
+        momentum: Number(input?.metrics?.momentum || 0),
+        rescueRate: Number(input?.metrics?.rescueRate || 0),
+        clutchIndex: Number(input?.metrics?.clutchIndex || 0),
+        eventSample: Number(input?.metrics?.eventSample || 0),
+      },
+      coachingIntel: input?.coachingIntel && typeof input.coachingIntel === "object" ? input.coachingIntel : {},
+      scorecard: input?.scorecard && typeof input.scorecard === "object" ? input.scorecard : {},
+      matches: matches.map((match) => ({
+        id: String(match?.id || ""),
+        gameDatetime: Number(match?.gameDatetime || 0),
+        patch: String(match?.patch || ""),
+        setNumber: match?.setNumber ?? null,
+        sameTeam: Boolean(match?.sameTeam),
+        playerA: {
+          placement: Number(match?.playerA?.placement || 0),
+          level: Number(match?.playerA?.level || 0),
+          damage: Number(match?.playerA?.totalDamageToPlayers || 0),
+          goldLeft: Number(match?.playerA?.goldLeft || 0),
+        },
+        playerB: {
+          placement: Number(match?.playerB?.placement || 0),
+          level: Number(match?.playerB?.level || 0),
+          damage: Number(match?.playerB?.totalDamageToPlayers || 0),
+          goldLeft: Number(match?.playerB?.goldLeft || 0),
+        },
+      })),
+    };
+
+    const ai = await fetchOpenAiCoaching(payload);
+    return res.json({
+      ok: true,
+      fallback: ai.fallback,
+      reason: ai.reason || null,
+      model: openAiModel,
+      generatedAt: Date.now(),
+      brief: ai.data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error.message || "Failed to generate AI coaching brief.",
+    });
   }
 });
 
