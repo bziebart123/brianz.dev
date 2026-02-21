@@ -85,6 +85,7 @@ export default function App() {
               kpis={state.kpis}
               computed={state.computed}
               iconManifest={state.iconManifest}
+              companionManifest={state.companionManifest}
               filteredMatches={state.filteredMatches}
               scorecard={state.scorecard}
               coachingInsights={state.coachingInsights}

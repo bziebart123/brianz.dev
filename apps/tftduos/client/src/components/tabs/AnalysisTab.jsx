@@ -1,8 +1,11 @@
+import { useEffect, useMemo, useState } from "react";
 import { Card, Heading, Pane, Strong, Text, Tooltip } from "evergreen-ui";
 import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
 import {
   asArray,
+  companionArtCandidates,
   estimatedLpDeltaFromTeamPlacement,
+  iconCandidates,
   prettyName,
   teamPlacementFromMatch,
   toEpochMs,
@@ -189,6 +192,60 @@ function TeamRankChart({ values, startLabel, endLabel }) {
   );
 }
 
+function BlameAvatar({ companion, companionManifest, fallbackUnitToken, label }) {
+  const companionUrls = useMemo(
+    () => companionArtCandidates(companion, companionManifest),
+    [companion, companionManifest]
+  );
+  const fallbackUnitUrls = useMemo(
+    () => (fallbackUnitToken ? iconCandidates("unit", fallbackUnitToken) : []),
+    [fallbackUnitToken]
+  );
+  const urls = useMemo(() => [...companionUrls, ...fallbackUnitUrls], [companionUrls, fallbackUnitUrls]);
+  const [index, setIndex] = useState(0);
+  const [showFallback, setShowFallback] = useState(false);
+
+  useEffect(() => {
+    setIndex(0);
+    setShowFallback(false);
+  }, [companion, fallbackUnitToken]);
+
+  function handleError() {
+    if (index + 1 < urls.length) {
+      setIndex((value) => value + 1);
+      return;
+    }
+    setShowFallback(true);
+  }
+
+  return (
+    <Pane
+      width={48}
+      height={48}
+      borderRadius={8}
+      border="default"
+      background="rgba(255,255,255,0.05)"
+      overflow="hidden"
+      display="grid"
+      placeItems="center"
+      flexShrink={0}
+    >
+      {!showFallback && urls[index] ? (
+        <img
+          src={urls[index]}
+          alt={`${label} avatar`}
+          onError={handleError}
+          width={48}
+          height={48}
+          style={{ objectFit: "cover", display: "block" }}
+        />
+      ) : (
+        <Text size={500} style={{ fontWeight: 700 }}>{String(label || "?").slice(0, 1)}</Text>
+      )}
+    </Pane>
+  );
+}
+
 export default function AnalysisTab({
   kpis,
   computed,
@@ -196,6 +253,7 @@ export default function AnalysisTab({
   filteredMatches,
   scorecard,
   coachingInsights,
+  companionManifest,
 }) {
   const sorted = [...filteredMatches].sort((a, b) => toEpochMs(a.gameDatetime) - toEpochMs(b.gameDatetime));
   const teamPlacements = sorted.map((match) => teamPlacementFromMatch(match));
@@ -271,6 +329,17 @@ export default function AnalysisTab({
 
   const rangeStart = formatDateLabel(sorted[0]?.gameDatetime);
   const rangeEnd = formatDateLabel(sorted[sorted.length - 1]?.gameDatetime);
+  const latestMatch = sorted.length ? sorted[sorted.length - 1] : null;
+  const blameProfiles = {
+    [DISPLAY_NAME_A]: {
+      companion: latestMatch?.playerA?.companion || null,
+      fallbackUnitToken: latestMatch?.playerA?.units?.[0]?.characterId || "",
+    },
+    [DISPLAY_NAME_B]: {
+      companion: latestMatch?.playerB?.companion || null,
+      fallbackUnitToken: latestMatch?.playerB?.units?.[0]?.characterId || "",
+    },
+  };
 
   const blameAwards = [
     {
@@ -330,6 +399,7 @@ export default function AnalysisTab({
     if (a === b) {
       return {
         ...award,
+        loser: null,
         result: `Tie (${playerA.label} ${award.format(a)} | ${playerB.label} ${award.format(b)})`,
       };
     }
@@ -338,6 +408,7 @@ export default function AnalysisTab({
       : (a < b ? playerA.label : playerB.label);
     return {
       ...award,
+      loser,
       result: `${loser} (${playerA.label} ${award.format(a)} | ${playerB.label} ${award.format(b)})`,
     };
   });
@@ -471,23 +542,31 @@ export default function AnalysisTab({
 
       <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
         <SectionTitle
-          title="Gift Intelligence"
-          tooltip="Gift metrics come from logged gift_sent events (manual/event tracker ingestion), not directly from Riot match payload."
+          title="Blame Game"
+          tooltip="Worst-stat awards by player across filtered matches. This is intentionally blunt and should be used as a review prompt, not absolute truth."
         />
-        <Pane marginTop={10} display="grid" gap={8}>
-          {giftStatus === "ok" && giftMetrics ? (
-            <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))" gap={8}>
-              <MetricBar label="Early Gift Rate" value={giftMetrics.earlyGiftRate} color="#55b6ff" />
-              <MetricBar label="Item Gift Rate" value={giftMetrics.itemGiftRate} color="#7ad27a" />
-              <MetricBar label="Gift ROI" value={giftMetrics.giftROI} color="#2ea66f" />
-              <MetricBar label="Bench Waste Rate" value={giftMetrics.benchWasteRate} color="#bd4b4b" />
+        <Pane marginTop={10} display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={10}>
+          {blameAwards.map((award) => (
+            <Pane key={award.title} border="default" borderRadius={8} padding={10} background="rgba(255,255,255,0.03)">
+              <Pane display="flex" alignItems="center" gap={10}>
+                {award.loser ? (
+                  <BlameAvatar
+                    companion={blameProfiles[award.loser]?.companion}
+                    companionManifest={companionManifest}
+                    fallbackUnitToken={blameProfiles[award.loser]?.fallbackUnitToken}
+                    label={award.loser}
+                  />
+                ) : (
+                  <Pane width={48} height={48} />
+                )}
+                <Pane>
+                  <Strong>{award.title}</Strong>
+                  <Text size={300} display="block" marginTop={4} color="muted">{award.description}</Text>
+                </Pane>
+              </Pane>
+              <Text size={400} display="block" marginTop={8}>{award.metricLabel}: {award.result}</Text>
             </Pane>
-          ) : (
-            <Text size={400} color="muted">
-              No gift events ingested yet. Current Riot payload does not expose gift sender/receiver or item/champion gift events directly.
-              To get team and individual gift analysis, keep logging `gift_sent` events with actor slot and payload tags.
-            </Text>
-          )}
+          ))}
         </Pane>
       </Card>
 
@@ -624,17 +703,23 @@ export default function AnalysisTab({
 
       <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
         <SectionTitle
-          title="Blame Game"
-          tooltip="Worst-stat awards by player across filtered matches. This is intentionally blunt and should be used as a review prompt, not absolute truth."
+          title="Gift Intelligence"
+          tooltip="Gift metrics come from logged gift_sent events (manual/event tracker ingestion), not directly from Riot match payload."
         />
-        <Pane marginTop={10} display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={10}>
-          {blameAwards.map((award) => (
-            <Pane key={award.title} border="default" borderRadius={8} padding={10} background="rgba(255,255,255,0.03)">
-              <Strong>{award.title}</Strong>
-              <Text size={300} display="block" marginTop={4} color="muted">{award.description}</Text>
-              <Text size={400} display="block" marginTop={8}>{award.metricLabel}: {award.result}</Text>
+        <Pane marginTop={10} display="grid" gap={8}>
+          {giftStatus === "ok" && giftMetrics ? (
+            <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))" gap={8}>
+              <MetricBar label="Early Gift Rate" value={giftMetrics.earlyGiftRate} color="#55b6ff" />
+              <MetricBar label="Item Gift Rate" value={giftMetrics.itemGiftRate} color="#7ad27a" />
+              <MetricBar label="Gift ROI" value={giftMetrics.giftROI} color="#2ea66f" />
+              <MetricBar label="Bench Waste Rate" value={giftMetrics.benchWasteRate} color="#bd4b4b" />
             </Pane>
-          ))}
+          ) : (
+            <Text size={400} color="muted">
+              No gift events ingested yet. Current Riot payload does not expose gift sender/receiver or item/champion gift events directly.
+              To get team and individual gift analysis, keep logging `gift_sent` events with actor slot and payload tags.
+            </Text>
+          )}
         </Pane>
       </Card>
     </Pane>
