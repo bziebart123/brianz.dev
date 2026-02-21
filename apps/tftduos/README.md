@@ -95,6 +95,8 @@ Server env vars (see `.env.example` and server code):
   - a next-5-games checklist
   - champion + item build conversion signals from recent matches
 - Champion build analysis is inferred from each player's core units and attached item names in your recent games, then surfaced as `Champion Build Signals` in the coaching brief.
+- AI coaching request payload is now compacted client-side (most recent 32 minimal match records) to avoid large-timeline network/request-size failures when generating the brief.
+- Sidebar/coaching/history warnings and errors now use high-contrast custom banners for readability, and refresh actions use a dedicated CTA button style.
 - Coaching recommendations are rule-driven and data-adaptive (not hardcoded static text), and become more specific as event sample size grows.
 - Coaching now includes an `AI Coach Brief` card that calls `POST /api/coach/llm-brief` with current filtered metrics/match summaries and returns:
   - headline + summary

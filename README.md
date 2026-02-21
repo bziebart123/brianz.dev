@@ -126,6 +126,7 @@ Use exactly what Render Custom Domains asks for:
 - The AI coaching prompt is guided for rank-climb use and now supports web-backed meta lookup (via OpenAI Responses API web search tool), plus richer per-game build fingerprints for direct “your builds vs current meta” comparison with source visibility in UI.
 - Coaching UX is now AI-first: compact KPI header, primary AI briefing section, per-player action plans below, and a full-page loading state while GPT coaching is being generated.
 - Coaching backend now layers deterministic evidence (leaks, win-conditions, 5-game plan, champion+item build conversion signals) into the LLM prompt/response to reduce generic output and improve actionability.
+- Coaching UI now uses high-contrast custom error/warning banners and compact AI payload requests to improve readability and reduce large-timeline AI network failures.
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.
 

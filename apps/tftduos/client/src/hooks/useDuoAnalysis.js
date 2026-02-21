@@ -25,6 +25,64 @@ function apiUrl(path) {
   return `${API_BASE_URL}${path}`;
 }
 
+function compactMatchForAi(match) {
+  const aTraits = asArray(match?.playerA?.traits)
+    .slice(0, 8)
+    .map((trait) => ({
+      name: trait?.name || null,
+      style: Number(trait?.style || 0),
+      numUnits: Number(trait?.numUnits || 0),
+    }));
+  const bTraits = asArray(match?.playerB?.traits)
+    .slice(0, 8)
+    .map((trait) => ({
+      name: trait?.name || null,
+      style: Number(trait?.style || 0),
+      numUnits: Number(trait?.numUnits || 0),
+    }));
+
+  const aUnits = asArray(match?.playerA?.units)
+    .slice(0, 10)
+    .map((unit) => ({
+      characterId: unit?.characterId || null,
+      tier: Number(unit?.tier || 0),
+      rarity: Number(unit?.rarity || 0),
+      itemNames: asArray(unit?.itemNames || unit?.items).slice(0, 3),
+    }));
+  const bUnits = asArray(match?.playerB?.units)
+    .slice(0, 10)
+    .map((unit) => ({
+      characterId: unit?.characterId || null,
+      tier: Number(unit?.tier || 0),
+      rarity: Number(unit?.rarity || 0),
+      itemNames: asArray(unit?.itemNames || unit?.items).slice(0, 3),
+    }));
+
+  return {
+    id: String(match?.id || ""),
+    gameDatetime: Number(match?.gameDatetime || 0),
+    patch: String(match?.patch || ""),
+    setNumber: match?.setNumber ?? null,
+    sameTeam: Boolean(match?.sameTeam),
+    playerA: {
+      placement: Number(match?.playerA?.placement || 0),
+      level: Number(match?.playerA?.level || 0),
+      totalDamageToPlayers: Number(match?.playerA?.totalDamageToPlayers || 0),
+      goldLeft: Number(match?.playerA?.goldLeft || 0),
+      traits: aTraits,
+      units: aUnits,
+    },
+    playerB: {
+      placement: Number(match?.playerB?.placement || 0),
+      level: Number(match?.playerB?.level || 0),
+      totalDamageToPlayers: Number(match?.playerB?.totalDamageToPlayers || 0),
+      goldLeft: Number(match?.playerB?.goldLeft || 0),
+      traits: bTraits,
+      units: bUnits,
+    },
+  };
+}
+
 export default function useDuoAnalysis() {
   const [activeTab, setActiveTab] = useState("history");
 
@@ -504,6 +562,10 @@ export default function useDuoAnalysis() {
 
   async function loadAiCoaching(force = false) {
     if (!payload || !filteredMatches.length) return;
+    const compactMatches = [...filteredMatches]
+      .sort((left, right) => toEpochMs(right?.gameDatetime) - toEpochMs(left?.gameDatetime))
+      .slice(0, 32)
+      .map(compactMatchForAi);
 
     const requestBody = {
       filter: {
@@ -538,7 +600,7 @@ export default function useDuoAnalysis() {
         playerBItems: asArray(coachingInsights?.topItemsB).slice(0, 8),
         suggestions: asArray(computed?.suggestions).slice(0, 4),
       },
-      matches: filteredMatches.slice(0, 60),
+      matches: compactMatches,
     };
     const requestKey = JSON.stringify({
       filter: requestBody.filter,
@@ -562,7 +624,8 @@ export default function useDuoAnalysis() {
       }
       setAiCoaching(data);
     } catch (requestError) {
-      setAiCoachingError(requestError.message);
+      const fallbackMessage = "AI coach network request failed. Try Refresh AI or a smaller timeline window.";
+      setAiCoachingError(String(requestError?.message || fallbackMessage));
     } finally {
       setAiCoachingLoading(false);
     }
