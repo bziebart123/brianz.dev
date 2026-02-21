@@ -24,7 +24,7 @@ function starsForTier(tierValue) {
   return "★".repeat(tier);
 }
 
-const UNIT_SLOT_SIZE = 52;
+const UNIT_SLOT_SIZE = 48;
 const CHIP_TEXT_STYLE = { color: "#f7fbff", fontWeight: 700, fontSize: 18, lineHeight: 1 };
 
 export default function HistoryTab({

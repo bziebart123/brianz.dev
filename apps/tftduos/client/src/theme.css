@@ -112,7 +112,7 @@ body {
 
 .tft-main-content .history-unit-row {
   flex-wrap: nowrap !important;
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-y: hidden;
   padding-bottom: 2px;
 }
@@ -180,6 +180,13 @@ body {
 .tft-sidebar [role="tab"][aria-selected="true"] {
   border-color: var(--bz-accent) !important;
   background: rgba(111, 194, 255, 0.18) !important;
+}
+
+.tft-sidebar select {
+  font-size: calc(10.5px * var(--bz-text-scale)) !important;
+  line-height: 1.2 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 .tft-app-shell select,
