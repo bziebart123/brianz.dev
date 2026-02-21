@@ -61,6 +61,13 @@ Server env vars (see `.env.example` and server code):
 - `History` now enforces larger, consistent placement/LP chip text and uses larger champion unit slots while keeping rows single-line (desktop clips overflow; mobile allows touch horizontal scroll without showing scrollbars).
 - Player stat badges in `History` (`#placement`, `Lvl`, `Dmg`) now use tighter padding and a slightly smaller font than LP/team chips for clearer visual hierarchy.
 - Champion unit slots in `History` are tuned to remain larger but fit without row scrollbars, and sidebar filter dropdown text is slightly reduced to avoid vertical clipping.
+- Analysis tab is now a dashboard-style view with:
+  - Team KPI strip (avg placement, top2/win rates, volatility, decision grade, rescue/clutch)
+  - Team trend visuals (placement trend, placement distribution, damage trends)
+  - Patch performance table derived from filtered matches
+  - Meta pressure (traits/units in current lobbies) plus suggested adjustments
+  - Individual player breakdown cards (placement/damage/level consistency and top trait/unit profiles)
+- Several analysis metrics are extrapolated client-side from filtered match payloads (for example momentum, volatility, patch ranking, and per-player consistency).
 
 ## Testing
 

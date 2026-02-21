@@ -116,6 +116,7 @@ Use exactly what Render Custom Domains asks for:
 - `.gitignore` includes `node_modules`, `.env`, and `dist` outputs.
 - Legacy root app files were removed. Active deploy targets are `portfolio` and `apps/tftduos/*`.
 - TFTDuos client builds now embed release metadata (major/minor + recent commit subjects) for in-app release notes display.
+- TFTDuos Analysis tab now renders a dashboard-style analytics view with team trends, patch performance, and per-player breakdowns from filtered match data.
 
 ## AI Context Files
 
