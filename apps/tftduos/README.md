@@ -89,6 +89,12 @@ Server env vars (see `.env.example` and server code):
   - `Individual Action Plans` section directly below AI output (one card per player, AI-driven when available)
   - Less auxiliary box density to keep coaching readable and execution-focused
 - Coaching page now waits for AI briefing before rendering the full content area and shows a full-page GPT loading state during generation.
+- AI coaching now includes a deterministic findings engine (server-side) that computes:
+  - top improvement areas
+  - repeatable win conditions
+  - a next-5-games checklist
+  - champion + item build conversion signals from recent matches
+- Champion build analysis is inferred from each player's core units and attached item names in your recent games, then surfaced as `Champion Build Signals` in the coaching brief.
 - Coaching recommendations are rule-driven and data-adaptive (not hardcoded static text), and become more specific as event sample size grows.
 - Coaching now includes an `AI Coach Brief` card that calls `POST /api/coach/llm-brief` with current filtered metrics/match summaries and returns:
   - headline + summary

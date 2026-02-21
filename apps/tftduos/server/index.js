@@ -780,6 +780,170 @@ function dedupeStrings(values, limit = 10) {
   return out;
 }
 
+function teamPlacementFromPayloadMatch(match) {
+  const a = Number(match?.playerA?.placement || 8);
+  const b = Number(match?.playerB?.placement || 8);
+  const worst = Math.max(a, b);
+  return Math.max(1, Math.min(4, Math.ceil(worst / 2)));
+}
+
+function traitPairKey(match) {
+  const aTop = String(match?.playerA?.traits?.[0]?.name || "").trim();
+  const bTop = String(match?.playerB?.traits?.[0]?.name || "").trim();
+  if (!aTop || !bTop) return "";
+  return `${aTop} + ${bTop}`;
+}
+
+function buildDeterministicCoachFindings(payload) {
+  const matches = asArray(payload?.matches);
+  const sample = matches.length;
+  const placements = matches.map(teamPlacementFromPayloadMatch);
+  const top2Matches = matches.filter((m) => teamPlacementFromPayloadMatch(m) <= 2);
+  const bot2Matches = matches.filter((m) => teamPlacementFromPayloadMatch(m) >= 3);
+  const avgPlacement = placements.length
+    ? placements.reduce((sum, value) => sum + value, 0) / placements.length
+    : 0;
+
+  let lowGoldLosses = 0;
+  let lowDamageLosses = 0;
+  let overlapTraitPressure = 0;
+  const traitPairCounts = {};
+  const buildCounts = {};
+
+  for (const match of matches) {
+    const teamPlacement = teamPlacementFromPayloadMatch(match);
+    const aGold = Number(match?.playerA?.goldLeft || 0);
+    const bGold = Number(match?.playerB?.goldLeft || 0);
+    const aDmg = Number(match?.playerA?.damage || 0);
+    const bDmg = Number(match?.playerB?.damage || 0);
+    if (teamPlacement >= 3 && (aGold <= 5 || bGold <= 5)) lowGoldLosses += 1;
+    if (teamPlacement >= 3 && (aDmg < 50 || bDmg < 50)) lowDamageLosses += 1;
+
+    const pair = traitPairKey(match);
+    if (pair) traitPairCounts[pair] = (traitPairCounts[pair] || 0) + 1;
+
+    const lobbyTraits = asArray(payload?.metaSnapshot?.lobbyTraits).map((entry) => String(entry?.name || ""));
+    const ownTraits = [
+      ...asArray(match?.playerA?.traits).map((entry) => String(entry?.name || "")),
+      ...asArray(match?.playerB?.traits).map((entry) => String(entry?.name || "")),
+    ].filter(Boolean);
+    const overlap = ownTraits.filter((trait) => lobbyTraits.includes(trait)).length;
+    overlapTraitPressure += overlap;
+
+    for (const unit of asArray(match?.playerA?.coreUnits)) {
+      const champion = String(unit?.characterId || "");
+      if (!champion) continue;
+      const items = asArray(unit?.items).map((item) => String(item)).filter(Boolean).sort();
+      const itemsKey = items.join(" + ") || "no-items";
+      const key = `A|${champion}|${itemsKey}`;
+      if (!buildCounts[key]) {
+        buildCounts[key] = { player: payload?.players?.a || "Player A", champion, items, games: 0, top2: 0 };
+      }
+      buildCounts[key].games += 1;
+      if (teamPlacement <= 2) buildCounts[key].top2 += 1;
+    }
+
+    for (const unit of asArray(match?.playerB?.coreUnits)) {
+      const champion = String(unit?.characterId || "");
+      if (!champion) continue;
+      const items = asArray(unit?.items).map((item) => String(item)).filter(Boolean).sort();
+      const itemsKey = items.join(" + ") || "no-items";
+      const key = `B|${champion}|${itemsKey}`;
+      if (!buildCounts[key]) {
+        buildCounts[key] = { player: payload?.players?.b || "Player B", champion, items, games: 0, top2: 0 };
+      }
+      buildCounts[key].games += 1;
+      if (teamPlacement <= 2) buildCounts[key].top2 += 1;
+    }
+  }
+
+  const sortedTraitPairs = Object.entries(traitPairCounts)
+    .sort((left, right) => right[1] - left[1])
+    .map(([pair, count]) => ({ pair, count }));
+
+  const championBuilds = Object.values(buildCounts)
+    .map((row) => ({
+      ...row,
+      top2Rate: row.games ? (row.top2 / row.games) * 100 : 0,
+    }))
+    .filter((row) => row.games >= 2)
+    .sort((left, right) => right.top2Rate - left.top2Rate || right.games - left.games)
+    .slice(0, 8)
+    .map((row) => ({
+      player: row.player,
+      champion: row.champion,
+      items: row.items,
+      games: row.games,
+      top2Rate: Number(row.top2Rate.toFixed(1)),
+      note: row.top2Rate >= 55 ? "High-conversion build" : "Monitor; medium conversion",
+    }));
+
+  const topImprovementAreas = [];
+  if (avgPlacement > 2.75) {
+    topImprovementAreas.push(`Average team placement is ${avgPlacement.toFixed(2)}. Stabilize one low-variance board before both greed.`);
+  }
+  if (lowGoldLosses >= Math.max(2, Math.floor(sample * 0.18))) {
+    topImprovementAreas.push(`Low-gold losses: ${lowGoldLosses}/${sample}. Delay panic all-ins unless immediate lethal risk.`);
+  }
+  if (lowDamageLosses >= Math.max(2, Math.floor(sample * 0.16))) {
+    topImprovementAreas.push(`Low-damage losses: ${lowDamageLosses}/${sample}. Prioritize earlier carry completion over marginal econ greed.`);
+  }
+  if (overlapTraitPressure >= Math.max(6, sample)) {
+    topImprovementAreas.push(`Trait overlap pressure is high (${overlapTraitPressure} overlap hits). You are over-indexing contested lines.`);
+  }
+  if (!topImprovementAreas.length) {
+    topImprovementAreas.push("No severe issue pattern detected in this window; tighten execution consistency.");
+  }
+
+  const winConditions = [];
+  if (sortedTraitPairs.length) {
+    const bestPair = sortedTraitPairs[0];
+    winConditions.push(
+      `Most repeatable trait split: ${bestPair.pair} (${bestPair.count} games). Keep this as default when uncontested.`
+    );
+  }
+  if (top2Matches.length && bot2Matches.length) {
+    const top2AvgLevel = top2Matches.reduce(
+      (sum, match) => sum + Number(match?.playerA?.level || 0) + Number(match?.playerB?.level || 0),
+      0
+    ) / (top2Matches.length * 2);
+    const bot2AvgLevel = bot2Matches.reduce(
+      (sum, match) => sum + Number(match?.playerA?.level || 0) + Number(match?.playerB?.level || 0),
+      0
+    ) / (bot2Matches.length * 2);
+    winConditions.push(
+      `Top2 avg level ${top2AvgLevel.toFixed(2)} vs Bottom2 ${bot2AvgLevel.toFixed(2)}. Earlier stabilization correlates with stronger finishes.`
+    );
+  }
+  if (championBuilds.length) {
+    const bestBuild = championBuilds[0];
+    winConditions.push(
+      `${bestBuild.player} build signal: ${bestBuild.champion} + ${bestBuild.items.join(", ") || "flex"} -> Top2 ${bestBuild.top2Rate}% (${bestBuild.games} games).`
+    );
+  }
+  if (!winConditions.length) {
+    winConditions.push("Not enough high-confidence win-condition signals yet. Increase same-team sample and event logging.");
+  }
+
+  const fiveGamePlan = [
+    "Game 1-2: force one tempo + one econ role by Stage 2 carousel; avoid double-greed starts.",
+    "Game 1-5: pre-commit one pivot line each if primary traits are contested by 2+ players.",
+    "Game 1-5: log one rescue/gift/roll event every game to improve coaching confidence.",
+    "Game 3-5: if both rolled same stage in prior game, enforce roll staggering next queue.",
+    "After 5 games: keep only adjustments that improved Top2 rate vs current baseline.",
+  ];
+
+  return {
+    sampleSize: sample,
+    avgTeamPlacement: Number(avgPlacement.toFixed(2)),
+    topImprovementAreas: topImprovementAreas.slice(0, 4),
+    winConditions: winConditions.slice(0, 4),
+    fiveGamePlan,
+    championBuilds,
+    confidenceBand: sample >= 25 ? "high" : sample >= 12 ? "medium" : "low",
+  };
+}
+
 function extractResponsesModelOutput(parsedResponse) {
   if (!parsedResponse || typeof parsedResponse !== "object") return {};
 
@@ -858,13 +1022,25 @@ function fallbackAiCoaching(payload) {
     metaDelta: [
       "Your builds are compared against lobby-trend proxies, not a live external comp tier feed.",
     ],
+    topImprovementAreas: [
+      "Fallback mode: use deterministic issue detection while live AI is unavailable.",
+    ],
+    winConditions: [
+      "Fallback mode: prioritize your most repeatable uncontested trait split.",
+    ],
+    fiveGamePlan: [
+      "Next 5 games: lock one tempo + one econ role by Stage 2.",
+      "Next 5 games: each player pre-commits one pivot line.",
+      "Next 5 games: log one coaching event per game for stronger analysis.",
+    ],
+    championBuilds: [],
     confidence: "low",
     sources: ["local-fallback"],
   };
   return fallback;
 }
 
-async function fetchOpenAiCoaching(payload) {
+async function fetchOpenAiCoaching(payload, deterministicFindings = null) {
   if (!openAiApiKey) {
     return {
       fallback: true,
@@ -892,6 +1068,7 @@ async function fetchOpenAiCoaching(payload) {
       objective:
         payload?.objective ||
         "Climb rank in TFT Double Up as a duo.",
+      deterministicFindings: deterministicFindings || {},
       requiredComparisons: [
         "Compare duo tendencies vs current web/meta pressure.",
         "Identify where their unit/item patterns look outdated or over-contested.",
@@ -906,6 +1083,10 @@ async function fetchOpenAiCoaching(payload) {
       playerPlans: [{ player: "string", focus: "string", actions: ["string"] }],
       patchContext: "string",
       metaDelta: ["string"],
+      topImprovementAreas: ["string"],
+      winConditions: ["string"],
+      fiveGamePlan: ["string"],
+      championBuilds: [{ player: "string", champion: "string", items: ["string"], games: "number", top2Rate: "number", note: "string" }],
       confidence: "low|medium|high",
       sources: ["string"],
     },
@@ -942,9 +1123,23 @@ async function fetchOpenAiCoaching(payload) {
           .slice(0, 3),
         patchContext: String(modelOutput?.patchContext || ""),
         metaDelta: asArray(modelOutput?.metaDelta).map((x) => String(x)).filter(Boolean).slice(0, 5),
+        topImprovementAreas: asArray(modelOutput?.topImprovementAreas).map((x) => String(x)).filter(Boolean).slice(0, 4),
+        winConditions: asArray(modelOutput?.winConditions).map((x) => String(x)).filter(Boolean).slice(0, 4),
+        fiveGamePlan: asArray(modelOutput?.fiveGamePlan).map((x) => String(x)).filter(Boolean).slice(0, 5),
+        championBuilds: asArray(modelOutput?.championBuilds)
+          .map((row) => ({
+            player: String(row?.player || ""),
+            champion: String(row?.champion || ""),
+            items: asArray(row?.items).map((x) => String(x)).filter(Boolean).slice(0, 4),
+            games: Number(row?.games || 0),
+            top2Rate: Number(row?.top2Rate || 0),
+            note: String(row?.note || ""),
+          }))
+          .filter((row) => row.player && row.champion)
+          .slice(0, 8),
         confidence: ["low", "medium", "high"].includes(String(modelOutput?.confidence || ""))
           ? String(modelOutput.confidence)
-          : "medium",
+          : String(deterministicFindings?.confidenceBand || "medium"),
         sources: dedupeStrings(
           [
             ...asArray(modelOutput?.sources).map((x) => String(x)).filter(Boolean),
@@ -987,6 +1182,25 @@ async function fetchOpenAiCoaching(payload) {
                 },
                 patchContext: { type: "string" },
                 metaDelta: { type: "array", items: { type: "string" } },
+                topImprovementAreas: { type: "array", items: { type: "string" } },
+                winConditions: { type: "array", items: { type: "string" } },
+                fiveGamePlan: { type: "array", items: { type: "string" } },
+                championBuilds: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    additionalProperties: false,
+                    properties: {
+                      player: { type: "string" },
+                      champion: { type: "string" },
+                      items: { type: "array", items: { type: "string" } },
+                      games: { type: "number" },
+                      top2Rate: { type: "number" },
+                      note: { type: "string" },
+                    },
+                    required: ["player", "champion", "items", "games", "top2Rate", "note"],
+                  },
+                },
                 confidence: { type: "string", enum: ["low", "medium", "high"] },
                 sources: { type: "array", items: { type: "string" } },
               },
@@ -998,6 +1212,10 @@ async function fetchOpenAiCoaching(payload) {
                 "playerPlans",
                 "patchContext",
                 "metaDelta",
+                "topImprovementAreas",
+                "winConditions",
+                "fiveGamePlan",
+                "championBuilds",
                 "confidence",
                 "sources",
               ],
@@ -1118,6 +1336,18 @@ async function fetchOpenAiCoaching(payload) {
     }
 
     let normalized = normalizeModelOutput(attempt.modelOutput, attempt.citations);
+    normalized.topImprovementAreas = normalized.topImprovementAreas.length
+      ? normalized.topImprovementAreas
+      : asArray(deterministicFindings?.topImprovementAreas).slice(0, 4);
+    normalized.winConditions = normalized.winConditions.length
+      ? normalized.winConditions
+      : asArray(deterministicFindings?.winConditions).slice(0, 4);
+    normalized.fiveGamePlan = normalized.fiveGamePlan.length
+      ? normalized.fiveGamePlan
+      : asArray(deterministicFindings?.fiveGamePlan).slice(0, 5);
+    normalized.championBuilds = normalized.championBuilds.length
+      ? normalized.championBuilds
+      : asArray(deterministicFindings?.championBuilds).slice(0, 8);
 
     if (!normalized.summary && !normalized.teamPlan.length) {
       const chatAttempt = await requestChatCompletions();
@@ -1657,7 +1887,8 @@ app.post("/api/coach/llm-brief", async (req, res) => {
       })),
     };
 
-    const ai = await fetchOpenAiCoaching(payload);
+    const deterministicFindings = buildDeterministicCoachFindings(payload);
+    const ai = await fetchOpenAiCoaching(payload, deterministicFindings);
     return res.json({
       ok: true,
       fallback: ai.fallback,
@@ -1665,6 +1896,7 @@ app.post("/api/coach/llm-brief", async (req, res) => {
       model: openAiModel,
       webSearchUsed: Boolean(ai.webSearchUsed),
       generatedAt: Date.now(),
+      deterministicFindings,
       brief: ai.data,
     });
   } catch (error) {
