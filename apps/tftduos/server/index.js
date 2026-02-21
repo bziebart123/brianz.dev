@@ -912,9 +912,20 @@ async function fetchOpenAiCoaching(payload) {
     input: payload,
   });
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), openAiTimeoutMs);
   try {
+    async function fetchWithTimeout(url, init) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), openAiTimeoutMs);
+      try {
+        return await fetch(url, {
+          ...init,
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
     function normalizeModelOutput(modelOutput, citations = []) {
       return {
         headline: String(modelOutput?.headline || "AI Coaching Brief"),
@@ -1007,14 +1018,13 @@ async function fetchOpenAiCoaching(payload) {
           : [],
       };
 
-      const response = await fetch("https://api.openai.com/v1/responses", {
+      const response = await fetchWithTimeout("https://api.openai.com/v1/responses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${openAiApiKey}`,
         },
         body: JSON.stringify(responsePayload),
-        signal: controller.signal,
       });
 
       const raw = await response.text();
@@ -1049,7 +1059,7 @@ async function fetchOpenAiCoaching(payload) {
     }
 
     async function requestChatCompletions() {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1065,7 +1075,6 @@ async function fetchOpenAiCoaching(payload) {
             { role: "user", content: userPrompt },
           ],
         }),
-        signal: controller.signal,
       });
 
       const raw = await response.text();
@@ -1138,8 +1147,6 @@ async function fetchOpenAiCoaching(payload) {
       reason: error?.name === "AbortError" ? "OpenAI request timed out" : "OpenAI request error",
       webSearchUsed: false,
     };
-  } finally {
-    clearTimeout(timeout);
   }
 }
 

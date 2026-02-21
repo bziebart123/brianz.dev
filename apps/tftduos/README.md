@@ -101,6 +101,7 @@ Server env vars (see `.env.example` and server code):
   - confidence + model metadata + source list
 - AI briefing payload now includes richer per-game build fingerprints (top traits and core units with item names per player) to reduce generic output and improve direct comp/item comparisons.
 - Backend now uses OpenAI Responses API with optional `web_search_preview` tool so current patch build trends and balance context can be consulted during generation.
+- `OPENAI_TIMEOUT_MS` is applied per provider request attempt (Responses with web search, Responses without web search, then Chat Completions fallback), so increasing it can help when live web/meta calls are slow.
 - LLM prompt guidance now explicitly frames the duo objective as rank climbing and requests:
   - rank-aware coaching
   - comparison against inferred current meta/build/item pressure
