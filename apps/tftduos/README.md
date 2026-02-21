@@ -62,12 +62,14 @@ Server env vars (see `.env.example` and server code):
 - Player stat badges in `History` (`#placement`, `Lvl`, `Dmg`) now use tighter padding and a slightly smaller font than LP/team chips for clearer visual hierarchy.
 - Champion unit slots in `History` are tuned to remain larger but fit without row scrollbars, and sidebar filter dropdown text is slightly reduced to avoid vertical clipping.
 - Analysis tab is now a dashboard-style view with:
-  - Team KPI strip (avg placement, top2/win rates, volatility, decision grade, rescue/clutch)
-  - Full-width team placement trend chart with labeled placement axis (`#1`..`#4`) and oldest/latest x-axis labels
+  - Team KPI strip (avg placement, top2/top4/win rates, same-team games, avg team damage, volatility, rescue/clutch)
+  - Full-width team placement trend chart with labeled placement axis (`#1`..`#4`) and date-labeled x-axis range
   - Team trend visuals (placement distribution + momentum)
   - Patch performance table derived from filtered matches
+  - Gift Intelligence section using event-derived `gift_sent` metrics (early/item/ROI/waste) when available
   - Meta pressure (traits/units in current lobbies) plus suggested adjustments
-  - Individual player breakdown cards (placement/damage/level consistency, per-player damage trend graph, top trait/unit profiles), rendered side-by-side on desktop
+  - Individual player breakdown cards (placement/damage/level consistency, per-player damage trend graph with date range labels, top trait/unit profiles), rendered side-by-side on desktop
+- Analysis page labels/KPIs/sections now include hover tooltips describing what each metric means and how key scores are computed.
 - Several analysis metrics are extrapolated client-side from filtered match payloads (for example momentum, volatility, patch ranking, and per-player consistency).
 - Timeline auto-default selection now prioritizes `30` days before shorter windows.
 

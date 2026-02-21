@@ -1,6 +1,26 @@
-﻿import { Card, Heading, Text } from "evergreen-ui";
+import { Card, Heading, Text, Tooltip } from "evergreen-ui";
 
-export default function StatCard({ label, value, hint, compact = false, hideHint = false }) {
+export default function StatCard({
+  label,
+  value,
+  hint,
+  compact = false,
+  hideHint = false,
+  labelTooltip = "",
+  valueTooltip = "",
+}) {
+  const labelNode = (
+    <Text size={400} color="muted">
+      {label}
+    </Text>
+  );
+
+  const valueNode = (
+    <Heading size={700} marginTop={compact ? 4 : 6}>
+      {value}
+    </Heading>
+  );
+
   return (
     <Card
       elevation={0}
@@ -9,12 +29,8 @@ export default function StatCard({ label, value, hint, compact = false, hideHint
       paddingX={14}
       paddingY={compact ? 10 : 14}
     >
-      <Text size={400} color="muted">
-        {label}
-      </Text>
-      <Heading size={700} marginTop={compact ? 4 : 6}>
-        {value}
-      </Heading>
+      {labelTooltip ? <Tooltip content={labelTooltip}>{labelNode}</Tooltip> : labelNode}
+      {valueTooltip ? <Tooltip content={valueTooltip}>{valueNode}</Tooltip> : valueNode}
       {hint && !hideHint ? (
         <Text size={300} color="muted" display="block" marginTop={6}>
           {hint}
@@ -23,4 +39,3 @@ export default function StatCard({ label, value, hint, compact = false, hideHint
     </Card>
   );
 }
-
