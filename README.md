@@ -16,9 +16,9 @@ Create a personal portfolio site at the root domain and host multiple sub-apps o
 /portfolio          # Static site for brianz.dev
 /apps/site-performance          # Site Performance dashboard (frontend-only, shared backend API)
   /client           # Vite React app
+/apps/backend       # brianz backend (shared Express API service)
 /apps/tftduos       # TFTDuos app sources
   /client           # Vite React app
-  /server           # brianz backend (shared Express API service)
 ```
 
 ## TFTDuos Deployment Model (recommended)
@@ -61,8 +61,6 @@ From `apps/tftduos/client`:
 - Publish Directory: `dist`
 - Domains: `brianz.dev` and optional `www.brianz.dev`
 
-### TFTDuos (Web Service)
-
 ### TFTDuos Frontend (Static Site)
 
 - Service type: `Static Site`
@@ -78,7 +76,7 @@ From `apps/tftduos/client`:
 ### brianz Backend (Web Service)
 
 - Service type: `Web Service`
-- Root Directory: `apps/tftduos/server`
+- Root Directory: `apps/backend`
 - Build Command: `npm ci`
 - Start Command: `npm start`
 - Domain: `backend.brianz.dev` (recommended) or keep Render URL
@@ -120,11 +118,11 @@ For static sites:
 - GitHub Actions workflow: `.github/workflows/ci.yml`
 - Triggers: `pull_request` and `push` on `main`
 - `verify-tftduos-client`: runs `apps/tftduos/client` tests and production build.
-- `verify-brianz-backend`: runs `node --check apps/tftduos/server/index.js`.
+- `verify-brianz-backend`: runs `node --check apps/backend/index.js`.
 - `verify-portfolio`: runs `npm run build:portfolio`.
 - `verify-site-performance-client`: builds `apps/site-performance/client`.
 - Render deployment should use test-inclusive build commands so a failing test blocks publish.
-- `portfolio` and `apps/tftduos/server` currently include placeholder `test` scripts (exit 0) so
+- `portfolio` and `apps/backend` currently include placeholder `test` scripts (exit 0) so
 test-inclusive pipelines can run consistently until real tests are added.
 
 ## DNS (Porkbun)
@@ -150,7 +148,7 @@ Use exactly what Render Custom Domains asks for:
 - Coaching UI now uses high-contrast custom error/warning banners and compact AI payload requests to improve readability and reduce large-timeline AI network failures.
 - Coaching AI responses are cached client-side by duo/filter and reused until a newer shared match is detected, reducing repeated OpenAI calls when no new duo games were played.
 - Coaching data flow is now trimmed to the active UI surface: `App.jsx` only passes `CoachingTab` the props it renders, and `useDuoAnalysis` drops unused journal/event-only client state.
-- Site Performance now exists as a frontend-only Render Meta Dashboard (`apps/site-performance/client`) and consumes shared backend routes under `/api/site-performance/*` from `apps/tftduos/server`.
+- Site Performance now exists as a frontend-only Render Meta Dashboard (`apps/site-performance/client`) and consumes shared backend routes under `/api/site-performance/*` from `apps/backend`.
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.
 

@@ -5,7 +5,7 @@ TFT duo coaching/analysis sub-app in the portfolio monorepo.
 ## Architecture
 
 - `client/`: Vite + React + Evergreen UI
-- `server/`: brianz backend Express API (Riot integration + analytics helpers)
+- Shared backend lives at `apps/backend/`: brianz backend Express API (Riot integration + analytics helpers)
 
 ## Local Development
 
@@ -17,7 +17,7 @@ From repo root:
 From `apps/tftduos`:
 
 - `npm run dev:client`
-- `npm run dev:server`
+- `npm run dev:server` (starts `apps/backend`)
 - `npm run build`
 - `npm start`
 
@@ -158,7 +158,7 @@ CI:
 - Runs on `pull_request` and `push` for `main`.
 - Validates:
   - `apps/tftduos/client` tests + production build
-  - `apps/tftduos/server` syntax (`node --check`)
+  - `apps/backend` syntax (`node --check`)
   - `portfolio` static build (`npm run build:portfolio`)
 - Recommended Render frontend build command:
   - `npm ci && npm run test && npm run build`
@@ -169,7 +169,7 @@ CI:
   - `client/src/utils/tft.js`
   - `client/src/components/tabs/HistoryTab.jsx`
   - `.github/copilot-instructions.md`
-- Legacy root runtime files were removed; use only `apps/tftduos/client` and `apps/tftduos/server` paths for dev/deploy.
+- Legacy root runtime files were removed; use `apps/tftduos/client` and `apps/backend` paths for dev/deploy.
 - `client/src/hooks/useDuoAnalysis.js` keeps an identity-stable empty `matches` list and skips redundant manifest resets to prevent React effect loops (`Maximum update depth exceeded`) before payload data loads.
 - Coaching client-state cleanup (no user-facing behavior change):
   - `client/src/App.jsx` now passes only actively consumed `CoachingTab` props.

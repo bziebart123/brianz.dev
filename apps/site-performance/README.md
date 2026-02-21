@@ -1,6 +1,6 @@
 # Site Performance - Render Meta Dashboard
 
-`site-performance` is a static frontend that visualizes Render service performance by calling the existing shared backend (`apps/tftduos/server`).
+`site-performance` is a static frontend that visualizes Render service performance by calling the existing shared backend (`apps/backend`).
 
 ## Architecture
 
@@ -25,7 +25,7 @@ See `apps/site-performance/client/.env.example`:
 
 ## Shared backend env vars
 
-The shared backend (`apps/tftduos/server`) must include:
+The shared backend (`apps/backend`) must include:
 
 - `RENDER_API_KEY` (required for Site Performance metrics)
 - `RENDER_API_BASE_URL` (optional, default: `https://api.render.com/v1`)

@@ -44,7 +44,7 @@ jobs:
           node-version: 20
 
       - name: Check backend syntax
-        run: node --check apps/tftduos/server/index.js
+        run: node --check apps/backend/index.js
 
   verify-portfolio:
     runs-on: ubuntu-latest

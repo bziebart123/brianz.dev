@@ -14,9 +14,9 @@ Build and maintain a **personal portfolio hub with sub-apps**:
 - Monorepo layout:
   - `portfolio/` -> static portfolio hub (Render Static Site, root domain)
   - `apps/site-performance/client/` -> Render meta dashboard frontend (Vite + React)
-  - `apps/tftduos/` -> TFT app split into frontend + backend services
+  - `apps/backend/` -> Node + Express brianz backend API (`/api/tft*`, `/api/duo*`, `/api/coach*`, `/api/site-performance*`)
+  - `apps/tftduos/` -> TFT frontend app sources
   - `apps/tftduos/client/` -> Vite + React + Evergreen UI frontend
-  - `apps/tftduos/server/` -> Node + Express brianz backend API (`/api/tft*`, `/api/duo*`, `/api/coach*`, `/api/site-performance*`)
 - Canonical frontend entry:
   - `apps/tftduos/client/src/App.jsx`
 - Root-level legacy app/server files have been removed; do not add alternate root runtimes.
@@ -27,10 +27,10 @@ Build and maintain a **personal portfolio hub with sub-apps**:
 - Deploys should be GitHub push -> Render auto deploy.
 - TFTDuos should deploy as:
   - frontend Static Site (`apps/tftduos/client`)
-  - backend Web Service (`apps/tftduos/server`)
+  - backend Web Service (`apps/backend`)
 - Site Performance should deploy as:
   - frontend Static Site (`apps/site-performance/client`)
-  - shared backend remains `apps/tftduos/server` (no separate Site Performance backend service)
+  - shared backend remains `apps/backend` (no separate Site Performance backend service)
 
 ## Data And Config
 - Frontend Riot IDs/regions come from client env vars:
