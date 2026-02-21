@@ -28,6 +28,7 @@ body {
 
 .tft-app-shell {
   --bz-text-scale: 1.45;
+  --bz-content-text-scale: 1.7;
   color: var(--bz-text);
 }
 
@@ -72,6 +73,25 @@ body {
 
 .tft-app-shell [data-evergreen-id="heading"] {
   font-size: calc(16px * var(--bz-text-scale)) !important;
+}
+
+.tft-main-content [data-evergreen-id="heading"] {
+  font-size: calc(16px * var(--bz-content-text-scale)) !important;
+}
+
+.tft-main-content [data-evergreen-id="text"],
+.tft-main-content [data-evergreen-id="paragraph"],
+.tft-main-content button,
+.tft-main-content select,
+.tft-main-content input,
+.tft-main-content textarea,
+.tft-main-content strong,
+.tft-main-content label {
+  font-size: calc(13px * var(--bz-content-text-scale)) !important;
+}
+
+.tft-main-content [data-evergreen-id="badge"] {
+  font-size: calc(11px * var(--bz-content-text-scale)) !important;
 }
 
 .tft-app-shell [data-evergreen-id="text"][color="muted"],

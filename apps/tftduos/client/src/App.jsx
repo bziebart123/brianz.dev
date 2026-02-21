@@ -31,7 +31,7 @@ export default function App() {
         displayedError={state.displayedError}
       />
 
-      <Pane flex={1} padding={30}>
+      <Pane className="tft-main-content" flex={1} padding={30}>
         <Pane maxWidth={1180} marginX="auto" display="grid" gap={18}>
           {state.payload && state.activeTab === "history" ? (
             <HistoryTab
