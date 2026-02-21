@@ -69,8 +69,6 @@ function summarizePlayer(matches, key, label, sideKey) {
     lowDamageLosses,
     topTraits: topEntries(traitCounts, 4),
     topUnits: topEntries(unitCounts, 6),
-    placements,
-    damages,
   };
 }
 
@@ -124,29 +122,19 @@ export default function AnalysisTab({
     .sort((left, right) => left.avgPlacement - right.avgPlacement || right.games - left.games)
     .slice(0, 5);
 
-  const playerA = summarizePlayer(
-    filteredMatches,
-    "playerA",
-    DISPLAY_NAME_A,
-    coachingInsights?.summary?.a
-  );
-  const playerB = summarizePlayer(
-    filteredMatches,
-    "playerB",
-    DISPLAY_NAME_B,
-    coachingInsights?.summary?.b
-  );
+  const playerA = summarizePlayer(filteredMatches, "playerA", DISPLAY_NAME_A, coachingInsights?.summary?.a);
+  const playerB = summarizePlayer(filteredMatches, "playerB", DISPLAY_NAME_B, coachingInsights?.summary?.b);
 
   const decisionGrade = Number(scorecard?.decisionQuality?.grade || 0);
   const rescueRate = Number(scorecard?.rescueIndex?.rescueRate || 0);
   const clutchIndex = Number(scorecard?.rescueIndex?.clutchIndex || 0);
 
   return (
-    <Pane display="grid" gap={12}>
+    <Pane className="analysis-tab-root" display="grid" gap={12}>
       <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
         <Pane display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={10}>
           <Heading size={600}>Duo Performance Dashboard</Heading>
-          <Badge color="blue">{filteredMatches.length} games in filter</Badge>
+          <Badge className="analysis-pill" color="blue">{filteredMatches.length} games in filter</Badge>
         </Pane>
 
         <Pane marginTop={12} display="grid" gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))" gap={12}>
@@ -159,18 +147,40 @@ export default function AnalysisTab({
         </Pane>
       </Card>
 
-      <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(280px, 1fr))" gap={12}>
+      <Card className="analysis-graphs-card" elevation={0} padding={16} background="rgba(255,255,255,0.03)">
+        <Heading size={500}>Trend Graphs</Heading>
+        <Pane className="analysis-graphs-grid" marginTop={10} display="grid" gridTemplateColumns="repeat(3, minmax(0, 1fr))" gap={10}>
+          <Pane>
+            <Pane display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={6}>
+              <Text size={400} color="muted">Team Placement Trend</Text>
+              <Badge className="analysis-pill" color={momentum >= 0 ? "green" : "red"}>
+                Momentum {momentum >= 0 ? "+" : ""}{momentum.toFixed(2)}
+              </Badge>
+            </Pane>
+            <Pane marginTop={6}>
+              <Sparkline values={teamPlacements} height={72} responsive canvasWidth={520} />
+            </Pane>
+          </Pane>
+
+          <Pane>
+            <Text size={400} color="muted">{DISPLAY_NAME_A} Damage Trend</Text>
+            <Pane marginTop={6}>
+              <Sparkline values={playerADamageTrend} height={72} responsive canvasWidth={520} />
+            </Pane>
+          </Pane>
+
+          <Pane>
+            <Text size={400} color="muted">{DISPLAY_NAME_B} Damage Trend</Text>
+            <Pane marginTop={6}>
+              <Sparkline values={playerBDamageTrend} height={72} responsive canvasWidth={520} />
+            </Pane>
+          </Pane>
+        </Pane>
+      </Card>
+
+      <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(320px, 1fr))" gap={12}>
         <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
-          <Heading size={500}>Team Placement Trend</Heading>
-          <Pane marginTop={8}>
-            <Sparkline values={teamPlacements} width={240} height={64} />
-          </Pane>
-          <Pane marginTop={10} display="flex" gap={8} flexWrap="wrap">
-            <Badge color={momentum >= 0 ? "green" : "red"}>
-              Momentum {momentum >= 0 ? "+" : ""}{momentum.toFixed(2)}
-            </Badge>
-            <Badge color="neutral">Recent Avg {recentAvg ? recentAvg.toFixed(2) : "-"}</Badge>
-          </Pane>
+          <Heading size={500}>Placement Distribution</Heading>
           <Pane marginTop={10} display="grid" gap={8}>
             {placementDistribution.map((row) => (
               <MetricBar
@@ -180,6 +190,9 @@ export default function AnalysisTab({
                 color={row.placement <= 2 ? "#2ea66f" : row.placement === 3 ? "#c08d3f" : "#bd4b4b"}
               />
             ))}
+          </Pane>
+          <Pane marginTop={8}>
+            <Badge className="analysis-pill" color="neutral">Recent Avg {recentAvg ? recentAvg.toFixed(2) : "-"}</Badge>
           </Pane>
         </Card>
 
@@ -191,7 +204,7 @@ export default function AnalysisTab({
                 <Pane key={`patch-${row.patch}`} padding={8} border="default" borderRadius={6}>
                   <Pane display="flex" justifyContent="space-between" alignItems="center" gap={8} flexWrap="wrap">
                     <Strong>Patch {row.patch}</Strong>
-                    <Badge color="neutral">{row.games} games</Badge>
+                    <Badge className="analysis-pill" color="neutral">{row.games} games</Badge>
                   </Pane>
                   <Pane marginTop={6} display="grid" gridTemplateColumns="1fr 1fr" gap={8}>
                     <Text size={400}>Avg place {row.avgPlacement.toFixed(2)}</Text>
@@ -204,81 +217,65 @@ export default function AnalysisTab({
             )}
           </Pane>
         </Card>
-
-        <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
-          <Heading size={500}>Damage Trend</Heading>
-          <Pane marginTop={10} display="grid" gap={12}>
-            <Pane>
-              <Text size={400} color="muted">{DISPLAY_NAME_A}</Text>
-              <Pane marginTop={6}>
-                <Sparkline values={playerADamageTrend} width={240} height={54} />
-              </Pane>
-            </Pane>
-            <Pane>
-              <Text size={400} color="muted">{DISPLAY_NAME_B}</Text>
-              <Pane marginTop={6}>
-                <Sparkline values={playerBDamageTrend} width={240} height={54} />
-              </Pane>
-            </Pane>
-          </Pane>
-        </Card>
       </Pane>
 
-      <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(320px, 1fr))" gap={12}>
-        <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
-          <Heading size={500}>Meta Pressure</Heading>
-          <Pane marginTop={10}>
-            <Text size={400} color="muted">Most common traits in your lobbies</Text>
-            <Pane marginTop={8} display="flex" flexWrap="wrap" gap={8}>
-              {computed.metaTraits.length ? (
-                computed.metaTraits.slice(0, 8).map((trait) => (
-                  <IconWithLabel
-                    key={trait.name}
-                    kind="trait"
-                    token={trait.name}
-                    label={prettyName(trait.name)}
-                    count={trait.count}
-                    traitTier={trait.style}
-                    size={58}
-                    iconManifest={iconManifest}
-                  />
-                ))
-              ) : (
-                <Text size={400} color="muted">No trait trend yet.</Text>
-              )}
-            </Pane>
-          </Pane>
-          <Pane marginTop={12}>
-            <Text size={400} color="muted">Most common units in your lobbies</Text>
-            <Pane marginTop={8} display="flex" flexWrap="wrap" gap={8}>
-              {computed.metaUnits.length ? (
-                computed.metaUnits.slice(0, 10).map((unit) => (
-                  <IconWithLabel
-                    key={unit.characterId}
-                    kind="unit"
-                    token={unit.characterId}
-                    label={prettyName(unit.characterId)}
-                    count={unit.count}
-                    size={52}
-                    iconManifest={iconManifest}
-                  />
-                ))
-              ) : (
-                <Text size={400} color="muted">No unit trend yet.</Text>
-              )}
-            </Pane>
-          </Pane>
-          <Pane marginTop={12} display="grid" gap={6}>
-            {computed.suggestions.length ? (
-              computed.suggestions.slice(0, 4).map((item, index) => (
-                <Text key={`suggestion-${index}`} size={400}>- {item}</Text>
+      <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
+        <Heading size={500}>Meta Pressure</Heading>
+        <Pane marginTop={10}>
+          <Text size={400} color="muted">Most common traits in your lobbies</Text>
+          <Pane marginTop={8} display="flex" flexWrap="wrap" gap={8}>
+            {computed.metaTraits.length ? (
+              computed.metaTraits.slice(0, 8).map((trait) => (
+                <IconWithLabel
+                  key={trait.name}
+                  kind="trait"
+                  token={trait.name}
+                  label={prettyName(trait.name)}
+                  count={trait.count}
+                  traitTier={trait.style}
+                  size={58}
+                  iconManifest={iconManifest}
+                />
               ))
             ) : (
-              <Text size={400} color="muted">No strong macro signal yet.</Text>
+              <Text size={400} color="muted">No trait trend yet.</Text>
             )}
           </Pane>
-        </Card>
+        </Pane>
 
+        <Pane marginTop={12}>
+          <Text size={400} color="muted">Most common units in your lobbies</Text>
+          <Pane marginTop={8} display="flex" flexWrap="wrap" gap={8}>
+            {computed.metaUnits.length ? (
+              computed.metaUnits.slice(0, 10).map((unit) => (
+                <IconWithLabel
+                  key={unit.characterId}
+                  kind="unit"
+                  token={unit.characterId}
+                  label={prettyName(unit.characterId)}
+                  count={unit.count}
+                  size={52}
+                  iconManifest={iconManifest}
+                />
+              ))
+            ) : (
+              <Text size={400} color="muted">No unit trend yet.</Text>
+            )}
+          </Pane>
+        </Pane>
+
+        <Pane marginTop={12} display="grid" gap={6}>
+          {computed.suggestions.length ? (
+            computed.suggestions.slice(0, 4).map((item, index) => (
+              <Text key={`suggestion-${index}`} size={400}>- {item}</Text>
+            ))
+          ) : (
+            <Text size={400} color="muted">No strong macro signal yet.</Text>
+          )}
+        </Pane>
+      </Card>
+
+      <Pane className="analysis-player-grid" display="grid" gridTemplateColumns="repeat(2, minmax(0, 1fr))" gap={12}>
         {[playerA, playerB].map((player) => (
           <Card key={player.label} elevation={0} padding={16} background="rgba(255,255,255,0.03)">
             <Heading size={500}>{player.label} Breakdown</Heading>

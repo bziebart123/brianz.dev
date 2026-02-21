@@ -206,6 +206,20 @@ body {
   overflow-y: auto;
 }
 
+.analysis-pill {
+  font-size: 12px !important;
+  min-height: 24px !important;
+  padding: 2px 8px !important;
+}
+
+.analysis-graphs-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.analysis-player-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .tft-app-shell select,
 .tft-app-shell input,
 .tft-app-shell textarea {
@@ -370,6 +384,11 @@ body {
   .history-banner-grid,
   .history-kpi-grid,
   .history-player-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .analysis-graphs-grid,
+  .analysis-player-grid {
     grid-template-columns: 1fr !important;
   }
 
