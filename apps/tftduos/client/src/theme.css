@@ -74,6 +74,19 @@ body {
   background: linear-gradient(180deg, rgba(16, 24, 42, 0.92), rgba(12, 19, 34, 0.95));
   border-right-color: var(--bz-border) !important;
   box-shadow: inset -1px 0 0 rgba(73, 101, 159, 0.2);
+  overflow: hidden;
+}
+
+.tft-sidebar-scroll {
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
+}
+
+.tft-sidebar-footer {
+  border-top: 1px solid rgba(73, 101, 159, 0.28);
+  padding-top: 12px;
+  background: linear-gradient(180deg, rgba(12, 19, 34, 0), rgba(12, 19, 34, 0.94) 32%);
 }
 
 .tft-sidebar .back-link {

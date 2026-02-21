@@ -51,6 +51,7 @@ Server env vars (see `.env.example` and server code):
   - Champion star strips (filled stars only)
 - Trait icons are tier-colored with distinct bronze/silver/gold/prismatic styles.
 - UI text/icons are scaled up for readability.
+- Left sidebar keeps the Refresh Data action anchored at the viewport bottom while upper sidebar content scrolls independently.
 
 ## Testing
 
