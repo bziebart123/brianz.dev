@@ -39,8 +39,8 @@ export default function HistoryTab({
   companionManifest,
 }) {
   return (
-    <Pane display="grid" gap={12}>
-      <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(280px, 1fr))" gap={12}>
+    <Pane className="history-tab-root" display="grid" gap={12}>
+      <Pane className="history-banner-grid" display="grid" gridTemplateColumns="repeat(auto-fit, minmax(280px, 1fr))" gap={12}>
         <PlayerBannerCard
           displayName={DISPLAY_NAME_A}
           riotName={payload.players?.a?.gameName}
@@ -60,7 +60,7 @@ export default function HistoryTab({
           fallbackUnitToken={latestMatchForBanner?.playerB?.units?.[0]?.characterId || ""}
         />
       </Pane>
-      <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))" gap={12}>
+      <Pane className="history-kpi-grid" display="grid" gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))" gap={12}>
         <StatCard label="Games" value={kpis.gamesTogether} hint="In current filters" compact hideHint />
         <StatCard
           label="Team Avg Place"
@@ -156,7 +156,7 @@ export default function HistoryTab({
             </Text>
           </Pane>
 
-          <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={12} marginTop={12}>
+          <Pane className="history-player-grid" display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={12} marginTop={12}>
             <Card padding={10} elevation={0} background="rgba(255,255,255,0.04)">
               <Pane display="flex" justifyContent="space-between" alignItems="center" marginBottom={8} gap={8} flexWrap="wrap">
                 <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">

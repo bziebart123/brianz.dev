@@ -1,4 +1,4 @@
-﻿import {
+import {
   Alert,
   Button,
   Card,
@@ -14,6 +14,8 @@
 import { VIEW_TABS } from "../config/constants";
 
 export default function Sidebar({
+  isMobile,
+  onRequestClose,
   activeTab,
   setActiveTab,
   payload,
@@ -34,6 +36,10 @@ export default function Sidebar({
 }) {
   const portfolioUrl = String(import.meta.env.VITE_PORTFOLIO_URL || "https://brianz.dev").trim();
 
+  function closeIfMobile() {
+    if (isMobile && onRequestClose) onRequestClose();
+  }
+
   return (
     <Pane
       className="tft-sidebar"
@@ -49,34 +55,42 @@ export default function Sidebar({
       flexDirection="column"
     >
       <Pane className="tft-sidebar-scroll" flex={1} minHeight={0}>
-        <Pane display="flex" alignItems="center" gap={10}>
-          <a
-            href={portfolioUrl}
-            className="back-link"
-            title="Back to Portfolio"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 36,
-              height: 36,
-              padding: 0,
-              margin: 0,
-              boxSizing: "border-box",
-              flexShrink: 0,
-              borderRadius: 8,
-              border: "1px solid rgba(255,255,255,0.14)",
-              color: "inherit",
-              textDecoration: "none",
-              fontWeight: 700,
-              lineHeight: 1,
-            }}
-          >
-            <span style={{ fontSize: 20, lineHeight: 1, fontWeight: 700 }} aria-hidden="true">
-              ←
-            </span>
-          </a>
-          <Heading size={700}>Duo TFT Coach</Heading>
+        <Pane display="flex" alignItems="center" gap={10} justifyContent="space-between">
+          <Pane display="flex" alignItems="center" gap={10}>
+            <a
+              href={portfolioUrl}
+              className="back-link"
+              title="Back to Portfolio"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 36,
+                height: 36,
+                padding: 0,
+                margin: 0,
+                boxSizing: "border-box",
+                flexShrink: 0,
+                borderRadius: 8,
+                border: "1px solid rgba(255,255,255,0.14)",
+                color: "inherit",
+                textDecoration: "none",
+                fontWeight: 700,
+                lineHeight: 1,
+              }}
+            >
+              <span style={{ fontSize: 20, lineHeight: 1, fontWeight: 700 }} aria-hidden="true">
+                ?
+              </span>
+            </a>
+            <Heading size={700}>Duo TFT Coach</Heading>
+          </Pane>
+
+          {isMobile ? (
+            <button type="button" className="tft-sidebar-close" onClick={closeIfMobile} aria-label="Close filters">
+              ?
+            </button>
+          ) : null}
         </Pane>
         <Pane marginBottom={22} />
 
@@ -85,7 +99,10 @@ export default function Sidebar({
             <Tab
               key={tab.id}
               isSelected={activeTab === tab.id}
-              onSelect={() => setActiveTab(tab.id)}
+              onSelect={() => {
+                setActiveTab(tab.id);
+                closeIfMobile();
+              }}
               justifyContent="flex-start"
               height={54}
               width="100%"
@@ -157,7 +174,17 @@ export default function Sidebar({
       </Pane>
 
       <Pane className="tft-sidebar-footer" marginTop={12} flexShrink={0}>
-        <Button type="button" appearance="primary" height={44} width="100%" disabled={loading} onClick={loadDuoAnalysis}>
+        <Button
+          type="button"
+          appearance="primary"
+          height={44}
+          width="100%"
+          disabled={loading}
+          onClick={() => {
+            loadDuoAnalysis();
+            closeIfMobile();
+          }}
+        >
           <Pane display="flex" alignItems="center" justifyContent="center" gap={8}>
             {loading ? <Spinner size={14} color="white" /> : null}
             <Text size={500} color="inherit">
@@ -165,9 +192,7 @@ export default function Sidebar({
             </Text>
           </Pane>
         </Button>
-        {displayedError ? (
-          <Alert intent="danger" title={displayedError} marginTop={12} />
-        ) : null}
+        {displayedError ? <Alert intent="danger" title={displayedError} marginTop={12} /> : null}
       </Pane>
     </Pane>
   );
