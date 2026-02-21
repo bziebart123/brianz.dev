@@ -2232,6 +2232,6 @@ app.get(/^\/(?!api(?:\/|$)).*/, async (_req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`TFT API server listening on http://localhost:${port}`);
+  console.log(`brianz backend listening on http://localhost:${port}`);
 });
 

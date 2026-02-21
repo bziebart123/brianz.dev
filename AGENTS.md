@@ -16,7 +16,7 @@ Build and maintain a **personal portfolio hub with sub-apps**:
   - `apps/site-performance/client/` -> Render meta dashboard frontend (Vite + React)
   - `apps/tftduos/` -> TFT app split into frontend + backend services
   - `apps/tftduos/client/` -> Vite + React + Evergreen UI frontend
-  - `apps/tftduos/server/` -> Node + Express shared backend API (`/api/tft*`, `/api/duo*`, `/api/coach*`, `/api/site-performance*`)
+  - `apps/tftduos/server/` -> Node + Express brianz backend API (`/api/tft*`, `/api/duo*`, `/api/coach*`, `/api/site-performance*`)
 - Canonical frontend entry:
   - `apps/tftduos/client/src/App.jsx`
 - Root-level legacy app/server files have been removed; do not add alternate root runtimes.

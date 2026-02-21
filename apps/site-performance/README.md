@@ -5,14 +5,14 @@
 ## Architecture
 
 - Frontend: `apps/site-performance/client` (Vite + React)
-- Backend API source: shared TFT backend route namespace (`/api/site-performance/*`)
+- Backend API source: shared brianz backend route namespace (`/api/site-performance/*`)
 - No dedicated `apps/site-performance/server` required
 
 ## Local development
 
 From repo root:
 
-- `npm run dev:tftduos:server`
+- `npm run dev:brianz:backend`
 - `npm run dev:site-performance:client`
 
 By default, the Site Performance frontend proxies `/api` to `http://localhost:3001` via Vite.

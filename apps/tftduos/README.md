@@ -5,14 +5,14 @@ TFT duo coaching/analysis sub-app in the portfolio monorepo.
 ## Architecture
 
 - `client/`: Vite + React + Evergreen UI
-- `server/`: Express API (Riot integration + analytics helpers)
+- `server/`: brianz backend Express API (Riot integration + analytics helpers)
 
 ## Local Development
 
 From repo root:
 
 - `npm run dev:tftduos:client`
-- `npm run dev:tftduos:server`
+- `npm run dev:brianz:backend` (`npm run dev:tftduos:server` still works as an alias)
 
 From `apps/tftduos`:
 

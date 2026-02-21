@@ -18,13 +18,13 @@ Create a personal portfolio site at the root domain and host multiple sub-apps o
   /client           # Vite React app
 /apps/tftduos       # TFTDuos app sources
   /client           # Vite React app
-  /server           # Express API service
+  /server           # brianz backend (shared Express API service)
 ```
 
 ## TFTDuos Deployment Model (recommended)
 
 - Frontend: Render **Static Site** (subdomain `tftduos.brianz.dev`)
-- Backend: Render **Web Service** (API only, e.g. `tftduos-api.onrender.com`)
+- Backend: Render **Web Service** (API only, e.g. `backend.brianz.dev` or Render URL)
 - Frontend calls backend via `VITE_API_BASE_URL`
 - Riot API key stays only on backend via `RIOT_API_KEY`
 
@@ -36,7 +36,8 @@ From repo root:
 - `npm run build:tftduos`
 - `npm run build:site-performance`
 - `npm run dev:tftduos:client`
-- `npm run dev:tftduos:server`
+- `npm run dev:brianz:backend`
+- `npm run dev:tftduos:server` (alias for backward compatibility)
 - `npm run dev:site-performance:client`
 
 From `apps/tftduos`:
@@ -70,17 +71,17 @@ From `apps/tftduos/client`:
 - Publish Directory: `dist`
 - Domain: `tftduos.brianz.dev`
 - Env vars:
-  - `VITE_API_BASE_URL=https://<your-tftduos-api-service>.onrender.com`
+  - `VITE_API_BASE_URL=https://<your-brianz-backend-service>.onrender.com`
   - `VITE_RIOT_GAME_NAME_A`, `VITE_RIOT_TAG_LINE_A`, `VITE_RIOT_GAME_NAME_B`, `VITE_RIOT_TAG_LINE_B`
   - `VITE_RIOT_ROUTING_REGION`, `VITE_RIOT_PLATFORM_REGION`
 
-### TFTDuos API (Web Service)
+### brianz Backend (Web Service)
 
 - Service type: `Web Service`
 - Root Directory: `apps/tftduos/server`
 - Build Command: `npm ci`
 - Start Command: `npm start`
-- Domain: optional custom API domain (or keep Render URL)
+- Domain: `backend.brianz.dev` (recommended) or keep Render URL
 - Env vars:
   - `RIOT_API_KEY=<your key>`
   - `ALLOWED_ORIGINS=https://tftduos.brianz.dev,https://site-performance.brianz.dev,https://brianz.dev,https://www.brianz.dev`
@@ -100,7 +101,7 @@ From `apps/tftduos/client`:
 - Publish Directory: `dist`
 - Domain: `site-performance.brianz.dev`
 - Env vars:
-  - `VITE_API_BASE_URL=https://<your-tftduos-api-service>.onrender.com`
+  - `VITE_API_BASE_URL=https://<your-brianz-backend-service>.onrender.com`
 
 ## Standard Render Commands
 
@@ -119,7 +120,7 @@ For static sites:
 - GitHub Actions workflow: `.github/workflows/ci.yml`
 - Triggers: `pull_request` and `push` on `main`
 - `verify-tftduos-client`: runs `apps/tftduos/client` tests and production build.
-- `verify-tftduos-server`: runs `node --check apps/tftduos/server/index.js`.
+- `verify-brianz-backend`: runs `node --check apps/tftduos/server/index.js`.
 - `verify-portfolio`: runs `npm run build:portfolio`.
 - `verify-site-performance-client`: builds `apps/site-performance/client`.
 - Render deployment should use test-inclusive build commands so a failing test blocks publish.

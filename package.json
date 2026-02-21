@@ -7,7 +7,8 @@
     "build:tftduos": "npm run build --prefix apps/tftduos",
     "build:site-performance": "npm run build --prefix apps/site-performance",
     "dev:tftduos:client": "npm --prefix apps/tftduos/client run dev",
-    "dev:tftduos:server": "npm --prefix apps/tftduos/server run start",
+    "dev:brianz:backend": "npm --prefix apps/tftduos/server run start",
+    "dev:tftduos:server": "npm run dev:brianz:backend",
     "dev:site-performance:client": "npm --prefix apps/site-performance/client run dev"
   }
 }
