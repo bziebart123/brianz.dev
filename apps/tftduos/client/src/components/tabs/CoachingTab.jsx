@@ -1,4 +1,4 @@
-import { Alert, Badge, Button, Card, Heading, Pane, Spinner, Strong, Text, Tooltip } from "evergreen-ui";
+import { Badge, Button, Card, Heading, Pane, Spinner, Strong, Text, Tooltip } from "evergreen-ui";
 import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
 import { asArray } from "../../utils/tft";
 
@@ -146,12 +146,17 @@ export default function CoachingTab({
           </Pane>
           <Pane display="flex" alignItems="center" gap={8}>
             {aiCoaching?.model ? <Badge color="neutral">{aiCoaching.model}</Badge> : null}
-            <Button onClick={() => loadAiCoaching(true)} disabled={aiCoachingLoading}>
+            <Button className="tft-cta-btn" onClick={() => loadAiCoaching(true)} disabled={aiCoachingLoading}>
               {aiCoachingLoading ? "Generating..." : "Refresh AI"}
             </Button>
           </Pane>
         </Pane>
-        {aiCoachingError ? <Alert marginTop={10} intent="danger" title={aiCoachingError} /> : null}
+        {aiCoachingError ? (
+          <Pane className="tft-error-banner" marginTop={10}>
+            <Strong>AI Coach Error</Strong>
+            <Text size={400} display="block" marginTop={4}>{aiCoachingError}</Text>
+          </Pane>
+        ) : null}
         {aiCoaching?.brief ? (
           <Pane marginTop={10} display="grid" gap={8}>
             <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">

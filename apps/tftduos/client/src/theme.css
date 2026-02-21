@@ -268,6 +268,39 @@ body {
   color: #f2f7ff !important;
 }
 
+.tft-cta-btn {
+  border: 1px solid rgba(123, 167, 255, 0.72) !important;
+  border-radius: 10px !important;
+  background: linear-gradient(140deg, rgba(55, 114, 212, 0.98), rgba(67, 153, 224, 0.96)) !important;
+  color: #f6faff !important;
+  box-shadow: 0 6px 14px rgba(20, 56, 116, 0.32);
+}
+
+.tft-cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(20, 56, 116, 0.38);
+}
+
+.tft-error-banner,
+.tft-warning-banner {
+  border-radius: 10px;
+  border: 1px solid rgba(214, 92, 92, 0.58);
+  background: linear-gradient(145deg, rgba(70, 22, 28, 0.92), rgba(54, 18, 23, 0.92));
+  padding: 10px 12px;
+}
+
+.tft-warning-banner {
+  border-color: rgba(219, 173, 66, 0.62);
+  background: linear-gradient(145deg, rgba(67, 50, 18, 0.9), rgba(52, 39, 15, 0.9));
+}
+
+.tft-error-banner [data-evergreen-id="text"],
+.tft-warning-banner [data-evergreen-id="text"],
+.tft-error-banner strong,
+.tft-warning-banner strong {
+  color: #f7fbff !important;
+}
+
 .tft-app-shell button[data-appearance="primary"][disabled] {
   opacity: 1 !important;
   background: linear-gradient(140deg, rgba(74, 116, 189, 0.9), rgba(58, 143, 189, 0.9)) !important;

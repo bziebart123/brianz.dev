@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+﻿import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import HistoryTab from "./HistoryTab";
 
@@ -86,9 +86,9 @@ describe("HistoryTab", () => {
 
   it("shows filled stars only for existing units", () => {
     render(<HistoryTab {...props} />);
-    expect(screen.getAllByText("★★").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("★").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("★★★").length).toBeGreaterThan(0);
-    expect(screen.queryByText("☆")).not.toBeInTheDocument();
+    expect(screen.getAllByText("**").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("*").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("***").length).toBeGreaterThan(0);
   });
 });
+

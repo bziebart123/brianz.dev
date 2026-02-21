@@ -1,4 +1,4 @@
-﻿import { Alert, Badge, Card, Heading, Pane, Strong, Text } from "evergreen-ui";
+﻿import { Badge, Card, Heading, Pane, Strong, Text } from "evergreen-ui";
 import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
 import PlayerBannerCard from "../PlayerBannerCard";
 import StatCard from "../StatCard";
@@ -21,7 +21,7 @@ function boardSlots(units) {
 
 function starsForTier(tierValue) {
   const tier = Math.max(1, Math.min(3, Number(tierValue || 1)));
-  return "★".repeat(tier);
+  return "*".repeat(tier);
 }
 
 const UNIT_SLOT_SIZE = 48;
@@ -110,8 +110,13 @@ export default function HistoryTab({
         </Pane>
       </Card>
 
-      {!hasFilteredMatches ? (
-        <Alert intent="warning" title={`Loaded ${matches.length} matches but none match current filters.`} />
+            {!hasFilteredMatches ? (
+        <Pane className="tft-warning-banner">
+          <Strong>No matches in current filters</Strong>
+          <Text size={400} display="block" marginTop={4}>
+            Loaded {matches.length} matches but none match the selected timeline/set/patch.
+          </Text>
+        </Pane>
       ) : null}
 
       {filteredMatches.map((match) => {
@@ -290,4 +295,6 @@ export default function HistoryTab({
     </Pane>
   );
 }
+
+
 

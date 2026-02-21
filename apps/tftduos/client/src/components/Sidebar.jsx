@@ -1,5 +1,4 @@
 import {
-  Alert,
   Button,
   Card,
   Checkbox,
@@ -209,6 +208,7 @@ export default function Sidebar({
 
       <Pane className="tft-sidebar-footer" marginTop={12} flexShrink={0}>
         <Button
+          className="tft-cta-btn"
           type="button"
           appearance="primary"
           height={44}
@@ -226,7 +226,12 @@ export default function Sidebar({
             </Text>
           </Pane>
         </Button>
-        {displayedError ? <Alert intent="danger" title={displayedError} marginTop={12} /> : null}
+        {displayedError ? (
+          <Pane className="tft-error-banner" marginTop={12}>
+            <Strong>Request Error</Strong>
+            <Text size={400} display="block" marginTop={4}>{displayedError}</Text>
+          </Pane>
+        ) : null}
       </Pane>
     </Pane>
   );
