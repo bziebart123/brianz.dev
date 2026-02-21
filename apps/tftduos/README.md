@@ -56,6 +56,7 @@ Server env vars (see `.env.example` and server code):
 - Main content (`History`, `Analysis`, `Coaching`) now has an additional dedicated text scale (`--bz-content-text-scale` in `client/src/theme.css`) so right-panel readability can be increased without changing sidebar or layout geometry.
 - `History` now enforces larger, consistent placement/LP chip text and uses larger champion unit slots while keeping rows single-line (`overflow-x` instead of wrapping).
 - Player stat badges in `History` (`#placement`, `Lvl`, `Dmg`) now use tighter padding and a slightly smaller font than LP/team chips for clearer visual hierarchy.
+- Champion unit slots in `History` are tuned to remain larger but fit without row scrollbars, and sidebar filter dropdown text is slightly reduced to avoid vertical clipping.
 
 ## Testing
 
