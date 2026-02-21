@@ -114,7 +114,7 @@ Use exactly what Render Custom Domains asks for:
 ## Notes
 
 - `.gitignore` includes `node_modules`, `.env`, and `dist` outputs.
-- Existing legacy root app files are still present, but canonical deploy targets are now under `portfolio` and `apps/tftduos`.
+- Legacy root app files were removed. Active deploy targets are `portfolio` and `apps/tftduos/*`.
 
 ## AI Context Files
 

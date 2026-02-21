@@ -18,7 +18,7 @@ Build and maintain a **personal portfolio hub with sub-apps**:
   - `apps/tftduos/server/` -> Node + Express backend API (`/api` routes)
 - Canonical frontend entry:
   - `apps/tftduos/client/src/App.jsx`
-- `src/App.jsx` at repo root is a re-export shim for editor convenience.
+- Root-level legacy app/server files have been removed; do not add alternate root runtimes.
 
 ## Deployment Intent
 - Root domain serves portfolio (`brianz.dev`, optional `www`).

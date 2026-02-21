@@ -13,7 +13,7 @@ This monorepo hosts a personal portfolio site and multiple sub-apps.
 - `portfolio/`: static portfolio site.
 - `apps/tftduos/client`: Vite + React + Evergreen UI frontend.
 - `apps/tftduos/server`: Node + Express API backend for Riot/TFT data.
-- Root `src/` and root `server.js` are legacy; prefer `apps/tftduos/*`.
+- Root legacy app/server files were removed; use `apps/tftduos/*` only.
 
 ## Deployment Model (Render)
 

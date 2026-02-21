@@ -34,7 +34,7 @@ Client env vars (see `client/.env.example`):
 - `VITE_API_BASE_URL`
 - Riot game names/tags/regions (`VITE_RIOT_*`)
 
-Server env vars (see `../.env.example` and server code):
+Server env vars (see `.env.example` and server code):
 
 - `RIOT_API_KEY` (required)
 - `ALLOWED_ORIGINS`
@@ -73,3 +73,4 @@ CI:
   - `client/src/utils/tft.js`
   - `client/src/components/tabs/HistoryTab.jsx`
   - `.github/copilot-instructions.md`
+- Legacy root runtime files were removed; use only `apps/tftduos/client` and `apps/tftduos/server` paths for dev/deploy.
