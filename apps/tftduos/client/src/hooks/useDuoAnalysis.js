@@ -46,7 +46,7 @@ export default function useDuoAnalysis() {
   const [tagPanicRoll, setTagPanicRoll] = useState(false);
   const [tagMissedGift, setTagMissedGift] = useState(false);
   const [tagBothRoll, setTagBothRoll] = useState(false);
-  const [quickStage, setQuickStage] = useState("3.2");
+  const [quickStage, setQuickStage] = useState("4.1");
   const [quickActor, setQuickActor] = useState("A");
   const [coachSaving, setCoachSaving] = useState(false);
   const [coachMessage, setCoachMessage] = useState("");

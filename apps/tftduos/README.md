@@ -63,15 +63,18 @@ Server env vars (see `.env.example` and server code):
 - Champion unit slots in `History` are tuned to remain larger but fit without row scrollbars, and sidebar filter dropdown text is slightly reduced to avoid vertical clipping.
 - Analysis tab is now a dashboard-style view with:
   - Team KPI strip (avg placement, top2/top4/win rates, same-team games, avg team damage, volatility, rescue/clutch)
-  - Full-width team placement trend chart with labeled placement axis (`#1`..`#4`) and date-labeled x-axis range
+  - Full-width team rank trend chart (cumulative estimated LP/rank score from filtered placements) with labeled y-axis and date-labeled x-axis range
+  - Momentum and Recent Avg chips retained from team placement history
   - Team trend visuals (placement distribution + momentum)
   - Patch performance table derived from filtered matches
   - Gift Intelligence section using event-derived `gift_sent` metrics (early/item/ROI/waste) when available
   - Meta pressure (traits/units in current lobbies) plus suggested adjustments
   - Individual player breakdown cards (placement/damage/level consistency, per-player damage trend graph with date range labels, top trait/unit profiles), rendered side-by-side on desktop
 - Analysis page labels/KPIs/sections now include hover tooltips describing what each metric means and how key scores are computed.
+- Rescue/Clutch KPI now includes explicit in-card counts (`rescue events / total events`, `clutch wins / rescues`, `flips / rescues`) so missing clutch signal can be diagnosed without hovering.
 - Several analysis metrics are extrapolated client-side from filtered match payloads (for example momentum, volatility, patch ranking, and per-player consistency).
 - Timeline auto-default selection now prioritizes `30` days before shorter windows.
+- Quick event stage default for manual logging is now `4.1` to better align with late-stage clutch/rescue signal capture.
 
 ## Testing
 

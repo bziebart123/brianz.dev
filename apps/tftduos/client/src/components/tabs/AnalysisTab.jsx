@@ -1,6 +1,12 @@
 import { Card, Heading, Pane, Strong, Text, Tooltip } from "evergreen-ui";
 import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
-import { asArray, prettyName, teamPlacementFromMatch, toEpochMs } from "../../utils/tft";
+import {
+  asArray,
+  estimatedLpDeltaFromTeamPlacement,
+  prettyName,
+  teamPlacementFromMatch,
+  toEpochMs,
+} from "../../utils/tft";
 import IconWithLabel from "../IconWithLabel";
 import MetricBar from "../MetricBar";
 import Sparkline from "../Sparkline";
@@ -96,57 +102,63 @@ function SectionTitle({ title, tooltip }) {
   );
 }
 
-function TeamPlacementChart({ values, startLabel, endLabel }) {
+function TeamRankChart({ values, startLabel, endLabel }) {
   const width = 960;
-  const height = 210;
-  const padLeft = 46;
+  const height = 220;
+  const padLeft = 54;
   const padRight = 16;
-  const padTop = 14;
-  const padBottom = 30;
+  const padTop = 20;
+  const padBottom = 32;
   const plotWidth = width - padLeft - padRight;
   const plotHeight = height - padTop - padBottom;
 
   if (!values.length) {
     return (
       <Pane border="default" borderRadius={8} padding={12} background="rgba(255,255,255,0.03)">
-        <Text size={400} color="muted">No placement data yet.</Text>
+        <Text size={400} color="muted">No rank trend data yet.</Text>
       </Pane>
     );
   }
 
-  const minPlacement = 1;
-  const maxPlacement = 4;
+  const maxValue = Math.max(...values);
+  const minValue = Math.min(...values);
+  const padding = Math.max(15, Math.round((maxValue - minValue) * 0.12));
+  const yMin = minValue - padding;
+  const yMax = maxValue + padding;
+  const yRange = Math.max(1, yMax - yMin);
   const step = values.length > 1 ? plotWidth / (values.length - 1) : plotWidth;
-  const yForPlacement = (placement) => {
-    const normalized = (placement - minPlacement) / (maxPlacement - minPlacement || 1);
-    return padTop + normalized * plotHeight;
-  };
+
+  const yForValue = (value) => padTop + ((yMax - value) / yRange) * plotHeight;
 
   const points = values
     .map((value, index) => {
       const x = padLeft + index * step;
-      const clamped = Math.max(minPlacement, Math.min(maxPlacement, Number(value || 4)));
-      const y = yForPlacement(clamped);
+      const y = yForValue(value);
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(" ");
 
+  const ticks = Array.from({ length: 5 }, (_, index) => {
+    const value = yMax - (index * (yRange / 4));
+    return {
+      value,
+      y: yForValue(value),
+    };
+  });
+
   return (
     <Pane border="default" borderRadius={8} padding={8} background="rgba(255,255,255,0.03)">
       <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
-        <text x={8} y={14} fontSize="12" fill="rgba(230,238,255,0.72)">Team Placement (1 is best)</text>
+        <text x={8} y={14} fontSize="12" fill="rgba(230,238,255,0.72)">Estimated LP / rank score (cumulative)</text>
 
-        {[1, 2, 3, 4].map((placement) => {
-          const y = yForPlacement(placement);
-          return (
-            <g key={`axis-${placement}`}>
-              <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(177,194,226,0.2)" strokeWidth="1" />
-              <text x={padLeft - 10} y={y + 4} textAnchor="end" fontSize="12" fill="rgba(230,238,255,0.8)">
-                #{placement}
-              </text>
-            </g>
-          );
-        })}
+        {ticks.map((tick, idx) => (
+          <g key={`lp-axis-${idx}`}>
+            <line x1={padLeft} y1={tick.y} x2={width - padRight} y2={tick.y} stroke="rgba(177,194,226,0.2)" strokeWidth="1" />
+            <text x={padLeft - 10} y={tick.y + 4} textAnchor="end" fontSize="12" fill="rgba(230,238,255,0.8)">
+              {Math.round(tick.value)}
+            </text>
+          </g>
+        ))}
 
         <polyline
           points={points}
@@ -174,6 +186,12 @@ export default function AnalysisTab({
 }) {
   const sorted = [...filteredMatches].sort((a, b) => toEpochMs(a.gameDatetime) - toEpochMs(b.gameDatetime));
   const teamPlacements = sorted.map((match) => teamPlacementFromMatch(match));
+  const rankSeries = [];
+  let cumulativeLp = 0;
+  for (const placement of teamPlacements) {
+    cumulativeLp += estimatedLpDeltaFromTeamPlacement(placement);
+    rankSeries.push(cumulativeLp);
+  }
 
   const placementDistribution = [1, 2, 3, 4].map((placement) => {
     const count = teamPlacements.filter((value) => value === placement).length;
@@ -215,13 +233,17 @@ export default function AnalysisTab({
   const playerA = summarizePlayer(sorted, "playerA", DISPLAY_NAME_A, coachingInsights?.summary?.a);
   const playerB = summarizePlayer(sorted, "playerB", DISPLAY_NAME_B, coachingInsights?.summary?.b);
 
-  const decisionGrade = Number(scorecard?.decisionQuality?.grade || 0);
   const rescueRate = Number(scorecard?.rescueIndex?.rescueRate || 0);
   const clutchIndex = Number(scorecard?.rescueIndex?.clutchIndex || 0);
-  const successfulFlipRate = Number(scorecard?.rescueIndex?.successfulFlipRate || 0);
+  const rescueEvents = Number(scorecard?.rescueIndex?.rescueEvents || 0);
+  const totalEvents = Number(scorecard?.rescueIndex?.totalEvents || 0);
+  const clutchWins = Number(scorecard?.rescueIndex?.clutchWins || 0);
+  const successfulFlips = Number(scorecard?.rescueIndex?.successfulFlips || 0);
+
   const giftMetrics = scorecard?.giftEfficiency?.metrics || null;
   const giftStatus = String(scorecard?.giftEfficiency?.status || "needs_gift_events");
 
+  const decisionGrade = Number(scorecard?.decisionQuality?.grade || 0);
   const sameTeamGames = Number(kpis.sameTeamGames || 0);
   const teamTop4Rate = Number(kpis.teamTop4Rate || 0);
   const avgTeamDamage = sorted.length
@@ -254,14 +276,18 @@ export default function AnalysisTab({
           <StatCard label="Team Win Rate" value={kpis.teamWinRate !== null ? `${kpis.teamWinRate.toFixed(1)}%` : "-"} compact hideHint labelTooltip="Percent of filtered games where your duo team finishes #1." />
           <StatCard label="Same-Team Games" value={sameTeamGames} compact hideHint labelTooltip="Shared-match games where both players are detected on the same Double Up team." />
           <StatCard label="Avg Team Damage" value={filteredMatches.length ? avgTeamDamage.toFixed(1) : "-"} compact hideHint labelTooltip="Average combined player damage to opponents (player A + player B)." />
-          <StatCard label="Placement Volatility" value={teamPlacements.length ? stdDev(teamPlacements).toFixed(2) : "-"} compact hideHint labelTooltip="Standard deviation of team placements. Lower means more consistent outcomes." />
+          <StatCard label="Decision Grade" value={decisionGrade ? `${decisionGrade}/100` : "-"} compact hideHint labelTooltip="Composite score from decision-quality heuristics and outcome/process mix." />
           <StatCard
             label="Rescue / Clutch"
-            value={`${rescueRate.toFixed(0)}% / ${clutchIndex.toFixed(0)}%`}
+            value={rescueEvents > 0 ? `${rescueRate.toFixed(1)}% / ${clutchIndex.toFixed(1)}%` : "- / -"}
             compact
-            hideHint
-            labelTooltip="Rescue Rate = rescue_arrival events / all logged events. Clutch Index = late-stage successful rescues / rescue_arrival events."
-            valueTooltip={`Successful flip rate: ${successfulFlipRate.toFixed(0)}%`}
+            hint={
+              rescueEvents > 0
+                ? `Rescue events ${rescueEvents}/${totalEvents || 0}, clutch wins ${clutchWins}/${rescueEvents}, flips ${successfulFlips}/${rescueEvents}`
+                : "No rescue events logged yet."
+            }
+            labelTooltip="Rescue Rate = rescue_arrival events / all logged events. Clutch Index = stage 4+ successful rescues / rescue_arrival events."
+            valueTooltip={`Rescue events: ${rescueEvents}/${totalEvents || 0}. Clutch wins: ${clutchWins}/${rescueEvents || 0}.`}
           />
         </Pane>
       </Card>
@@ -269,8 +295,8 @@ export default function AnalysisTab({
       <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
         <Pane display="flex" justifyContent="space-between" alignItems="center" gap={8} flexWrap="wrap">
           <SectionTitle
-            title="Team Placement Trend"
-            tooltip="Line chart of team placement over time. Axis labels show placement rank (#1 best)."
+            title="Team Rank Trend"
+            tooltip="Estimated cumulative rank trajectory from filtered games using placement-based LP approximation (+35, +20, -15, -30)."
           />
           <Pane display="flex" gap={8} flexWrap="wrap">
             <AnalysisChip tone={momentum >= 0 ? "good" : "bad"} tooltip="Momentum = prior average placement minus recent average placement; positive means trend is improving.">
@@ -282,7 +308,7 @@ export default function AnalysisTab({
           </Pane>
         </Pane>
         <Pane marginTop={10}>
-          <TeamPlacementChart values={teamPlacements} startLabel={rangeStart} endLabel={rangeEnd} />
+          <TeamRankChart values={rankSeries} startLabel={rangeStart} endLabel={rangeEnd} />
         </Pane>
       </Card>
 
