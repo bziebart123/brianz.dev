@@ -498,8 +498,23 @@ export default function CoachingTab({
         {aiCoachingError ? (
           <Alert marginTop={10} intent="danger" title={aiCoachingError} />
         ) : null}
+        {aiCoachingLoading ? (
+          <Pane
+            marginTop={10}
+            padding={12}
+            border="default"
+            borderRadius={8}
+            background="rgba(85,182,255,0.08)"
+            display="flex"
+            alignItems="center"
+            gap={10}
+          >
+            <Spinner size={18} />
+            <Text size={400}>GPT is analyzing your current filter and generating coaching guidance...</Text>
+          </Pane>
+        ) : null}
         {aiCoaching?.brief ? (
-          <Pane marginTop={10} display="grid" gap={8}>
+          <Pane marginTop={10} display="grid" gap={8} opacity={aiCoachingLoading ? 0.5 : 1}>
             <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
               <Strong>{aiCoaching.brief.headline || "AI Coaching Brief"}</Strong>
               <Text size={400} display="block" marginTop={6}>
