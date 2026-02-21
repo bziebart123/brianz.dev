@@ -24,6 +24,8 @@ function starsForTier(tierValue) {
   return "★".repeat(tier);
 }
 
+const UNIT_SLOT_SIZE = 46;
+
 export default function HistoryTab({
   payload,
   latestMatchForBanner,
@@ -120,6 +122,7 @@ export default function HistoryTab({
           <Pane display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={8}>
             <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
               <Pane
+                className="history-chip"
                 borderRadius={10}
                 paddingX={10}
                 minHeight={28}
@@ -133,6 +136,7 @@ export default function HistoryTab({
                 </Text>
               </Pane>
               <Pane
+                className="history-chip"
                 borderRadius={10}
                 paddingX={10}
                 minHeight={28}
@@ -158,7 +162,7 @@ export default function HistoryTab({
                   <Strong>{DISPLAY_NAME_A}</Strong>
                   <Badge color={placementBadgeColor(match.playerA?.placement)}>#{match.playerA?.placement ?? "?"}</Badge>
                 </Pane>
-                <Pane display="flex" gap={8} flexWrap="wrap">
+                <Pane className="history-meta-badges" display="flex" gap={8} flexWrap="wrap">
                   <Badge color="neutral">Lvl {match.playerA?.level ?? "?"}</Badge>
                   <Badge color="neutral">Dmg {match.playerA?.totalDamageToPlayers ?? "?"}</Badge>
                 </Pane>
@@ -178,7 +182,7 @@ export default function HistoryTab({
                     />
                   ))}
               </Pane>
-              <Pane display="flex" flexWrap="wrap" gap={4} marginTop={8}>
+              <Pane className="history-unit-row" display="flex" flexWrap="nowrap" gap={3} marginTop={8}>
                 {boardSlots(match.playerA?.units).map((unit, idx) =>
                   unit?.characterId ? (
                     <Pane
@@ -192,7 +196,7 @@ export default function HistoryTab({
                         kind="unit"
                         token={unit.characterId}
                         label={prettyName(unit.characterId)}
-                        size={44}
+                        size={UNIT_SLOT_SIZE}
                         iconManifest={iconManifest}
                       />
                       <Text size={300} style={{ color: "#ffd97a", fontWeight: 700, lineHeight: 1 }}>
@@ -202,8 +206,8 @@ export default function HistoryTab({
                   ) : (
                     <Pane key={`a-empty-${match.id}-${idx}`} display="grid" justifyItems="center" data-testid="a-board-slot">
                       <Pane
-                        width={44}
-                        height={44}
+                        width={UNIT_SLOT_SIZE}
+                        height={UNIT_SLOT_SIZE}
                         borderRadius={6}
                         border="1px dashed rgba(133, 155, 204, 0.42)"
                         background="rgba(255,255,255,0.02)"
@@ -219,7 +223,7 @@ export default function HistoryTab({
                   <Strong>{DISPLAY_NAME_B}</Strong>
                   <Badge color={placementBadgeColor(match.playerB?.placement)}>#{match.playerB?.placement ?? "?"}</Badge>
                 </Pane>
-                <Pane display="flex" gap={8} flexWrap="wrap">
+                <Pane className="history-meta-badges" display="flex" gap={8} flexWrap="wrap">
                   <Badge color="neutral">Lvl {match.playerB?.level ?? "?"}</Badge>
                   <Badge color="neutral">Dmg {match.playerB?.totalDamageToPlayers ?? "?"}</Badge>
                 </Pane>
@@ -239,7 +243,7 @@ export default function HistoryTab({
                     />
                   ))}
               </Pane>
-              <Pane display="flex" flexWrap="wrap" gap={4} marginTop={8}>
+              <Pane className="history-unit-row" display="flex" flexWrap="nowrap" gap={3} marginTop={8}>
                 {boardSlots(match.playerB?.units).map((unit, idx) =>
                   unit?.characterId ? (
                     <Pane
@@ -253,7 +257,7 @@ export default function HistoryTab({
                         kind="unit"
                         token={unit.characterId}
                         label={prettyName(unit.characterId)}
-                        size={44}
+                        size={UNIT_SLOT_SIZE}
                         iconManifest={iconManifest}
                       />
                       <Text size={300} style={{ color: "#ffd97a", fontWeight: 700, lineHeight: 1 }}>
@@ -263,8 +267,8 @@ export default function HistoryTab({
                   ) : (
                     <Pane key={`b-empty-${match.id}-${idx}`} display="grid" justifyItems="center" data-testid="b-board-slot">
                       <Pane
-                        width={44}
-                        height={44}
+                        width={UNIT_SLOT_SIZE}
+                        height={UNIT_SLOT_SIZE}
                         borderRadius={6}
                         border="1px dashed rgba(133, 155, 204, 0.42)"
                         background="rgba(255,255,255,0.02)"

@@ -94,6 +94,22 @@ body {
   font-size: calc(11px * var(--bz-content-text-scale)) !important;
 }
 
+.tft-main-content .history-chip [data-evergreen-id="text"] {
+  font-size: calc(11px * var(--bz-content-text-scale)) !important;
+  line-height: 1 !important;
+}
+
+.tft-main-content .history-meta-badges [data-evergreen-id="badge"] {
+  font-size: calc(10.5px * var(--bz-content-text-scale)) !important;
+}
+
+.tft-main-content .history-unit-row {
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+}
+
 .tft-app-shell [data-evergreen-id="text"][color="muted"],
 .tft-app-shell [data-evergreen-id="paragraph"][color="muted"] {
   color: #d7e3ff !important;

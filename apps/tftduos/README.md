@@ -54,6 +54,7 @@ Server env vars (see `.env.example` and server code):
 - Left sidebar keeps the Refresh Data action anchored at the viewport bottom while upper sidebar content scrolls independently.
 - Global shell `zoom` scaling was removed; text sizing now comes from `TEXT_SCALE` in `client/src/config/constants.js` (currently `1.45`), applied to typography/UI text surfaces (headings, tabs, buttons, selects, badges) while layout dimensions stay stable.
 - Main content (`History`, `Analysis`, `Coaching`) now has an additional dedicated text scale (`--bz-content-text-scale` in `client/src/theme.css`) so right-panel readability can be increased without changing sidebar or layout geometry.
+- `History` now normalizes chip/badge typography for placement and LP labels and keeps champion rows single-line (`overflow-x` instead of wrapping) with slightly larger unit icon slots for readability.
 
 ## Testing
 
