@@ -63,11 +63,11 @@ Server env vars (see `.env.example` and server code):
 - Champion unit slots in `History` are tuned to remain larger but fit without row scrollbars, and sidebar filter dropdown text is slightly reduced to avoid vertical clipping.
 - Analysis tab is now a dashboard-style view with:
   - Team KPI strip (avg placement, top2/win rates, volatility, decision grade, rescue/clutch)
-  - Full-width trend graph box (team placement + both player damage trends)
+  - Full-width team placement trend chart with labeled placement axis (`#1`..`#4`) and oldest/latest x-axis labels
   - Team trend visuals (placement distribution + momentum)
   - Patch performance table derived from filtered matches
   - Meta pressure (traits/units in current lobbies) plus suggested adjustments
-  - Individual player breakdown cards (placement/damage/level consistency and top trait/unit profiles), rendered side-by-side on desktop
+  - Individual player breakdown cards (placement/damage/level consistency, per-player damage trend graph, top trait/unit profiles), rendered side-by-side on desktop
 - Several analysis metrics are extrapolated client-side from filtered match payloads (for example momentum, volatility, patch ranking, and per-player consistency).
 - Timeline auto-default selection now prioritizes `30` days before shorter windows.
 

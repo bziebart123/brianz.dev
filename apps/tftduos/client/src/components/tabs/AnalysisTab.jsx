@@ -1,4 +1,4 @@
-import { Badge, Card, Heading, Pane, Strong, Text } from "evergreen-ui";
+import { Card, Heading, Pane, Strong, Text } from "evergreen-ui";
 import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
 import { asArray, prettyName, teamPlacementFromMatch, toEpochMs } from "../../utils/tft";
 import IconWithLabel from "../IconWithLabel";
@@ -69,7 +69,82 @@ function summarizePlayer(matches, key, label, sideKey) {
     lowDamageLosses,
     topTraits: topEntries(traitCounts, 4),
     topUnits: topEntries(unitCounts, 6),
+    damages,
   };
+}
+
+function AnalysisChip({ children, tone = "neutral" }) {
+  return (
+    <Pane className={`analysis-chip analysis-chip--${tone}`}>
+      <Text size={400}>{children}</Text>
+    </Pane>
+  );
+}
+
+function TeamPlacementChart({ values }) {
+  const width = 960;
+  const height = 210;
+  const padLeft = 46;
+  const padRight = 16;
+  const padTop = 14;
+  const padBottom = 28;
+  const plotWidth = width - padLeft - padRight;
+  const plotHeight = height - padTop - padBottom;
+
+  if (!values.length) {
+    return (
+      <Pane border="default" borderRadius={8} padding={12} background="rgba(255,255,255,0.03)">
+        <Text size={400} color="muted">No placement data yet.</Text>
+      </Pane>
+    );
+  }
+
+  const minPlacement = 1;
+  const maxPlacement = 4;
+  const step = values.length > 1 ? plotWidth / (values.length - 1) : plotWidth;
+  const yForPlacement = (placement) => {
+    const normalized = (placement - minPlacement) / (maxPlacement - minPlacement || 1);
+    return padTop + normalized * plotHeight;
+  };
+
+  const points = values
+    .map((value, index) => {
+      const x = padLeft + index * step;
+      const clamped = Math.max(minPlacement, Math.min(maxPlacement, Number(value || 4)));
+      const y = yForPlacement(clamped);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+
+  return (
+    <Pane border="default" borderRadius={8} padding={8} background="rgba(255,255,255,0.03)">
+      <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+        {[1, 2, 3, 4].map((placement) => {
+          const y = yForPlacement(placement);
+          return (
+            <g key={`axis-${placement}`}>
+              <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(177,194,226,0.2)" strokeWidth="1" />
+              <text x={padLeft - 10} y={y + 4} textAnchor="end" fontSize="12" fill="rgba(230,238,255,0.8)">
+                #{placement}
+              </text>
+            </g>
+          );
+        })}
+
+        <polyline
+          points={points}
+          fill="none"
+          stroke="rgba(121,195,255,0.95)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        <text x={padLeft} y={height - 8} fontSize="12" fill="rgba(230,238,255,0.72)">Oldest</text>
+        <text x={width - padRight} y={height - 8} textAnchor="end" fontSize="12" fill="rgba(230,238,255,0.72)">Latest</text>
+      </svg>
+    </Pane>
+  );
 }
 
 export default function AnalysisTab({
@@ -82,8 +157,6 @@ export default function AnalysisTab({
 }) {
   const sorted = [...filteredMatches].sort((a, b) => toEpochMs(a.gameDatetime) - toEpochMs(b.gameDatetime));
   const teamPlacements = sorted.map((match) => teamPlacementFromMatch(match));
-  const playerADamageTrend = sorted.map((match) => Number(match?.playerA?.totalDamageToPlayers || 0));
-  const playerBDamageTrend = sorted.map((match) => Number(match?.playerB?.totalDamageToPlayers || 0));
 
   const placementDistribution = [1, 2, 3, 4].map((placement) => {
     const count = teamPlacements.filter((value) => value === placement).length;
@@ -122,8 +195,8 @@ export default function AnalysisTab({
     .sort((left, right) => left.avgPlacement - right.avgPlacement || right.games - left.games)
     .slice(0, 5);
 
-  const playerA = summarizePlayer(filteredMatches, "playerA", DISPLAY_NAME_A, coachingInsights?.summary?.a);
-  const playerB = summarizePlayer(filteredMatches, "playerB", DISPLAY_NAME_B, coachingInsights?.summary?.b);
+  const playerA = summarizePlayer(sorted, "playerA", DISPLAY_NAME_A, coachingInsights?.summary?.a);
+  const playerB = summarizePlayer(sorted, "playerB", DISPLAY_NAME_B, coachingInsights?.summary?.b);
 
   const decisionGrade = Number(scorecard?.decisionQuality?.grade || 0);
   const rescueRate = Number(scorecard?.rescueIndex?.rescueRate || 0);
@@ -134,7 +207,7 @@ export default function AnalysisTab({
       <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
         <Pane display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={10}>
           <Heading size={600}>Duo Performance Dashboard</Heading>
-          <Badge className="analysis-pill" color="blue">{filteredMatches.length} games in filter</Badge>
+          <AnalysisChip tone="neutral">{filteredMatches.length} games in filter</AnalysisChip>
         </Pane>
 
         <Pane marginTop={12} display="grid" gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))" gap={12}>
@@ -147,34 +220,18 @@ export default function AnalysisTab({
         </Pane>
       </Card>
 
-      <Card className="analysis-graphs-card" elevation={0} padding={16} background="rgba(255,255,255,0.03)">
-        <Heading size={500}>Trend Graphs</Heading>
-        <Pane className="analysis-graphs-grid" marginTop={10} display="grid" gridTemplateColumns="repeat(3, minmax(0, 1fr))" gap={10}>
-          <Pane>
-            <Pane display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={6}>
-              <Text size={400} color="muted">Team Placement Trend</Text>
-              <Badge className="analysis-pill" color={momentum >= 0 ? "green" : "red"}>
-                Momentum {momentum >= 0 ? "+" : ""}{momentum.toFixed(2)}
-              </Badge>
-            </Pane>
-            <Pane marginTop={6}>
-              <Sparkline values={teamPlacements} height={72} responsive canvasWidth={520} />
-            </Pane>
+      <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
+        <Pane display="flex" justifyContent="space-between" alignItems="center" gap={8} flexWrap="wrap">
+          <Heading size={500}>Team Placement Trend</Heading>
+          <Pane display="flex" gap={8} flexWrap="wrap">
+            <AnalysisChip tone={momentum >= 0 ? "good" : "bad"}>
+              Momentum {momentum >= 0 ? "+" : ""}{momentum.toFixed(2)}
+            </AnalysisChip>
+            <AnalysisChip tone="neutral">Recent Avg {recentAvg ? recentAvg.toFixed(2) : "-"}</AnalysisChip>
           </Pane>
-
-          <Pane>
-            <Text size={400} color="muted">{DISPLAY_NAME_A} Damage Trend</Text>
-            <Pane marginTop={6}>
-              <Sparkline values={playerADamageTrend} height={72} responsive canvasWidth={520} />
-            </Pane>
-          </Pane>
-
-          <Pane>
-            <Text size={400} color="muted">{DISPLAY_NAME_B} Damage Trend</Text>
-            <Pane marginTop={6}>
-              <Sparkline values={playerBDamageTrend} height={72} responsive canvasWidth={520} />
-            </Pane>
-          </Pane>
+        </Pane>
+        <Pane marginTop={10}>
+          <TeamPlacementChart values={teamPlacements} />
         </Pane>
       </Card>
 
@@ -191,9 +248,6 @@ export default function AnalysisTab({
               />
             ))}
           </Pane>
-          <Pane marginTop={8}>
-            <Badge className="analysis-pill" color="neutral">Recent Avg {recentAvg ? recentAvg.toFixed(2) : "-"}</Badge>
-          </Pane>
         </Card>
 
         <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
@@ -204,7 +258,7 @@ export default function AnalysisTab({
                 <Pane key={`patch-${row.patch}`} padding={8} border="default" borderRadius={6}>
                   <Pane display="flex" justifyContent="space-between" alignItems="center" gap={8} flexWrap="wrap">
                     <Strong>Patch {row.patch}</Strong>
-                    <Badge className="analysis-pill" color="neutral">{row.games} games</Badge>
+                    <AnalysisChip tone="neutral">{row.games} games</AnalysisChip>
                   </Pane>
                   <Pane marginTop={6} display="grid" gridTemplateColumns="1fr 1fr" gap={8}>
                     <Text size={400}>Avg place {row.avgPlacement.toFixed(2)}</Text>
@@ -286,6 +340,13 @@ export default function AnalysisTab({
               <Text size={400}>Avg Level: {player.avgLevel.toFixed(2)}</Text>
               <Text size={400}>Consistency: {player.consistency.toFixed(2)}</Text>
               <Text size={400}>Low-resource losses: {player.lowGoldLosses + player.lowDamageLosses}</Text>
+            </Pane>
+
+            <Pane marginTop={12}>
+              <Text size={400} color="muted">Damage Trend</Text>
+              <Pane marginTop={6}>
+                <Sparkline values={player.damages} height={64} responsive canvasWidth={520} />
+              </Pane>
             </Pane>
 
             <Pane marginTop={12}>
