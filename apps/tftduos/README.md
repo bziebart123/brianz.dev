@@ -55,6 +55,7 @@ Server env vars (see `.env.example` and server code):
 - Global shell `zoom` scaling was removed; text sizing now comes from `TEXT_SCALE` in `client/src/config/constants.js` (currently `1.45`), applied to typography/UI text surfaces (headings, tabs, buttons, selects, badges) while layout dimensions stay stable.
 - Main content (`History`, `Analysis`, `Coaching`) now has an additional dedicated text scale (`--bz-content-text-scale` in `client/src/theme.css`) so right-panel readability can be increased without changing sidebar or layout geometry.
 - `History` now enforces larger, consistent placement/LP chip text and uses larger champion unit slots while keeping rows single-line (`overflow-x` instead of wrapping).
+- Player stat badges in `History` (`#placement`, `Lvl`, `Dmg`) now use tighter padding and a slightly smaller font than LP/team chips for clearer visual hierarchy.
 
 ## Testing
 

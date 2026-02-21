@@ -161,11 +161,13 @@ export default function HistoryTab({
               <Pane display="flex" justifyContent="space-between" alignItems="center" marginBottom={8} gap={8} flexWrap="wrap">
                 <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
                   <Strong>{DISPLAY_NAME_A}</Strong>
-                  <Badge color={placementBadgeColor(match.playerA?.placement)}>#{match.playerA?.placement ?? "?"}</Badge>
+                  <Badge className="history-stat-badge" color={placementBadgeColor(match.playerA?.placement)}>
+                    #{match.playerA?.placement ?? "?"}
+                  </Badge>
                 </Pane>
                 <Pane className="history-meta-badges" display="flex" gap={8} flexWrap="wrap">
-                  <Badge color="neutral">Lvl {match.playerA?.level ?? "?"}</Badge>
-                  <Badge color="neutral">Dmg {match.playerA?.totalDamageToPlayers ?? "?"}</Badge>
+                  <Badge className="history-stat-badge" color="neutral">Lvl {match.playerA?.level ?? "?"}</Badge>
+                  <Badge className="history-stat-badge" color="neutral">Dmg {match.playerA?.totalDamageToPlayers ?? "?"}</Badge>
                 </Pane>
               </Pane>
               <Pane display="flex" flexWrap="wrap" gap={8} marginTop={8}>
@@ -222,11 +224,13 @@ export default function HistoryTab({
               <Pane display="flex" justifyContent="space-between" alignItems="center" marginBottom={8} gap={8} flexWrap="wrap">
                 <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
                   <Strong>{DISPLAY_NAME_B}</Strong>
-                  <Badge color={placementBadgeColor(match.playerB?.placement)}>#{match.playerB?.placement ?? "?"}</Badge>
+                  <Badge className="history-stat-badge" color={placementBadgeColor(match.playerB?.placement)}>
+                    #{match.playerB?.placement ?? "?"}
+                  </Badge>
                 </Pane>
                 <Pane className="history-meta-badges" display="flex" gap={8} flexWrap="wrap">
-                  <Badge color="neutral">Lvl {match.playerB?.level ?? "?"}</Badge>
-                  <Badge color="neutral">Dmg {match.playerB?.totalDamageToPlayers ?? "?"}</Badge>
+                  <Badge className="history-stat-badge" color="neutral">Lvl {match.playerB?.level ?? "?"}</Badge>
+                  <Badge className="history-stat-badge" color="neutral">Dmg {match.playerB?.totalDamageToPlayers ?? "?"}</Badge>
                 </Pane>
               </Pane>
               <Pane display="flex" flexWrap="wrap" gap={8} marginTop={8}>

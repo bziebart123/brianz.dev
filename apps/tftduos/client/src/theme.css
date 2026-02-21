@@ -103,6 +103,13 @@ body {
   font-size: calc(10.5px * var(--bz-content-text-scale)) !important;
 }
 
+.tft-main-content .history-stat-badge {
+  font-size: calc(9px * var(--bz-content-text-scale)) !important;
+  min-height: 24px !important;
+  padding: 2px 8px !important;
+  border-radius: 9px !important;
+}
+
 .tft-main-content .history-unit-row {
   flex-wrap: nowrap !important;
   overflow-x: auto;
