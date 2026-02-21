@@ -24,6 +24,9 @@ function starsForTier(tierValue) {
   return "★".repeat(tier);
 }
 
+const UNIT_SLOT_SIZE = 52;
+const CHIP_TEXT_STYLE = { color: "#f7fbff", fontWeight: 700, fontSize: 18, lineHeight: 1 };
+
 export default function HistoryTab({
   payload,
   latestMatchForBanner,
@@ -96,7 +99,7 @@ export default function HistoryTab({
                 border={`1px solid ${placement <= 2 ? "rgba(73, 194, 122, 0.55)" : "rgba(223, 84, 72, 0.55)"}`}
                 background={placement <= 2 ? "rgba(43, 143, 90, 0.24)" : "rgba(178, 56, 49, 0.24)"}
               >
-                <Text size={300} style={{ color: "#f7fbff", fontWeight: 700 }}>
+                <Text size={500} style={CHIP_TEXT_STYLE}>
                   #{placement}
                 </Text>
               </Pane>
@@ -120,6 +123,7 @@ export default function HistoryTab({
           <Pane display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={8}>
             <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
               <Pane
+                className="history-chip"
                 borderRadius={10}
                 paddingX={10}
                 minHeight={28}
@@ -128,11 +132,12 @@ export default function HistoryTab({
                 border={`1px solid ${isTopTwo ? "rgba(73, 194, 122, 0.55)" : "rgba(223, 84, 72, 0.55)"}`}
                 background={isTopTwo ? "rgba(43, 143, 90, 0.24)" : "rgba(178, 56, 49, 0.24)"}
               >
-                <Text size={300} style={{ color: "#f7fbff", fontWeight: 700 }}>
+                <Text size={500} style={CHIP_TEXT_STYLE}>
                   Team #{teamPlacement}
                 </Text>
               </Pane>
               <Pane
+                className="history-chip"
                 borderRadius={10}
                 paddingX={10}
                 minHeight={28}
@@ -141,7 +146,7 @@ export default function HistoryTab({
                 border="1px solid rgba(93, 122, 183, 0.52)"
                 background="rgba(20, 31, 52, 0.92)"
               >
-                <Text size={300} style={{ color: "#f7fbff", fontWeight: 700 }}>
+                <Text size={500} style={CHIP_TEXT_STYLE}>
                   LP {lpDelta >= 0 ? `+${lpDelta}` : lpDelta}
                 </Text>
               </Pane>
@@ -156,11 +161,13 @@ export default function HistoryTab({
               <Pane display="flex" justifyContent="space-between" alignItems="center" marginBottom={8} gap={8} flexWrap="wrap">
                 <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
                   <Strong>{DISPLAY_NAME_A}</Strong>
-                  <Badge color={placementBadgeColor(match.playerA?.placement)}>#{match.playerA?.placement ?? "?"}</Badge>
+                  <Badge className="history-stat-badge" color={placementBadgeColor(match.playerA?.placement)}>
+                    #{match.playerA?.placement ?? "?"}
+                  </Badge>
                 </Pane>
-                <Pane display="flex" gap={8} flexWrap="wrap">
-                  <Badge color="neutral">Lvl {match.playerA?.level ?? "?"}</Badge>
-                  <Badge color="neutral">Dmg {match.playerA?.totalDamageToPlayers ?? "?"}</Badge>
+                <Pane className="history-meta-badges" display="flex" gap={8} flexWrap="wrap">
+                  <Badge className="history-stat-badge" color="neutral">Lvl {match.playerA?.level ?? "?"}</Badge>
+                  <Badge className="history-stat-badge" color="neutral">Dmg {match.playerA?.totalDamageToPlayers ?? "?"}</Badge>
                 </Pane>
               </Pane>
               <Pane display="flex" flexWrap="wrap" gap={8} marginTop={8}>
@@ -178,7 +185,7 @@ export default function HistoryTab({
                     />
                   ))}
               </Pane>
-              <Pane display="flex" flexWrap="wrap" gap={4} marginTop={8}>
+              <Pane className="history-unit-row" display="flex" flexWrap="nowrap" gap={4} marginTop={8}>
                 {boardSlots(match.playerA?.units).map((unit, idx) =>
                   unit?.characterId ? (
                     <Pane
@@ -192,7 +199,7 @@ export default function HistoryTab({
                         kind="unit"
                         token={unit.characterId}
                         label={prettyName(unit.characterId)}
-                        size={44}
+                        size={UNIT_SLOT_SIZE}
                         iconManifest={iconManifest}
                       />
                       <Text size={300} style={{ color: "#ffd97a", fontWeight: 700, lineHeight: 1 }}>
@@ -202,8 +209,8 @@ export default function HistoryTab({
                   ) : (
                     <Pane key={`a-empty-${match.id}-${idx}`} display="grid" justifyItems="center" data-testid="a-board-slot">
                       <Pane
-                        width={44}
-                        height={44}
+                        width={UNIT_SLOT_SIZE}
+                        height={UNIT_SLOT_SIZE}
                         borderRadius={6}
                         border="1px dashed rgba(133, 155, 204, 0.42)"
                         background="rgba(255,255,255,0.02)"
@@ -217,11 +224,13 @@ export default function HistoryTab({
               <Pane display="flex" justifyContent="space-between" alignItems="center" marginBottom={8} gap={8} flexWrap="wrap">
                 <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
                   <Strong>{DISPLAY_NAME_B}</Strong>
-                  <Badge color={placementBadgeColor(match.playerB?.placement)}>#{match.playerB?.placement ?? "?"}</Badge>
+                  <Badge className="history-stat-badge" color={placementBadgeColor(match.playerB?.placement)}>
+                    #{match.playerB?.placement ?? "?"}
+                  </Badge>
                 </Pane>
-                <Pane display="flex" gap={8} flexWrap="wrap">
-                  <Badge color="neutral">Lvl {match.playerB?.level ?? "?"}</Badge>
-                  <Badge color="neutral">Dmg {match.playerB?.totalDamageToPlayers ?? "?"}</Badge>
+                <Pane className="history-meta-badges" display="flex" gap={8} flexWrap="wrap">
+                  <Badge className="history-stat-badge" color="neutral">Lvl {match.playerB?.level ?? "?"}</Badge>
+                  <Badge className="history-stat-badge" color="neutral">Dmg {match.playerB?.totalDamageToPlayers ?? "?"}</Badge>
                 </Pane>
               </Pane>
               <Pane display="flex" flexWrap="wrap" gap={8} marginTop={8}>
@@ -239,7 +248,7 @@ export default function HistoryTab({
                     />
                   ))}
               </Pane>
-              <Pane display="flex" flexWrap="wrap" gap={4} marginTop={8}>
+              <Pane className="history-unit-row" display="flex" flexWrap="nowrap" gap={4} marginTop={8}>
                 {boardSlots(match.playerB?.units).map((unit, idx) =>
                   unit?.characterId ? (
                     <Pane
@@ -253,7 +262,7 @@ export default function HistoryTab({
                         kind="unit"
                         token={unit.characterId}
                         label={prettyName(unit.characterId)}
-                        size={44}
+                        size={UNIT_SLOT_SIZE}
                         iconManifest={iconManifest}
                       />
                       <Text size={300} style={{ color: "#ffd97a", fontWeight: 700, lineHeight: 1 }}>
@@ -263,8 +272,8 @@ export default function HistoryTab({
                   ) : (
                     <Pane key={`b-empty-${match.id}-${idx}`} display="grid" justifyItems="center" data-testid="b-board-slot">
                       <Pane
-                        width={44}
-                        height={44}
+                        width={UNIT_SLOT_SIZE}
+                        height={UNIT_SLOT_SIZE}
                         borderRadius={6}
                         border="1px dashed rgba(133, 155, 204, 0.42)"
                         background="rgba(255,255,255,0.02)"

@@ -27,8 +27,9 @@ body {
 }
 
 .tft-app-shell {
+  --bz-text-scale: 1.45;
+  --bz-content-text-scale: 1.7;
   color: var(--bz-text);
-  zoom: 1.28;
 }
 
 .tft-app-shell,
@@ -48,15 +49,72 @@ body {
 
 .tft-app-shell [data-evergreen-id="heading"] {
   color: #f7f9ff !important;
-  font-size: 1.2em !important;
+  font-size: calc(1.2em * var(--bz-text-scale)) !important;
   line-height: 1.25 !important;
 }
 
 .tft-app-shell [data-evergreen-id="text"],
 .tft-app-shell [data-evergreen-id="paragraph"] {
   color: #dbe6ff !important;
-  font-size: 1.12em !important;
+  font-size: calc(1.12em * var(--bz-text-scale)) !important;
   line-height: 1.4 !important;
+}
+
+.tft-app-shell [data-evergreen-id="heading"],
+.tft-app-shell [data-evergreen-id="text"],
+.tft-app-shell [data-evergreen-id="paragraph"],
+.tft-app-shell button,
+.tft-app-shell select,
+.tft-app-shell input,
+.tft-app-shell textarea,
+.tft-app-shell [role="tab"] {
+  font-size: calc(13px * var(--bz-text-scale)) !important;
+}
+
+.tft-app-shell [data-evergreen-id="heading"] {
+  font-size: calc(16px * var(--bz-text-scale)) !important;
+}
+
+.tft-main-content [data-evergreen-id="heading"] {
+  font-size: calc(16px * var(--bz-content-text-scale)) !important;
+}
+
+.tft-main-content [data-evergreen-id="text"],
+.tft-main-content [data-evergreen-id="paragraph"],
+.tft-main-content button,
+.tft-main-content select,
+.tft-main-content input,
+.tft-main-content textarea,
+.tft-main-content strong,
+.tft-main-content label {
+  font-size: calc(13px * var(--bz-content-text-scale)) !important;
+}
+
+.tft-main-content [data-evergreen-id="badge"] {
+  font-size: calc(11px * var(--bz-content-text-scale)) !important;
+}
+
+.tft-main-content .history-chip [data-evergreen-id="text"] {
+  font-size: calc(11px * var(--bz-content-text-scale)) !important;
+  line-height: 1 !important;
+}
+
+.tft-main-content .history-meta-badges [data-evergreen-id="badge"] {
+  font-size: calc(10.5px * var(--bz-content-text-scale)) !important;
+}
+
+.tft-main-content .history-stat-badge {
+  font-size: calc(9px * var(--bz-content-text-scale)) !important;
+  min-height: 24px !important;
+  padding: 2px 8px !important;
+  border-radius: 9px !important;
+}
+
+.tft-main-content .history-unit-row {
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
 }
 
 .tft-app-shell [data-evergreen-id="text"][color="muted"],
@@ -74,6 +132,19 @@ body {
   background: linear-gradient(180deg, rgba(16, 24, 42, 0.92), rgba(12, 19, 34, 0.95));
   border-right-color: var(--bz-border) !important;
   box-shadow: inset -1px 0 0 rgba(73, 101, 159, 0.2);
+  overflow: hidden;
+}
+
+.tft-sidebar-scroll {
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
+}
+
+.tft-sidebar-footer {
+  border-top: 1px solid rgba(73, 101, 159, 0.28);
+  padding-top: 12px;
+  background: linear-gradient(180deg, rgba(12, 19, 34, 0), rgba(12, 19, 34, 0.94) 32%);
 }
 
 .tft-sidebar .back-link {
@@ -103,6 +174,7 @@ body {
   box-sizing: border-box !important;
   width: 100% !important;
   justify-content: flex-start !important;
+  font-weight: 600 !important;
 }
 
 .tft-sidebar [role="tab"][aria-selected="true"] {
@@ -166,6 +238,7 @@ body {
   border-radius: 10px !important;
   line-height: 1.2 !important;
   margin: 2px 0 !important;
+  font-size: calc(11px * var(--bz-text-scale)) !important;
 }
 
 .tft-app-shell [data-evergreen-id="badge"] span,

@@ -48,7 +48,7 @@ export default function Sidebar({
       display="flex"
       flexDirection="column"
     >
-      <Pane>
+      <Pane className="tft-sidebar-scroll" flex={1} minHeight={0}>
         <Pane display="flex" alignItems="center" gap={10}>
           <a
             href={portfolioUrl}
@@ -156,7 +156,7 @@ export default function Sidebar({
         </Card>
       </Pane>
 
-      <Pane marginTop="auto">
+      <Pane className="tft-sidebar-footer" marginTop={12} flexShrink={0}>
         <Button type="button" appearance="primary" height={44} width="100%" disabled={loading} onClick={loadDuoAnalysis}>
           <Pane display="flex" alignItems="center" justifyContent="center" gap={8}>
             {loading ? <Spinner size={14} color="white" /> : null}

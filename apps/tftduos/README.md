@@ -34,7 +34,7 @@ Client env vars (see `client/.env.example`):
 - `VITE_API_BASE_URL`
 - Riot game names/tags/regions (`VITE_RIOT_*`)
 
-Server env vars (see `../.env.example` and server code):
+Server env vars (see `.env.example` and server code):
 
 - `RIOT_API_KEY` (required)
 - `ALLOWED_ORIGINS`
@@ -51,6 +51,11 @@ Server env vars (see `../.env.example` and server code):
   - Champion star strips (filled stars only)
 - Trait icons are tier-colored with distinct bronze/silver/gold/prismatic styles.
 - UI text/icons are scaled up for readability.
+- Left sidebar keeps the Refresh Data action anchored at the viewport bottom while upper sidebar content scrolls independently.
+- Global shell `zoom` scaling was removed; text sizing now comes from `TEXT_SCALE` in `client/src/config/constants.js` (currently `1.45`), applied to typography/UI text surfaces (headings, tabs, buttons, selects, badges) while layout dimensions stay stable.
+- Main content (`History`, `Analysis`, `Coaching`) now has an additional dedicated text scale (`--bz-content-text-scale` in `client/src/theme.css`) so right-panel readability can be increased without changing sidebar or layout geometry.
+- `History` now enforces larger, consistent placement/LP chip text and uses larger champion unit slots while keeping rows single-line (`overflow-x` instead of wrapping).
+- Player stat badges in `History` (`#placement`, `Lvl`, `Dmg`) now use tighter padding and a slightly smaller font than LP/team chips for clearer visual hierarchy.
 
 ## Testing
 
@@ -73,3 +78,5 @@ CI:
   - `client/src/utils/tft.js`
   - `client/src/components/tabs/HistoryTab.jsx`
   - `.github/copilot-instructions.md`
+- Legacy root runtime files were removed; use only `apps/tftduos/client` and `apps/tftduos/server` paths for dev/deploy.
+- `client/src/hooks/useDuoAnalysis.js` keeps an identity-stable empty `matches` list and skips redundant manifest resets to prevent React effect loops (`Maximum update depth exceeded`) before payload data loads.
