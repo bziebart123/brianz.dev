@@ -780,6 +780,40 @@ function dedupeStrings(values, limit = 10) {
   return out;
 }
 
+function extractResponsesModelOutput(parsedResponse) {
+  if (!parsedResponse || typeof parsedResponse !== "object") return {};
+
+  const directText = String(parsedResponse?.output_text || "").trim();
+  if (directText) {
+    const parsed = safeJsonParse(directText, null);
+    if (parsed && typeof parsed === "object") return parsed;
+  }
+
+  const contents = asArray(parsedResponse?.output).flatMap((entry) => asArray(entry?.content));
+  for (const content of contents) {
+    const maybeJson = content?.json;
+    if (maybeJson && typeof maybeJson === "object") return maybeJson;
+
+    const maybeText = String(content?.text || "").trim();
+    if (maybeText) {
+      const parsed = safeJsonParse(maybeText, null);
+      if (parsed && typeof parsed === "object") return parsed;
+    }
+  }
+
+  return {};
+}
+
+function summarizeResponsesOutput(parsedResponse) {
+  const outputSummary = asArray(parsedResponse?.output)
+    .map((entry) => {
+      const contentTypes = asArray(entry?.content).map((content) => String(content?.type || "unknown"));
+      return `${String(entry?.type || "unknown")}:${contentTypes.join("|") || "none"}`;
+    })
+    .join(", ");
+  return outputSummary || "none";
+}
+
 function fallbackAiCoaching(payload) {
   const decisionGrade = Number(payload?.metrics?.decisionGrade || 0);
   const top2Rate = Number(payload?.metrics?.top2Rate || 0);
@@ -881,98 +915,131 @@ async function fetchOpenAiCoaching(payload) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), openAiTimeoutMs);
   try {
-    const responsePayload = {
-      model: openAiModel,
-      temperature: 0.45,
-      text: {
-        format: {
-          type: "json_schema",
-          name: "duo_coaching_brief",
-          strict: true,
-          schema: {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-              headline: { type: "string" },
-              summary: { type: "string" },
-              metaRead: { type: "array", items: { type: "string" } },
-              teamPlan: { type: "array", items: { type: "string" } },
-              playerPlans: {
-                type: "array",
-                items: {
-                  type: "object",
-                  additionalProperties: false,
-                  properties: {
-                    player: { type: "string" },
-                    focus: { type: "string" },
-                    actions: { type: "array", items: { type: "string" } },
+    async function requestResponses(useWebSearch) {
+      const responsePayload = {
+        model: openAiModel,
+        temperature: 0.45,
+        text: {
+          format: {
+            type: "json_schema",
+            name: "duo_coaching_brief",
+            strict: true,
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                headline: { type: "string" },
+                summary: { type: "string" },
+                metaRead: { type: "array", items: { type: "string" } },
+                teamPlan: { type: "array", items: { type: "string" } },
+                playerPlans: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    additionalProperties: false,
+                    properties: {
+                      player: { type: "string" },
+                      focus: { type: "string" },
+                      actions: { type: "array", items: { type: "string" } },
+                    },
+                    required: ["player", "focus", "actions"],
                   },
-                  required: ["player", "focus", "actions"],
                 },
+                patchContext: { type: "string" },
+                metaDelta: { type: "array", items: { type: "string" } },
+                confidence: { type: "string", enum: ["low", "medium", "high"] },
+                sources: { type: "array", items: { type: "string" } },
               },
-              patchContext: { type: "string" },
-              metaDelta: { type: "array", items: { type: "string" } },
-              confidence: { type: "string", enum: ["low", "medium", "high"] },
-              sources: { type: "array", items: { type: "string" } },
+              required: [
+                "headline",
+                "summary",
+                "metaRead",
+                "teamPlan",
+                "playerPlans",
+                "patchContext",
+                "metaDelta",
+                "confidence",
+                "sources",
+              ],
             },
-            required: [
-              "headline",
-              "summary",
-              "metaRead",
-              "teamPlan",
-              "playerPlans",
-              "patchContext",
-              "metaDelta",
-              "confidence",
-              "sources",
-            ],
           },
         },
-      },
-      input: [
-        { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
-        { role: "user", content: [{ type: "input_text", text: userPrompt }] },
-      ],
-      tools: openAiWebSearchEnabled
-        ? [
-            {
-              type: "web_search_preview",
-              search_context_size: "medium",
-            },
-          ]
-        : [],
-    };
+        input: [
+          { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
+          { role: "user", content: [{ type: "input_text", text: userPrompt }] },
+        ],
+        tools: useWebSearch
+          ? [
+              {
+                type: "web_search_preview",
+                search_context_size: "medium",
+              },
+            ]
+          : [],
+      };
 
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${openAiApiKey}`,
-      },
-      body: JSON.stringify(responsePayload),
-      signal: controller.signal,
-    });
+      const response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${openAiApiKey}`,
+        },
+        body: JSON.stringify(responsePayload),
+        signal: controller.signal,
+      });
 
-    const raw = await response.text();
-    if (!response.ok) {
+      const raw = await response.text();
+      if (!response.ok) {
+        return {
+          ok: false,
+          reason: `OpenAI request failed (${response.status})`,
+          detail: raw.slice(0, 500),
+          modelOutput: {},
+          citations: [],
+          outputSummary: "none",
+        };
+      }
+
+      const parsedResponse = safeJsonParse(raw, {});
+      const modelOutput = extractResponsesModelOutput(parsedResponse);
+      const citations = dedupeStrings(
+        asArray(parsedResponse?.output)
+          .flatMap((entry) => asArray(entry?.content))
+          .flatMap((contentEntry) => asArray(contentEntry?.annotations))
+          .map((annotation) => annotation?.url || annotation?.title)
+      );
+
+      return {
+        ok: true,
+        reason: null,
+        detail: null,
+        modelOutput,
+        citations,
+        outputSummary: summarizeResponsesOutput(parsedResponse),
+      };
+    }
+
+    let attempt = await requestResponses(openAiWebSearchEnabled);
+    let webSearchUsed = openAiWebSearchEnabled && attempt.citations.length > 0;
+
+    // Some accounts/models return structured output in an unexpected shape when web search is enabled.
+    if (attempt.ok && (!attempt.modelOutput || !Object.keys(attempt.modelOutput).length) && openAiWebSearchEnabled) {
+      attempt = await requestResponses(false);
+      webSearchUsed = false;
+    }
+
+    if (!attempt.ok) {
       return {
         fallback: true,
         data: fallbackAiCoaching(payload),
-        reason: `OpenAI request failed (${response.status})`,
-        detail: raw.slice(0, 500),
+        reason: attempt.reason,
+        detail: attempt.detail,
         webSearchUsed: false,
       };
     }
 
-    const parsedResponse = safeJsonParse(raw, {});
-    const textJson = parsedResponse?.output_text || "{}";
-    const modelOutput = safeJsonParse(textJson, {});
-    const citations = dedupeStrings(
-      asArray(parsedResponse?.output)
-        .flatMap((entry) => asArray(entry?.content))
-        .flatMap((contentEntry) => asArray(contentEntry?.annotations))
-        .map((annotation) => annotation?.url || annotation?.title)
-    );
+    const modelOutput = attempt.modelOutput;
+    const citations = attempt.citations;
 
     const normalized = {
       headline: String(modelOutput?.headline || "AI Coaching Brief"),
@@ -1005,7 +1072,7 @@ async function fetchOpenAiCoaching(payload) {
       return {
         fallback: true,
         data: fallbackAiCoaching(payload),
-        reason: "Empty model response",
+        reason: `Empty model response (output: ${attempt.outputSummary})`,
         webSearchUsed: false,
       };
     }
@@ -1013,7 +1080,7 @@ async function fetchOpenAiCoaching(payload) {
       fallback: false,
       data: normalized,
       reason: null,
-      webSearchUsed: openAiWebSearchEnabled && citations.length > 0,
+      webSearchUsed,
     };
   } catch (error) {
     return {
