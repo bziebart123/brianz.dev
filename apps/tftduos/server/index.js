@@ -915,6 +915,35 @@ async function fetchOpenAiCoaching(payload) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), openAiTimeoutMs);
   try {
+    function normalizeModelOutput(modelOutput, citations = []) {
+      return {
+        headline: String(modelOutput?.headline || "AI Coaching Brief"),
+        summary: String(modelOutput?.summary || ""),
+        metaRead: asArray(modelOutput?.metaRead).map((x) => String(x)).filter(Boolean).slice(0, 5),
+        teamPlan: asArray(modelOutput?.teamPlan).map((x) => String(x)).filter(Boolean).slice(0, 5),
+        playerPlans: asArray(modelOutput?.playerPlans)
+          .map((row) => ({
+            player: String(row?.player || ""),
+            focus: String(row?.focus || ""),
+            actions: asArray(row?.actions).map((x) => String(x)).filter(Boolean).slice(0, 4),
+          }))
+          .filter((row) => row.player && (row.focus || row.actions.length))
+          .slice(0, 3),
+        patchContext: String(modelOutput?.patchContext || ""),
+        metaDelta: asArray(modelOutput?.metaDelta).map((x) => String(x)).filter(Boolean).slice(0, 5),
+        confidence: ["low", "medium", "high"].includes(String(modelOutput?.confidence || ""))
+          ? String(modelOutput.confidence)
+          : "medium",
+        sources: dedupeStrings(
+          [
+            ...asArray(modelOutput?.sources).map((x) => String(x)).filter(Boolean),
+            ...citations,
+          ],
+          10
+        ),
+      };
+    }
+
     async function requestResponses(useWebSearch) {
       const responsePayload = {
         model: openAiModel,
@@ -1019,6 +1048,47 @@ async function fetchOpenAiCoaching(payload) {
       };
     }
 
+    async function requestChatCompletions() {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${openAiApiKey}`,
+        },
+        body: JSON.stringify({
+          model: openAiModel,
+          temperature: 0.35,
+          max_tokens: 1100,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        }),
+        signal: controller.signal,
+      });
+
+      const raw = await response.text();
+      if (!response.ok) {
+        return {
+          ok: false,
+          reason: `OpenAI chat fallback failed (${response.status})`,
+          detail: raw.slice(0, 500),
+          modelOutput: {},
+        };
+      }
+
+      const parsed = safeJsonParse(raw, {});
+      const content = String(parsed?.choices?.[0]?.message?.content || "").trim();
+      const modelOutput = safeJsonParse(content, {});
+      return {
+        ok: true,
+        reason: null,
+        detail: null,
+        modelOutput,
+      };
+    }
+
     let attempt = await requestResponses(openAiWebSearchEnabled);
     let webSearchUsed = openAiWebSearchEnabled && attempt.citations.length > 0;
 
@@ -1038,35 +1108,14 @@ async function fetchOpenAiCoaching(payload) {
       };
     }
 
-    const modelOutput = attempt.modelOutput;
-    const citations = attempt.citations;
+    let normalized = normalizeModelOutput(attempt.modelOutput, attempt.citations);
 
-    const normalized = {
-      headline: String(modelOutput?.headline || "AI Coaching Brief"),
-      summary: String(modelOutput?.summary || ""),
-      metaRead: asArray(modelOutput?.metaRead).map((x) => String(x)).filter(Boolean).slice(0, 5),
-      teamPlan: asArray(modelOutput?.teamPlan).map((x) => String(x)).filter(Boolean).slice(0, 5),
-      playerPlans: asArray(modelOutput?.playerPlans)
-        .map((row) => ({
-          player: String(row?.player || ""),
-          focus: String(row?.focus || ""),
-          actions: asArray(row?.actions).map((x) => String(x)).filter(Boolean).slice(0, 4),
-        }))
-        .filter((row) => row.player && (row.focus || row.actions.length))
-        .slice(0, 3),
-      patchContext: String(modelOutput?.patchContext || ""),
-      metaDelta: asArray(modelOutput?.metaDelta).map((x) => String(x)).filter(Boolean).slice(0, 5),
-      confidence: ["low", "medium", "high"].includes(String(modelOutput?.confidence || ""))
-        ? String(modelOutput.confidence)
-        : "medium",
-      sources: dedupeStrings(
-        [
-          ...asArray(modelOutput?.sources).map((x) => String(x)).filter(Boolean),
-          ...citations,
-        ],
-        10
-      ),
-    };
+    if (!normalized.summary && !normalized.teamPlan.length) {
+      const chatAttempt = await requestChatCompletions();
+      if (chatAttempt.ok && chatAttempt.modelOutput && Object.keys(chatAttempt.modelOutput).length) {
+        normalized = normalizeModelOutput(chatAttempt.modelOutput, []);
+      }
+    }
 
     if (!normalized.summary && !normalized.teamPlan.length) {
       return {
