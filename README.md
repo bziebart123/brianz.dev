@@ -99,6 +99,8 @@ For static sites:
 - Trigger: push to `main`
 - Current job runs `apps/tftduos/client` tests with Vitest.
 - Render deployment should use test-inclusive build commands so a failing test blocks publish.
+- `portfolio` and `apps/tftduos/server` currently include placeholder `test` scripts (exit 0) so
+  test-inclusive pipelines can run consistently until real tests are added.
 
 ## DNS (Porkbun)
 
