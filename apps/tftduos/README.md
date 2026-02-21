@@ -73,6 +73,8 @@ Server env vars (see `.env.example` and server code):
   - Individual player breakdown cards (placement/damage/level consistency, per-player damage trend graph with date range labels, top trait/unit profiles), rendered side-by-side on desktop
   - `Blame Game` section (positioned ahead of Meta Pressure) with individual worst-stat awards (placement liability, variance, low-impact losses, econ emergency, damage passenger)
   - Blame awards use tactician/chibi icons only; tie outcomes show both players' tacticians side-by-side so no award appears iconless
+  - Blame award cards use a fixed hierarchy: top row `icon + title`, then description and short verdict lines below
+  - Detailed per-player award numbers now live in hover tooltips on each blame card (visible card shows only the verdict)
   - On desktop, the 5 blame awards render in a single row; mobile still stacks for readability
 - Analysis page labels/KPIs/sections now include hover tooltips describing what each metric means and how key scores are computed.
 - Rescue/Clutch KPI now includes explicit in-card counts (`rescue events / total events`, `clutch wins / rescues`, `flips / rescues`) so missing clutch signal can be diagnosed without hovering.

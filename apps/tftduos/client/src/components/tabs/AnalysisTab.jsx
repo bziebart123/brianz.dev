@@ -392,18 +392,21 @@ export default function AnalysisTab({
   ].map((award) => {
     const a = Number(award.a || 0);
     const b = Number(award.b || 0);
+    const detail = `${award.metricLabel}: ${playerA.label} ${award.format(a)} | ${playerB.label} ${award.format(b)}`;
     if (!playerA.games || !playerB.games) {
       return {
         ...award,
         loser: "none",
-        result: "Need more games",
+        verdict: "Need more games",
+        detail,
       };
     }
     if (a === b) {
       return {
         ...award,
         loser: "tie",
-        result: `Tie (${playerA.label} ${award.format(a)} | ${playerB.label} ${award.format(b)})`,
+        verdict: "Tie",
+        detail,
       };
     }
     const loser = award.higherIsWorse
@@ -412,7 +415,8 @@ export default function AnalysisTab({
     return {
       ...award,
       loser,
-      result: `${loser} (${playerA.label} ${award.format(a)} | ${playerB.label} ${award.format(b)})`,
+      verdict: loser,
+      detail,
     };
   });
 
@@ -550,32 +554,35 @@ export default function AnalysisTab({
         />
         <Pane className="blame-awards-grid" marginTop={10} display="grid" gap={10}>
           {blameAwards.map((award) => (
-            <Pane key={award.title} border="default" borderRadius={8} padding={10} background="rgba(255,255,255,0.03)">
-              <Pane display="flex" alignItems="center" gap={10}>
-                {award.loser === "tie" ? (
-                  <TieBlameAvatar
-                    aProfile={blameProfiles[playerA.label]}
-                    bProfile={blameProfiles[playerB.label]}
-                    companionManifest={companionManifest}
-                    aLabel={playerA.label}
-                    bLabel={playerB.label}
-                  />
-                ) : award.loser && award.loser !== "none" ? (
-                  <BlameAvatar
-                    companion={blameProfiles[award.loser]?.companion}
-                    companionManifest={companionManifest}
-                    label={award.loser}
-                  />
-                ) : (
-                  <Pane width={48} height={48} />
-                )}
-                <Pane>
+            <Tooltip
+              key={award.title}
+              content={`${award.detail}${award.loser === "tie" ? " (tie)" : award.loser === "none" ? " (insufficient data)" : ""}`}
+            >
+              <Pane border="default" borderRadius={8} padding={10} background="rgba(255,255,255,0.03)">
+                <Pane display="flex" alignItems="center" gap={10}>
+                  {award.loser === "tie" ? (
+                    <TieBlameAvatar
+                      aProfile={blameProfiles[playerA.label]}
+                      bProfile={blameProfiles[playerB.label]}
+                      companionManifest={companionManifest}
+                      aLabel={playerA.label}
+                      bLabel={playerB.label}
+                    />
+                  ) : award.loser && award.loser !== "none" ? (
+                    <BlameAvatar
+                      companion={blameProfiles[award.loser]?.companion}
+                      companionManifest={companionManifest}
+                      label={award.loser}
+                    />
+                  ) : (
+                    <Pane width={48} height={48} />
+                  )}
                   <Strong>{award.title}</Strong>
-                  <Text size={300} display="block" marginTop={4} color="muted">{award.description}</Text>
                 </Pane>
+                <Text size={300} display="block" marginTop={8} color="muted">{award.description}</Text>
+                <Text size={400} display="block" marginTop={8}>Blamed: {award.verdict}</Text>
               </Pane>
-              <Text size={400} display="block" marginTop={8}>{award.metricLabel}: {award.result}</Text>
-            </Pane>
+            </Tooltip>
           ))}
         </Pane>
       </Card>
