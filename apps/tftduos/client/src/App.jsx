@@ -1,5 +1,5 @@
 ﻿import { Pane } from "evergreen-ui";
-import { UI_SCALE } from "./config/constants";
+import { TEXT_SCALE } from "./config/constants";
 import Sidebar from "./components/Sidebar";
 import AnalysisTab from "./components/tabs/AnalysisTab";
 import CoachingTab from "./components/tabs/CoachingTab";
@@ -10,7 +10,7 @@ export default function App() {
   const state = useDuoAnalysis();
 
   return (
-    <Pane className="tft-app-shell" display="flex" minHeight="100vh" style={{ fontSize: `${16 * UI_SCALE}px` }}>
+    <Pane className="tft-app-shell" display="flex" minHeight="100vh" style={{ "--bz-text-scale": String(TEXT_SCALE) }}>
       <Sidebar
         activeTab={state.activeTab}
         setActiveTab={state.setActiveTab}

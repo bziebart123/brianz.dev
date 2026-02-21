@@ -27,6 +27,7 @@ body {
 }
 
 .tft-app-shell {
+  --bz-text-scale: 1.25;
   color: var(--bz-text);
 }
 
@@ -47,14 +48,14 @@ body {
 
 .tft-app-shell [data-evergreen-id="heading"] {
   color: #f7f9ff !important;
-  font-size: 1.2em !important;
+  font-size: calc(1.2em * var(--bz-text-scale)) !important;
   line-height: 1.25 !important;
 }
 
 .tft-app-shell [data-evergreen-id="text"],
 .tft-app-shell [data-evergreen-id="paragraph"] {
   color: #dbe6ff !important;
-  font-size: 1.12em !important;
+  font-size: calc(1.12em * var(--bz-text-scale)) !important;
   line-height: 1.4 !important;
 }
 
