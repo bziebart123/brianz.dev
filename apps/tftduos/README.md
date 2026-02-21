@@ -90,7 +90,7 @@ Server env vars (see `.env.example` and server code):
   - Less auxiliary box density to keep coaching readable and execution-focused
 - Coaching page now waits for AI briefing before rendering the full content area and shows a full-page GPT loading state during generation.
 - AI coaching now includes a deterministic findings engine (server-side) that computes:
-  - top leak patterns
+  - top improvement areas
   - repeatable win conditions
   - a next-5-games checklist
   - champion + item build conversion signals from recent matches

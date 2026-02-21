@@ -188,12 +188,12 @@ export default function CoachingTab({
               </Pane>
             ) : null}
 
-            {asArray(aiCoaching.brief.topLeaks).length ? (
+            {asArray(aiCoaching.brief.topImprovementAreas).length ? (
               <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
-                <Text size={400} color="muted">Top Leaks</Text>
+                <Text size={400} color="muted">Top Improvement Areas</Text>
                 <Pane marginTop={6} display="grid" gap={4}>
-                  {asArray(aiCoaching.brief.topLeaks).slice(0, 4).map((line, idx) => (
-                    <Text key={`ai-leak-${idx}`} size={400}>- {line}</Text>
+                  {asArray(aiCoaching.brief.topImprovementAreas).slice(0, 4).map((line, idx) => (
+                    <Text key={`ai-improve-${idx}`} size={400}>- {line}</Text>
                   ))}
                 </Pane>
               </Pane>

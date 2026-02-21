@@ -878,21 +878,21 @@ function buildDeterministicCoachFindings(payload) {
       note: row.top2Rate >= 55 ? "High-conversion build" : "Monitor; medium conversion",
     }));
 
-  const topLeaks = [];
+  const topImprovementAreas = [];
   if (avgPlacement > 2.75) {
-    topLeaks.push(`Average team placement is ${avgPlacement.toFixed(2)}. Stabilize one low-variance board before both greed.`);
+    topImprovementAreas.push(`Average team placement is ${avgPlacement.toFixed(2)}. Stabilize one low-variance board before both greed.`);
   }
   if (lowGoldLosses >= Math.max(2, Math.floor(sample * 0.18))) {
-    topLeaks.push(`Low-gold losses: ${lowGoldLosses}/${sample}. Delay panic all-ins unless immediate lethal risk.`);
+    topImprovementAreas.push(`Low-gold losses: ${lowGoldLosses}/${sample}. Delay panic all-ins unless immediate lethal risk.`);
   }
   if (lowDamageLosses >= Math.max(2, Math.floor(sample * 0.16))) {
-    topLeaks.push(`Low-damage losses: ${lowDamageLosses}/${sample}. Prioritize earlier carry completion over marginal econ greed.`);
+    topImprovementAreas.push(`Low-damage losses: ${lowDamageLosses}/${sample}. Prioritize earlier carry completion over marginal econ greed.`);
   }
   if (overlapTraitPressure >= Math.max(6, sample)) {
-    topLeaks.push(`Trait overlap pressure is high (${overlapTraitPressure} overlap hits). You are over-indexing contested lines.`);
+    topImprovementAreas.push(`Trait overlap pressure is high (${overlapTraitPressure} overlap hits). You are over-indexing contested lines.`);
   }
-  if (!topLeaks.length) {
-    topLeaks.push("No severe leak pattern detected in this window; tighten execution consistency.");
+  if (!topImprovementAreas.length) {
+    topImprovementAreas.push("No severe issue pattern detected in this window; tighten execution consistency.");
   }
 
   const winConditions = [];
@@ -936,7 +936,7 @@ function buildDeterministicCoachFindings(payload) {
   return {
     sampleSize: sample,
     avgTeamPlacement: Number(avgPlacement.toFixed(2)),
-    topLeaks: topLeaks.slice(0, 4),
+    topImprovementAreas: topImprovementAreas.slice(0, 4),
     winConditions: winConditions.slice(0, 4),
     fiveGamePlan,
     championBuilds,
@@ -1022,8 +1022,8 @@ function fallbackAiCoaching(payload) {
     metaDelta: [
       "Your builds are compared against lobby-trend proxies, not a live external comp tier feed.",
     ],
-    topLeaks: [
-      "Fallback mode: use deterministic leak detection while live AI is unavailable.",
+    topImprovementAreas: [
+      "Fallback mode: use deterministic issue detection while live AI is unavailable.",
     ],
     winConditions: [
       "Fallback mode: prioritize your most repeatable uncontested trait split.",
@@ -1083,7 +1083,7 @@ async function fetchOpenAiCoaching(payload, deterministicFindings = null) {
       playerPlans: [{ player: "string", focus: "string", actions: ["string"] }],
       patchContext: "string",
       metaDelta: ["string"],
-      topLeaks: ["string"],
+      topImprovementAreas: ["string"],
       winConditions: ["string"],
       fiveGamePlan: ["string"],
       championBuilds: [{ player: "string", champion: "string", items: ["string"], games: "number", top2Rate: "number", note: "string" }],
@@ -1123,7 +1123,7 @@ async function fetchOpenAiCoaching(payload, deterministicFindings = null) {
           .slice(0, 3),
         patchContext: String(modelOutput?.patchContext || ""),
         metaDelta: asArray(modelOutput?.metaDelta).map((x) => String(x)).filter(Boolean).slice(0, 5),
-        topLeaks: asArray(modelOutput?.topLeaks).map((x) => String(x)).filter(Boolean).slice(0, 4),
+        topImprovementAreas: asArray(modelOutput?.topImprovementAreas).map((x) => String(x)).filter(Boolean).slice(0, 4),
         winConditions: asArray(modelOutput?.winConditions).map((x) => String(x)).filter(Boolean).slice(0, 4),
         fiveGamePlan: asArray(modelOutput?.fiveGamePlan).map((x) => String(x)).filter(Boolean).slice(0, 5),
         championBuilds: asArray(modelOutput?.championBuilds)
@@ -1182,7 +1182,7 @@ async function fetchOpenAiCoaching(payload, deterministicFindings = null) {
                 },
                 patchContext: { type: "string" },
                 metaDelta: { type: "array", items: { type: "string" } },
-                topLeaks: { type: "array", items: { type: "string" } },
+                topImprovementAreas: { type: "array", items: { type: "string" } },
                 winConditions: { type: "array", items: { type: "string" } },
                 fiveGamePlan: { type: "array", items: { type: "string" } },
                 championBuilds: {
@@ -1212,7 +1212,7 @@ async function fetchOpenAiCoaching(payload, deterministicFindings = null) {
                 "playerPlans",
                 "patchContext",
                 "metaDelta",
-                "topLeaks",
+                "topImprovementAreas",
                 "winConditions",
                 "fiveGamePlan",
                 "championBuilds",
@@ -1336,9 +1336,9 @@ async function fetchOpenAiCoaching(payload, deterministicFindings = null) {
     }
 
     let normalized = normalizeModelOutput(attempt.modelOutput, attempt.citations);
-    normalized.topLeaks = normalized.topLeaks.length
-      ? normalized.topLeaks
-      : asArray(deterministicFindings?.topLeaks).slice(0, 4);
+    normalized.topImprovementAreas = normalized.topImprovementAreas.length
+      ? normalized.topImprovementAreas
+      : asArray(deterministicFindings?.topImprovementAreas).slice(0, 4);
     normalized.winConditions = normalized.winConditions.length
       ? normalized.winConditions
       : asArray(deterministicFindings?.winConditions).slice(0, 4);
