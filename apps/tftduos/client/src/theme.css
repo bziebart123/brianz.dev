@@ -238,6 +238,10 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.blame-awards-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .tft-app-shell select,
 .tft-app-shell input,
 .tft-app-shell textarea {
@@ -407,6 +411,10 @@ body {
 
   .analysis-graphs-grid,
   .analysis-player-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .blame-awards-grid {
     grid-template-columns: 1fr !important;
   }
 

@@ -241,6 +241,15 @@ function BlameAvatar({ companion, companionManifest, label }) {
   );
 }
 
+function TieBlameAvatar({ aProfile, bProfile, companionManifest, aLabel, bLabel }) {
+  return (
+    <Pane display="flex" alignItems="center" gap={4} flexShrink={0}>
+      <BlameAvatar companion={aProfile?.companion} companionManifest={companionManifest} label={aLabel} />
+      <BlameAvatar companion={bProfile?.companion} companionManifest={companionManifest} label={bLabel} />
+    </Pane>
+  );
+}
+
 export default function AnalysisTab({
   kpis,
   computed,
@@ -386,13 +395,14 @@ export default function AnalysisTab({
     if (!playerA.games || !playerB.games) {
       return {
         ...award,
+        loser: "none",
         result: "Need more games",
       };
     }
     if (a === b) {
       return {
         ...award,
-        loser: null,
+        loser: "tie",
         result: `Tie (${playerA.label} ${award.format(a)} | ${playerB.label} ${award.format(b)})`,
       };
     }
@@ -538,11 +548,19 @@ export default function AnalysisTab({
           title="Blame Game"
           tooltip="Worst-stat awards by player across filtered matches. This is intentionally blunt and should be used as a review prompt, not absolute truth."
         />
-        <Pane marginTop={10} display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={10}>
+        <Pane className="blame-awards-grid" marginTop={10} display="grid" gap={10}>
           {blameAwards.map((award) => (
             <Pane key={award.title} border="default" borderRadius={8} padding={10} background="rgba(255,255,255,0.03)">
               <Pane display="flex" alignItems="center" gap={10}>
-                {award.loser ? (
+                {award.loser === "tie" ? (
+                  <TieBlameAvatar
+                    aProfile={blameProfiles[playerA.label]}
+                    bProfile={blameProfiles[playerB.label]}
+                    companionManifest={companionManifest}
+                    aLabel={playerA.label}
+                    bLabel={playerB.label}
+                  />
+                ) : award.loser && award.loser !== "none" ? (
                   <BlameAvatar
                     companion={blameProfiles[award.loser]?.companion}
                     companionManifest={companionManifest}
