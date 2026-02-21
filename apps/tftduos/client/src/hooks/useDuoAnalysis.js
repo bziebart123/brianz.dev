@@ -13,6 +13,7 @@ import {
   teamPlacementFromMatch,
   toEpochMs,
 } from "../utils/tft";
+import { buildCoachingIntel } from "../utils/coachingIntel";
 
 const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").trim().replace(/\/+$/, "");
 const EMPTY_MATCHES = [];
@@ -33,6 +34,14 @@ export default function useDuoAnalysis() {
   const [rateLimitMessage, setRateLimitMessage] = useState("");
   const [retryQuery, setRetryQuery] = useState("");
   const [payload, setPayload] = useState(null);
+  const [enableWildCorrelations, setEnableWildCorrelations] = useState(() => {
+    try {
+      const raw = localStorage.getItem("tftduos-enable-wild-correlations");
+      return raw === "1";
+    } catch {
+      return false;
+    }
+  });
 
   const [timelineDays, setTimelineDays] = useState("30");
   const [setFilter, setSetFilter] = useState("all");
@@ -296,6 +305,16 @@ export default function useDuoAnalysis() {
   const clutchIndex = Number(scorecard?.rescueIndex?.clutchIndex || 0);
   const openerCards = asArray(playbook?.topOpeners).slice(0, 3);
   const staggerSuggestions = asArray(scorecard?.econCoordination?.staggerSuggestions).slice(0, 3);
+  const coachingIntel = useMemo(
+    () =>
+      buildCoachingIntel({
+        filteredMatches,
+        scorecard,
+        computed,
+        kpis,
+      }),
+    [filteredMatches, scorecard, computed, kpis]
+  );
 
   const leakCount = Number(scorecard?.decisionQuality?.leakCount || decisionLeaks.length || 0);
   const lowGoldLossA = Number(coachingInsights?.summary?.a?.lowGoldLosses || 0);
@@ -322,6 +341,20 @@ export default function useDuoAnalysis() {
       icon: "issue",
     })),
   ].slice(0, 6);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("tftduos-enable-wild-correlations", enableWildCorrelations ? "1" : "0");
+    } catch {
+      // ignore storage write failures
+    }
+  }, [enableWildCorrelations]);
+
+  useEffect(() => {
+    if (!enableWildCorrelations && activeTab === "wild") {
+      setActiveTab("history");
+    }
+  }, [enableWildCorrelations, activeTab]);
 
   useEffect(() => {
     if (!filteredMatches.length) {
@@ -557,6 +590,9 @@ export default function useDuoAnalysis() {
     rescueRate,
     clutchIndex,
     placementTrend,
+    coachingIntel,
+    enableWildCorrelations,
+    setEnableWildCorrelations,
     totalPressureA,
     totalPressureB,
     lowGoldLossA,

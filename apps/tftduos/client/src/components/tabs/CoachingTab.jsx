@@ -218,6 +218,7 @@ export default function CoachingTab({
   setQuickActor,
   submitQuickEvent,
   coachMessage,
+  coachingIntel,
 }) {
   const placements = placementTrend.map((value) => Number(value || 0)).filter((value) => value > 0);
   const recent = placements.slice(-8);
@@ -267,6 +268,13 @@ export default function CoachingTab({
       (Math.max(0, momentum + 2) * 10)
     )
   );
+  const tilt = coachingIntel?.tilt || null;
+  const fingerprints = coachingIntel?.fingerprints || {};
+  const winConditions = asArray(coachingIntel?.winConditions?.conditions);
+  const autopsy = asArray(coachingIntel?.lossAutopsy);
+  const contested = coachingIntel?.contestedMetaPressure || null;
+  const timingCoach = coachingIntel?.timingCoach || null;
+  const coordination = coachingIntel?.coordination || null;
 
   return (
     <Pane className="coaching-tab-root" display="grid" gap={12}>
@@ -311,6 +319,55 @@ export default function CoachingTab({
         </Pane>
       </Card>
 
+      {tilt?.inTiltWindow ? (
+        <Card elevation={0} padding={14} background="rgba(189,75,75,0.18)" border="default">
+          <Pane display="flex" justifyContent="space-between" alignItems="center" gap={8} flexWrap="wrap">
+            <Strong>Tilt Window Detected</Strong>
+            <Badge color="red">Tilt score {tilt.tiltScore.toFixed(0)}</Badge>
+          </Pane>
+          <Text size={400} display="block" marginTop={8}>
+            Recent avg place {tilt.recentAvg.toFixed(2)} vs prior {tilt.priorAvg.toFixed(2)}. Active bad streak: {tilt.currentBadStreak}.
+          </Text>
+          <Text size={400} display="block" marginTop={6}>Reset rule: {tilt.resetRule}</Text>
+        </Card>
+      ) : null}
+
+      <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(280px, 1fr))" gap={12}>
+        <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
+          <Heading size={500}>Playstyle Fingerprints</Heading>
+          <Pane marginTop={10} display="grid" gap={8}>
+            <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+              <Strong>{DISPLAY_NAME_A}</Strong>
+              <Text size={400} display="block" marginTop={6}>{asArray(fingerprints?.playerA?.labels).join(" · ") || "Not enough data yet."}</Text>
+            </Pane>
+            <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+              <Strong>{DISPLAY_NAME_B}</Strong>
+              <Text size={400} display="block" marginTop={6}>{asArray(fingerprints?.playerB?.labels).join(" · ") || "Not enough data yet."}</Text>
+            </Pane>
+            <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+              <Strong>Duo Identity</Strong>
+              <Text size={400} display="block" marginTop={6}>{asArray(fingerprints?.duo?.labels).join(" · ") || "Not enough data yet."}</Text>
+            </Pane>
+          </Pane>
+        </Card>
+
+        <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
+          <Heading size={500}>Win Condition Miner</Heading>
+          <Pane marginTop={10} display="grid" gap={8}>
+            {winConditions.length ? (
+              winConditions.map((condition, idx) => (
+                <Pane key={`wc-${idx}`} padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                  <Strong>{condition.title}</Strong>
+                  <Text size={400} display="block" marginTop={6}>{condition.detail}</Text>
+                </Pane>
+              ))
+            ) : (
+              <Text size={400} color="muted">Need more same-team games for stable win-condition mining.</Text>
+            )}
+          </Pane>
+        </Card>
+      </Pane>
+
       <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(320px, 1fr))" gap={12}>
         <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
           <Heading size={500}>Team Priorities</Heading>
@@ -344,6 +401,82 @@ export default function CoachingTab({
           </Pane>
         </Card>
       </Pane>
+
+      <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={12}>
+        <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
+          <Heading size={500}>Contested Meta Pressure</Heading>
+          <Pane marginTop={10} display="grid" gap={8}>
+            <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+              <Text size={400} color="muted">Pressure score</Text>
+              <Heading size={700} marginTop={6}>{Number(contested?.score || 0).toFixed(1)}%</Heading>
+              <Text size={400} display="block" marginTop={6}>{contested?.recommendation || "No pressure signal yet."}</Text>
+            </Pane>
+            <MetricBar label="Contested pressure" value={Number(contested?.score || 0)} color="#c08d3f" />
+          </Pane>
+        </Card>
+
+        <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
+          <Heading size={500}>Timing Coach</Heading>
+          <Pane marginTop={10} display="grid" gap={8}>
+            <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+              <Text size={400} display="block">{timingCoach?.guidance || "No timing guidance yet."}</Text>
+            </Pane>
+            <Pane display="grid" gridTemplateColumns="1fr 1fr" gap={8}>
+              <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                <Text size={400} color="muted">Top2 avg level</Text>
+                <Heading size={700} marginTop={6}>{Number(timingCoach?.top2Level || 0).toFixed(2)}</Heading>
+              </Pane>
+              <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                <Text size={400} color="muted">Non-Top2 avg level</Text>
+                <Heading size={700} marginTop={6}>{Number(timingCoach?.nonTop2Level || 0).toFixed(2)}</Heading>
+              </Pane>
+            </Pane>
+          </Pane>
+        </Card>
+
+        <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
+          <Heading size={500}>Duo Coordination Score</Heading>
+          <Pane marginTop={10} display="grid" gap={8}>
+            <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+              <Text size={400} color="muted">Coordination</Text>
+              <Heading size={700} marginTop={6}>{Number(coordination?.score || 0).toFixed(0)}/100</Heading>
+              <Text size={400} display="block" marginTop={6}>{coordination?.recommendation || "No split recommendation yet."}</Text>
+            </Pane>
+            {asArray(coordination?.candidates).length ? (
+              <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                {asArray(coordination?.candidates).map((row) => (
+                  <Text key={`coord-${row.split}`} size={400} display="block">
+                    {row.split}: Top2 {row.top2Rate.toFixed(1)}% · Win {row.winRate.toFixed(1)}% ({row.games} games)
+                  </Text>
+                ))}
+              </Pane>
+            ) : null}
+          </Pane>
+        </Card>
+      </Pane>
+
+      <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
+        <Heading size={500}>Loss Autopsy (Worst 3)</Heading>
+        <Pane marginTop={10} display="grid" gap={8}>
+          {autopsy.length ? (
+            autopsy.map((entry, idx) => (
+              <Pane key={`autopsy-${entry.matchId}-${idx}`} padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                <Pane display="flex" justifyContent="space-between" gap={8} flexWrap="wrap">
+                  <Strong>#{idx + 1} · Placement {entry.placement}</Strong>
+                  <Badge color={entry.confidence >= 70 ? "red" : "yellow"}>Confidence {entry.confidence}%</Badge>
+                </Pane>
+                <Pane marginTop={6} display="grid" gap={4}>
+                  {asArray(entry.factors).map((factor, fidx) => (
+                    <Text key={`factor-${idx}-${fidx}`} size={400}>- {factor.reason}</Text>
+                  ))}
+                </Pane>
+              </Pane>
+            ))
+          ) : (
+            <Text size={400} color="muted">No loss autopsy available yet.</Text>
+          )}
+        </Pane>
+      </Card>
 
       <Pane className="coaching-player-plan-grid" display="grid" gridTemplateColumns="repeat(2, minmax(0, 1fr))" gap={12}>
         {[planA, planB].map((plan) => (

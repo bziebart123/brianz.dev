@@ -2,6 +2,7 @@ import {
   Alert,
   Button,
   Card,
+  Checkbox,
   Heading,
   Pane,
   Select,
@@ -17,8 +18,11 @@ import { RELEASE_NOTES, RELEASE_VERSION } from "../config/releaseMeta";
 export default function Sidebar({
   isMobile,
   onRequestClose,
+  viewTabs = VIEW_TABS,
   activeTab,
   setActiveTab,
+  enableWildCorrelations,
+  setEnableWildCorrelations,
   payload,
   timelineDays,
   setTimelineDays,
@@ -96,7 +100,7 @@ export default function Sidebar({
         <Pane marginBottom={22} />
 
         <Tablist marginBottom={18} display="flex" flexDirection="column" gap={10}>
-          {VIEW_TABS.map((tab) => (
+          {viewTabs.map((tab) => (
             <Tab
               key={tab.id}
               isSelected={activeTab === tab.id}
@@ -189,6 +193,17 @@ export default function Sidebar({
               <Text size={400} color="muted">No release notes available.</Text>
             )}
           </Pane>
+        </Card>
+
+        <Card elevation={0} border="default" background="rgba(255,255,255,0.03)" padding={14} marginTop={12}>
+          <Checkbox
+            checked={Boolean(enableWildCorrelations)}
+            onChange={(e) => setEnableWildCorrelations?.(e.target.checked)}
+            label="Enable Wild Correlations"
+          />
+          <Text size={300} color="muted" marginTop={8} display="block">
+            Hide nonsense mode for serious review sessions.
+          </Text>
         </Card>
       </Pane>
 

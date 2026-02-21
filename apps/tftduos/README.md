@@ -87,6 +87,17 @@ Server env vars (see `.env.example` and server code):
   - Stage-based dynamic plan from scorecard replay fields and branches
   - Journal + Quick Event panels preserved for feedback-loop logging
 - Coaching recommendations are rule-driven and data-adaptive (not hardcoded static text), and become more specific as event sample size grows.
+- Coaching now includes additional inferred modules:
+  - Tilt & streak detection banner with reset-rule recommendation
+  - Playstyle fingerprints (per player + duo)
+  - Win-condition miner ("when X + Y, Top2 rises to Z%")
+  - Loss autopsy for the 3 worst filtered games with ranked factors + confidence
+  - Contested meta pressure score with pivot guidance
+  - Timing coach (level timing proxies + overlap-stage hints)
+  - Duo coordination score + pre-game role split recommendation
+- New optional `Wild Correlations` view:
+  - Toggle in sidebar (`Enable Wild Correlations`) controls nav visibility and acts as serious-mode failsafe
+  - Includes disclaimer, cosmic summary + copy action, cursed/blessed queue windows, generated nonsense takes, and transparent joke "method" labels
 - Timeline auto-default selection now prioritizes `30` days before shorter windows.
 - Quick event stage default for manual logging is now `4.1` to better align with late-stage clutch/rescue signal capture.
 

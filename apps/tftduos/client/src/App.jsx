@@ -1,16 +1,22 @@
 import { Pane, Text } from "evergreen-ui";
-import { useEffect, useState } from "react";
-import { TEXT_SCALE } from "./config/constants";
+import { useEffect, useMemo, useState } from "react";
+import { TEXT_SCALE, VIEW_TABS } from "./config/constants";
 import Sidebar from "./components/Sidebar";
 import AnalysisTab from "./components/tabs/AnalysisTab";
 import CoachingTab from "./components/tabs/CoachingTab";
 import HistoryTab from "./components/tabs/HistoryTab";
+import WildCorrelationsTab from "./components/tabs/WildCorrelationsTab";
 import useDuoAnalysis from "./hooks/useDuoAnalysis";
 
 export default function App() {
   const state = useDuoAnalysis();
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 1024);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const viewTabs = useMemo(() => {
+    const base = [...VIEW_TABS];
+    if (state.enableWildCorrelations) base.push({ id: "wild", label: "Wild Correlations" });
+    return base;
+  }, [state.enableWildCorrelations]);
 
   useEffect(() => {
     function handleResize() {
@@ -36,8 +42,11 @@ export default function App() {
       <Sidebar
         isMobile={isMobile}
         onRequestClose={() => setSidebarOpen(false)}
+        viewTabs={viewTabs}
         activeTab={state.activeTab}
         setActiveTab={state.setActiveTab}
+        enableWildCorrelations={state.enableWildCorrelations}
+        setEnableWildCorrelations={state.setEnableWildCorrelations}
         payload={state.payload}
         timelineDays={state.timelineDays}
         setTimelineDays={state.setTimelineDays}
@@ -138,6 +147,16 @@ export default function App() {
               setQuickActor={state.setQuickActor}
               submitQuickEvent={state.submitQuickEvent}
               coachMessage={state.coachMessage}
+              coachingIntel={state.coachingIntel}
+            />
+          ) : null}
+
+          {state.payload && state.activeTab === "wild" && state.enableWildCorrelations ? (
+            <WildCorrelationsTab
+              coachingIntel={state.coachingIntel}
+              timelineDays={state.timelineDays}
+              setFilter={state.setFilter}
+              patchFilter={state.patchFilter}
             />
           ) : null}
         </Pane>
