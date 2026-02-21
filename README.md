@@ -100,11 +100,13 @@ For static sites:
 ## CI / Test Gate
 
 - GitHub Actions workflow: `.github/workflows/ci.yml`
-- Trigger: push to `main`
-- Current job runs `apps/tftduos/client` tests with Vitest.
+- Triggers: `pull_request` and `push` on `main`
+- `verify-tftduos-client`: runs `apps/tftduos/client` tests and production build.
+- `verify-tftduos-server`: runs `node --check apps/tftduos/server/index.js`.
+- `verify-portfolio`: runs `npm run build:portfolio`.
 - Render deployment should use test-inclusive build commands so a failing test blocks publish.
 - `portfolio` and `apps/tftduos/server` currently include placeholder `test` scripts (exit 0) so
-  test-inclusive pipelines can run consistently until real tests are added.
+test-inclusive pipelines can run consistently until real tests are added.
 
 ## DNS (Porkbun)
 
@@ -128,6 +130,7 @@ Use exactly what Render Custom Domains asks for:
 - Coaching backend now layers deterministic evidence (leaks, win-conditions, 5-game plan, champion+item build conversion signals) into the LLM prompt/response to reduce generic output and improve actionability.
 - Coaching UI now uses high-contrast custom error/warning banners and compact AI payload requests to improve readability and reduce large-timeline AI network failures.
 - Coaching AI responses are cached client-side by duo/filter and reused until a newer shared match is detected, reducing repeated OpenAI calls when no new duo games were played.
+- Coaching data flow is now trimmed to the active UI surface: `App.jsx` only passes `CoachingTab` the props it renders, and `useDuoAnalysis` drops unused journal/event-only client state.
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.
 

@@ -51,7 +51,7 @@ Never hardcode secrets.
   - team placement chip + LP estimate chip
   - set/patch/date (date only)
   - per-player units as 10 board slots (empty placeholders shown)
-  - per-unit filled stars only (`★`, `★★`, `★★★`).
+  - per-unit filled stars only (`*`, `**`, `***`).
 - Trait icon backgrounds are tier-coded (bronze/silver/gold/prismatic).
 - UI is intentionally scaled up for accessibility/readability.
 
