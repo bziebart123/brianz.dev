@@ -24,7 +24,8 @@ function starsForTier(tierValue) {
   return "★".repeat(tier);
 }
 
-const UNIT_SLOT_SIZE = 46;
+const UNIT_SLOT_SIZE = 52;
+const CHIP_TEXT_STYLE = { color: "#f7fbff", fontWeight: 700, fontSize: 18, lineHeight: 1 };
 
 export default function HistoryTab({
   payload,
@@ -98,7 +99,7 @@ export default function HistoryTab({
                 border={`1px solid ${placement <= 2 ? "rgba(73, 194, 122, 0.55)" : "rgba(223, 84, 72, 0.55)"}`}
                 background={placement <= 2 ? "rgba(43, 143, 90, 0.24)" : "rgba(178, 56, 49, 0.24)"}
               >
-                <Text size={300} style={{ color: "#f7fbff", fontWeight: 700 }}>
+                <Text size={500} style={CHIP_TEXT_STYLE}>
                   #{placement}
                 </Text>
               </Pane>
@@ -131,7 +132,7 @@ export default function HistoryTab({
                 border={`1px solid ${isTopTwo ? "rgba(73, 194, 122, 0.55)" : "rgba(223, 84, 72, 0.55)"}`}
                 background={isTopTwo ? "rgba(43, 143, 90, 0.24)" : "rgba(178, 56, 49, 0.24)"}
               >
-                <Text size={300} style={{ color: "#f7fbff", fontWeight: 700 }}>
+                <Text size={500} style={CHIP_TEXT_STYLE}>
                   Team #{teamPlacement}
                 </Text>
               </Pane>
@@ -145,7 +146,7 @@ export default function HistoryTab({
                 border="1px solid rgba(93, 122, 183, 0.52)"
                 background="rgba(20, 31, 52, 0.92)"
               >
-                <Text size={300} style={{ color: "#f7fbff", fontWeight: 700 }}>
+                <Text size={500} style={CHIP_TEXT_STYLE}>
                   LP {lpDelta >= 0 ? `+${lpDelta}` : lpDelta}
                 </Text>
               </Pane>
@@ -182,7 +183,7 @@ export default function HistoryTab({
                     />
                   ))}
               </Pane>
-              <Pane className="history-unit-row" display="flex" flexWrap="nowrap" gap={3} marginTop={8}>
+              <Pane className="history-unit-row" display="flex" flexWrap="nowrap" gap={4} marginTop={8}>
                 {boardSlots(match.playerA?.units).map((unit, idx) =>
                   unit?.characterId ? (
                     <Pane
@@ -243,7 +244,7 @@ export default function HistoryTab({
                     />
                   ))}
               </Pane>
-              <Pane className="history-unit-row" display="flex" flexWrap="nowrap" gap={3} marginTop={8}>
+              <Pane className="history-unit-row" display="flex" flexWrap="nowrap" gap={4} marginTop={8}>
                 {boardSlots(match.playerB?.units).map((unit, idx) =>
                   unit?.characterId ? (
                     <Pane
