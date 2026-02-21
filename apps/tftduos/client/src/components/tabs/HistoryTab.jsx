@@ -3,7 +3,26 @@ import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
 import PlayerBannerCard from "../PlayerBannerCard";
 import StatCard from "../StatCard";
 import IconWithLabel from "../IconWithLabel";
-import { asArray, formatDuration, formatTime, placementBadgeColor, prettyName, teamPlacementFromMatch } from "../../utils/tft";
+import {
+  asArray,
+  estimatedLpDeltaFromTeamPlacement,
+  formatDate,
+  placementBadgeColor,
+  prettyName,
+  teamPlacementFromMatch,
+} from "../../utils/tft";
+
+function boardSlots(units) {
+  const normalized = asArray(units).slice(0, 10);
+  const slots = [...normalized];
+  while (slots.length < 10) slots.push(null);
+  return slots;
+}
+
+function starsForTier(tierValue) {
+  const tier = Math.max(1, Math.min(3, Number(tierValue || 1)));
+  return "★".repeat(tier);
+}
 
 export default function HistoryTab({
   payload,
@@ -39,31 +58,48 @@ export default function HistoryTab({
         />
       </Pane>
       <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))" gap={12}>
-        <StatCard label="Games" value={kpis.gamesTogether} hint="In current filters" />
+        <StatCard label="Games" value={kpis.gamesTogether} hint="In current filters" compact hideHint />
         <StatCard
           label="Team Avg Place"
           value={kpis.avgTeamPlacement !== null ? kpis.avgTeamPlacement.toFixed(2) : "-"}
           hint="Lower is better"
+          compact
+          hideHint
         />
         <StatCard
-          label="Team Top 4"
-          value={kpis.teamTop4Rate !== null ? `${kpis.teamTop4Rate.toFixed(1)}%` : "-"}
-          hint="Team placement <= 4"
+          label="Team Top 2"
+          value={kpis.teamTop2Rate !== null ? `${kpis.teamTop2Rate.toFixed(1)}%` : "-"}
+          hint="Top half finish"
+          compact
+          hideHint
         />
         <StatCard
           label="Team Win Rate"
           value={kpis.teamWinRate !== null ? `${kpis.teamWinRate.toFixed(1)}%` : "-"}
           hint="Team placement #1"
+          compact
+          hideHint
         />
       </Pane>
       <Card elevation={0} padding={14} background="rgba(255,255,255,0.03)">
-        <Heading size={500}>Recent Form</Heading>
+        <Heading size={500}>Match History</Heading>
         <Pane marginTop={10} display="flex" flexWrap="wrap" gap={8}>
           {recentTeamPlacements.length ? (
             recentTeamPlacements.map((placement, idx) => (
-              <Badge key={`recent-${idx}`} color={placement <= 4 ? "green" : placement <= 6 ? "yellow" : "red"}>
-                #{placement}
-              </Badge>
+              <Pane
+                key={`recent-${idx}`}
+                borderRadius={10}
+                paddingX={10}
+                minHeight={26}
+                display="inline-flex"
+                alignItems="center"
+                border={`1px solid ${placement <= 2 ? "rgba(73, 194, 122, 0.55)" : "rgba(223, 84, 72, 0.55)"}`}
+                background={placement <= 2 ? "rgba(43, 143, 90, 0.24)" : "rgba(178, 56, 49, 0.24)"}
+              >
+                <Text size={300} style={{ color: "#f7fbff", fontWeight: 700 }}>
+                  #{placement}
+                </Text>
+              </Pane>
             ))
           ) : (
             <Text size={300} color="muted">No recent games in current filter.</Text>
@@ -77,36 +113,59 @@ export default function HistoryTab({
 
       {filteredMatches.map((match) => {
         const teamPlacement = teamPlacementFromMatch(match);
+        const lpDelta = estimatedLpDeltaFromTeamPlacement(teamPlacement);
+        const isTopTwo = teamPlacement <= 2;
         return (
         <Card key={match.id} elevation={0} padding={14} background="rgba(255,255,255,0.03)">
           <Pane display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={8}>
-            <Pane display="flex" alignItems="center" gap={10}>
-              <Heading size={500}>{match.queueLabel}</Heading>
-              <Badge color={placementBadgeColor(teamPlacement)}>
-                Team #{teamPlacement}
-              </Badge>
+            <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
+              <Pane
+                borderRadius={10}
+                paddingX={10}
+                minHeight={28}
+                display="inline-flex"
+                alignItems="center"
+                border={`1px solid ${isTopTwo ? "rgba(73, 194, 122, 0.55)" : "rgba(223, 84, 72, 0.55)"}`}
+                background={isTopTwo ? "rgba(43, 143, 90, 0.24)" : "rgba(178, 56, 49, 0.24)"}
+              >
+                <Text size={300} style={{ color: "#f7fbff", fontWeight: 700 }}>
+                  Team #{teamPlacement}
+                </Text>
+              </Pane>
+              <Pane
+                borderRadius={10}
+                paddingX={10}
+                minHeight={28}
+                display="inline-flex"
+                alignItems="center"
+                border="1px solid rgba(93, 122, 183, 0.52)"
+                background="rgba(20, 31, 52, 0.92)"
+              >
+                <Text size={300} style={{ color: "#f7fbff", fontWeight: 700 }}>
+                  LP {lpDelta >= 0 ? `+${lpDelta}` : lpDelta}
+                </Text>
+              </Pane>
             </Pane>
-            <Badge color="neutral">{formatDuration(match.gameLength)}</Badge>
+            <Text size={300} color="muted">
+              Set {match.setNumber ?? "?"} · Patch {match.patch || "?"} · {formatDate(match.gameDatetime)}
+            </Text>
           </Pane>
-
-          <Text size={300} color="muted" display="block" marginTop={6}>
-            Set {match.setNumber ?? "?"} · Patch {match.patch || "?"} · {formatTime(match.gameDatetime)}
-          </Text>
 
           <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={12} marginTop={12}>
             <Card padding={10} elevation={0} background="rgba(255,255,255,0.04)">
-              <Pane display="flex" justifyContent="space-between" alignItems="center" marginBottom={8}>
-                <Strong>{DISPLAY_NAME_A}</Strong>
-                <Badge color={placementBadgeColor(match.playerA?.placement)}>#{match.playerA?.placement ?? "?"}</Badge>
-              </Pane>
-              <Pane display="flex" gap={8} marginBottom={8} flexWrap="wrap">
-                <Badge color="neutral">Lvl {match.playerA?.level ?? "?"}</Badge>
-                <Badge color="neutral">Dmg {match.playerA?.totalDamageToPlayers ?? "?"}</Badge>
+              <Pane display="flex" justifyContent="space-between" alignItems="center" marginBottom={8} gap={8} flexWrap="wrap">
+                <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
+                  <Strong>{DISPLAY_NAME_A}</Strong>
+                  <Badge color={placementBadgeColor(match.playerA?.placement)}>#{match.playerA?.placement ?? "?"}</Badge>
+                </Pane>
+                <Pane display="flex" gap={8} flexWrap="wrap">
+                  <Badge color="neutral">Lvl {match.playerA?.level ?? "?"}</Badge>
+                  <Badge color="neutral">Dmg {match.playerA?.totalDamageToPlayers ?? "?"}</Badge>
+                </Pane>
               </Pane>
               <Pane display="flex" flexWrap="wrap" gap={8} marginTop={8}>
                 {asArray(match.playerA?.traits)
                   .filter((x) => x.style > 0)
-                  .slice(0, 3)
                   .map((trait) => (
                     <IconWithLabel
                       key={`a-trait-${match.id}-${trait.name}`}
@@ -119,34 +178,49 @@ export default function HistoryTab({
                     />
                   ))}
               </Pane>
-              <Pane display="flex" flexWrap="wrap" gap={8} marginTop={8}>
-                {asArray(match.playerA?.units)
-                  .slice(0, 4)
-                  .map((unit) => (
-                    <IconWithLabel
-                      key={`a-unit-${match.id}-${unit.characterId}`}
-                      kind="unit"
-                      token={unit.characterId}
-                      label={prettyName(unit.characterId)}
-                      size={68}
-                      iconManifest={iconManifest}
-                    />
-                  ))}
+              <Pane display="flex" flexWrap="wrap" gap={4} marginTop={8}>
+                {boardSlots(match.playerA?.units).map((unit, idx) =>
+                  unit?.characterId ? (
+                    <Pane key={`a-unit-${match.id}-${unit.characterId}-${idx}`} display="grid" justifyItems="center" gap={2}>
+                      <IconWithLabel
+                        kind="unit"
+                        token={unit.characterId}
+                        label={prettyName(unit.characterId)}
+                        size={44}
+                        iconManifest={iconManifest}
+                      />
+                      <Text size={300} style={{ color: "#ffd97a", fontWeight: 700, lineHeight: 1 }}>
+                        {starsForTier(unit.tier)}
+                      </Text>
+                    </Pane>
+                  ) : (
+                    <Pane key={`a-empty-${match.id}-${idx}`} display="grid" justifyItems="center">
+                      <Pane
+                        width={44}
+                        height={44}
+                        borderRadius={6}
+                        border="1px dashed rgba(133, 155, 204, 0.42)"
+                        background="rgba(255,255,255,0.02)"
+                      />
+                    </Pane>
+                  )
+                )}
               </Pane>
             </Card>
             <Card padding={10} elevation={0} background="rgba(255,255,255,0.04)">
-              <Pane display="flex" justifyContent="space-between" alignItems="center" marginBottom={8}>
-                <Strong>{DISPLAY_NAME_B}</Strong>
-                <Badge color={placementBadgeColor(match.playerB?.placement)}>#{match.playerB?.placement ?? "?"}</Badge>
-              </Pane>
-              <Pane display="flex" gap={8} marginBottom={8} flexWrap="wrap">
-                <Badge color="neutral">Lvl {match.playerB?.level ?? "?"}</Badge>
-                <Badge color="neutral">Dmg {match.playerB?.totalDamageToPlayers ?? "?"}</Badge>
+              <Pane display="flex" justifyContent="space-between" alignItems="center" marginBottom={8} gap={8} flexWrap="wrap">
+                <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
+                  <Strong>{DISPLAY_NAME_B}</Strong>
+                  <Badge color={placementBadgeColor(match.playerB?.placement)}>#{match.playerB?.placement ?? "?"}</Badge>
+                </Pane>
+                <Pane display="flex" gap={8} flexWrap="wrap">
+                  <Badge color="neutral">Lvl {match.playerB?.level ?? "?"}</Badge>
+                  <Badge color="neutral">Dmg {match.playerB?.totalDamageToPlayers ?? "?"}</Badge>
+                </Pane>
               </Pane>
               <Pane display="flex" flexWrap="wrap" gap={8} marginTop={8}>
                 {asArray(match.playerB?.traits)
                   .filter((x) => x.style > 0)
-                  .slice(0, 3)
                   .map((trait) => (
                     <IconWithLabel
                       key={`b-trait-${match.id}-${trait.name}`}
@@ -159,19 +233,33 @@ export default function HistoryTab({
                     />
                   ))}
               </Pane>
-              <Pane display="flex" flexWrap="wrap" gap={8} marginTop={8}>
-                {asArray(match.playerB?.units)
-                  .slice(0, 4)
-                  .map((unit) => (
-                    <IconWithLabel
-                      key={`b-unit-${match.id}-${unit.characterId}`}
-                      kind="unit"
-                      token={unit.characterId}
-                      label={prettyName(unit.characterId)}
-                      size={68}
-                      iconManifest={iconManifest}
-                    />
-                  ))}
+              <Pane display="flex" flexWrap="wrap" gap={4} marginTop={8}>
+                {boardSlots(match.playerB?.units).map((unit, idx) =>
+                  unit?.characterId ? (
+                    <Pane key={`b-unit-${match.id}-${unit.characterId}-${idx}`} display="grid" justifyItems="center" gap={2}>
+                      <IconWithLabel
+                        kind="unit"
+                        token={unit.characterId}
+                        label={prettyName(unit.characterId)}
+                        size={44}
+                        iconManifest={iconManifest}
+                      />
+                      <Text size={300} style={{ color: "#ffd97a", fontWeight: 700, lineHeight: 1 }}>
+                        {starsForTier(unit.tier)}
+                      </Text>
+                    </Pane>
+                  ) : (
+                    <Pane key={`b-empty-${match.id}-${idx}`} display="grid" justifyItems="center">
+                      <Pane
+                        width={44}
+                        height={44}
+                        borderRadius={6}
+                        border="1px dashed rgba(133, 155, 204, 0.42)"
+                        background="rgba(255,255,255,0.02)"
+                      />
+                    </Pane>
+                  )
+                )}
               </Pane>
             </Card>
           </Pane>

@@ -146,6 +146,12 @@ export function formatTime(ms) {
   return new Date(epochMs).toLocaleString();
 }
 
+export function formatDate(ms) {
+  const epochMs = toEpochMs(ms);
+  if (!epochMs) return "Unknown date";
+  return new Date(epochMs).toLocaleDateString();
+}
+
 export function formatDuration(totalSeconds) {
   if (!totalSeconds && totalSeconds !== 0) return "-";
   const min = Math.floor(totalSeconds / 60);
@@ -159,6 +165,14 @@ export function placementBadgeColor(placement) {
   if (value <= 4) return "teal";
   if (value <= 6) return "yellow";
   return "red";
+}
+
+export function estimatedLpDeltaFromTeamPlacement(teamPlacement) {
+  const placement = Number(teamPlacement || 4);
+  if (placement <= 1) return 35;
+  if (placement === 2) return 20;
+  if (placement === 3) return -15;
+  return -30;
 }
 
 export function patchFromVersion(version) {
@@ -238,6 +252,7 @@ export function summarizeFromMatches(matches) {
         avgPlacementA: 0,
         avgPlacementB: 0,
         avgTeamPlacement: null,
+        teamTop2Rate: null,
         teamTop4Rate: null,
         teamWinRate: null,
         teamPlacements: [],
@@ -254,6 +269,7 @@ export function summarizeFromMatches(matches) {
   const sameTeamPlacements = sameTeam.map((m) => teamPlacementFromMatch(m));
   const top4Count = sameTeamPlacements.filter((p) => p <= 4).length;
   const teamPlacements = matches.map((m) => teamPlacementFromMatch(m));
+  const teamTop2Count = teamPlacements.filter((p) => p <= 2).length;
   const teamTop4Count = teamPlacements.filter((p) => p <= 4).length;
   const teamWinCount = teamPlacements.filter((p) => p === 1).length;
 
@@ -316,6 +332,7 @@ export function summarizeFromMatches(matches) {
       avgPlacementA: avgA,
       avgPlacementB: avgB,
       avgTeamPlacement: avgTeam,
+      teamTop2Rate: teamPlacements.length ? (teamTop2Count / teamPlacements.length) * 100 : null,
       teamTop4Rate: teamPlacements.length ? (teamTop4Count / teamPlacements.length) * 100 : null,
       teamWinRate: teamPlacements.length ? (teamWinCount / teamPlacements.length) * 100 : null,
       teamPlacements,

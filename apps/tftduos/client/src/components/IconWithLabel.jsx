@@ -13,10 +13,12 @@ function normalizeTraitTier(value) {
 }
 
 function traitBackgroundForTier(tier) {
-  if (tier >= 4) return "rgba(130, 74, 202, 0.42)";
-  if (tier === 3) return "rgba(164, 128, 45, 0.45)";
-  if (tier === 2) return "rgba(114, 124, 142, 0.45)";
-  if (tier === 1) return "rgba(114, 79, 58, 0.48)";
+  if (tier >= 4) {
+    return "linear-gradient(145deg, rgba(250,252,255,0.46) 0%, rgba(170,244,255,0.44) 28%, rgba(255,222,244,0.44) 62%, rgba(206,255,224,0.44) 100%)";
+  }
+  if (tier === 3) return "linear-gradient(145deg, rgba(116,83,20,0.92) 0%, rgba(201,153,45,0.88) 55%, rgba(121,87,20,0.92) 100%)";
+  if (tier === 2) return "linear-gradient(145deg, rgba(72,80,95,0.94) 0%, rgba(129,141,158,0.88) 55%, rgba(76,86,101,0.94) 100%)";
+  if (tier === 1) return "linear-gradient(145deg, rgba(96,62,37,0.94) 0%, rgba(165,106,66,0.88) 55%, rgba(101,64,39,0.94) 100%)";
   return "rgba(20,25,34,0.95)";
 }
 

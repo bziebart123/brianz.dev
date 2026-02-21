@@ -40,7 +40,7 @@ export default function PlayerBannerCard({
     <Card elevation={1} padding={0} overflow="hidden" border="default">
       <Pane
         position="relative"
-        minHeight={220}
+        minHeight={160}
         background={
           showFallback
             ? "linear-gradient(135deg, rgba(38,44,58,1) 0%, rgba(23,28,40,1) 100%)"
@@ -58,6 +58,7 @@ export default function PlayerBannerCard({
               width: "100%",
               height: "100%",
               objectFit: "cover",
+              objectPosition: "50% 28%",
             }}
           />
         ) : null}
@@ -69,11 +70,11 @@ export default function PlayerBannerCard({
               "linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.35) 52%, rgba(0,0,0,0.72) 100%)",
           }}
         />
-        <Pane position="absolute" left={16} right={16} bottom={16}>
+        <Pane position="absolute" left={14} right={14} bottom={12}>
           <Heading size={700} marginTop={0} style={{ color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,0.7)" }}>
             {riotName || displayName}#{tagLine || ""}
           </Heading>
-          <Text size={400} marginTop={6} style={{ color: "#fff", opacity: 0.85, textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+          <Text size={300} marginTop={4} style={{ color: "#fff", opacity: 0.85, textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
             {rank || "Unranked"}
           </Text>
         </Pane>

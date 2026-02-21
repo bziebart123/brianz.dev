@@ -4,7 +4,7 @@ export const VIEW_TABS = [
   { id: "coaching", label: "Coaching" },
 ];
 
-export const UI_SCALE = 1.8;
+export const UI_SCALE = 2.2;
 
 function envValue(key, fallback) {
   const value = import.meta.env?.[key];
