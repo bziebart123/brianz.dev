@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DISPLAY_NAME_A,
   DISPLAY_NAME_B,
@@ -46,7 +46,7 @@ export default function useDuoAnalysis() {
   const [tagPanicRoll, setTagPanicRoll] = useState(false);
   const [tagMissedGift, setTagMissedGift] = useState(false);
   const [tagBothRoll, setTagBothRoll] = useState(false);
-  const [quickStage, setQuickStage] = useState("3.2");
+  const [quickStage, setQuickStage] = useState("4.1");
   const [quickActor, setQuickActor] = useState("A");
   const [coachSaving, setCoachSaving] = useState(false);
   const [coachMessage, setCoachMessage] = useState("");
@@ -145,7 +145,7 @@ export default function useDuoAnalysis() {
   useEffect(() => {
     if (!matches.length || didAutoSelectFilters) return;
 
-    const timelineCandidates = ["7", "30", "90", "0"];
+    const timelineCandidates = ["30", "7", "90", "0"];
     const now = Date.now();
     let nextTimeline = "0";
 

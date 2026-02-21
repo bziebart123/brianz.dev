@@ -81,7 +81,15 @@ export default function App() {
           ) : null}
 
           {state.payload && state.activeTab === "analysis" ? (
-            <AnalysisTab kpis={state.kpis} computed={state.computed} iconManifest={state.iconManifest} />
+            <AnalysisTab
+              kpis={state.kpis}
+              computed={state.computed}
+              iconManifest={state.iconManifest}
+              companionManifest={state.companionManifest}
+              filteredMatches={state.filteredMatches}
+              scorecard={state.scorecard}
+              coachingInsights={state.coachingInsights}
+            />
           ) : null}
 
           {state.payload && state.activeTab === "coaching" ? (

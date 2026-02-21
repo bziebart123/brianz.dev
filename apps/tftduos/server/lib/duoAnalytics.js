@@ -180,12 +180,17 @@ function computeGiftEfficiency(eventLog) {
 
 function computeRescueIndex(eventLog) {
   const rescues = asArray(eventLog).filter((event) => event.type === "rescue_arrival");
+  const totalEvents = asArray(eventLog).length;
   if (!rescues.length) {
     return {
       status: "needs_round_events",
       rescueRate: null,
       missedBailouts: null,
       clutchIndex: null,
+      rescueEvents: 0,
+      totalEvents,
+      clutchWins: 0,
+      successfulFlips: 0,
     };
   }
 
@@ -202,10 +207,14 @@ function computeRescueIndex(eventLog) {
 
   return {
     status: "ok",
-    rescueRate: pct(rescues.length, asArray(eventLog).length),
+    rescueRate: pct(rescues.length, totalEvents),
     missedBailouts: asArray(eventLog).filter((event) => event.type === "missed_bailout").length,
     clutchIndex: pct(clutchWins.length, rescues.length),
     successfulFlipRate: pct(flips.length, rescues.length),
+    rescueEvents: rescues.length,
+    totalEvents,
+    clutchWins: clutchWins.length,
+    successfulFlips: flips.length,
   };
 }
 

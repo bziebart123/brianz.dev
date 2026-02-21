@@ -61,6 +61,26 @@ Server env vars (see `.env.example` and server code):
 - `History` now enforces larger, consistent placement/LP chip text and uses larger champion unit slots while keeping rows single-line (desktop clips overflow; mobile allows touch horizontal scroll without showing scrollbars).
 - Player stat badges in `History` (`#placement`, `Lvl`, `Dmg`) now use tighter padding and a slightly smaller font than LP/team chips for clearer visual hierarchy.
 - Champion unit slots in `History` are tuned to remain larger but fit without row scrollbars, and sidebar filter dropdown text is slightly reduced to avoid vertical clipping.
+- Analysis tab is now a dashboard-style view with:
+  - Team KPI strip (avg placement, top2/win rates, avg team damage, decision grade, rescue/clutch)
+  - KPI cards are auto-tinted green/red based on metric-specific "good vs weak" thresholds for fast scanning
+  - Full-width team rank trend chart (cumulative estimated LP/rank score from filtered placements) with labeled y-axis and date-labeled x-axis range
+  - Momentum and Recent Avg chips retained from team placement history
+  - Team trend visuals (placement distribution + momentum)
+  - Patch performance table derived from filtered matches
+  - Gift Intelligence section using event-derived `gift_sent` metrics (early/item/ROI/waste) when available
+  - Meta pressure (traits/units in current lobbies) plus suggested adjustments
+  - Individual player breakdown cards (placement/damage/level consistency, per-player damage trend graph with date range labels, top trait/unit profiles), rendered side-by-side on desktop
+  - `Blame Game` section (positioned ahead of Meta Pressure) with individual worst-stat awards (placement liability, variance, low-impact losses, econ emergency, damage passenger)
+  - Blame awards use tactician/chibi icons only; tie outcomes show both players' tacticians side-by-side so no award appears iconless
+  - Blame award cards use a fixed hierarchy: top row `icon + title`, then description and short verdict lines below
+  - Detailed per-player award numbers now live in hover tooltips on each blame card (visible card shows only the verdict)
+  - On desktop, the 5 blame awards render in a single row; mobile still stacks for readability
+- Analysis page labels/KPIs/sections now include hover tooltips describing what each metric means and how key scores are computed.
+- Rescue/Clutch KPI now includes explicit in-card counts (`rescue events / total events`, `clutch wins / rescues`, `flips / rescues`) so missing clutch signal can be diagnosed without hovering.
+- Several analysis metrics are extrapolated client-side from filtered match payloads (for example momentum, volatility, patch ranking, and per-player consistency).
+- Timeline auto-default selection now prioritizes `30` days before shorter windows.
+- Quick event stage default for manual logging is now `4.1` to better align with late-stage clutch/rescue signal capture.
 
 ## Testing
 
