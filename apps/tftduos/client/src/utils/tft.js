@@ -75,29 +75,65 @@ export function iconCandidates(kind, token, iconManifest = null) {
   return out;
 }
 
-export function companionArtCandidates(companion) {
-  const rawToken =
-    companion?.content_ID || companion?.contentId || companion?.species || companion?.item_ID || "";
-  const normalized = normalizeTftToken(rawToken);
-  if (!normalized) return [];
+export function companionArtCandidates(companion, companionManifest = null) {
+  const rawContentId = String(companion?.content_ID || companion?.contentId || "").trim();
+  const rawSpecies = String(companion?.species || "").trim();
+  const rawItemId = String(companion?.item_ID ?? companion?.itemId ?? "").trim();
+  const rawSkinId = String(companion?.skin_ID ?? companion?.skinId ?? "").trim();
 
-  const tokens = [...new Set([normalized, normalized.replace(/^tft\d+_/, "")].filter(Boolean))];
+  const normalizedContent = normalizeTftToken(rawContentId);
+  const normalizedSpecies = normalizeTftToken(rawSpecies);
+  const normalizedItem = normalizeTftToken(rawItemId);
+  const normalizedSkin = normalizeTftToken(rawSkinId);
+
+  if (!normalizedContent && !normalizedSpecies && !normalizedItem) return [];
+
+  const speciesSnake = rawSpecies
+    ? rawSpecies
+        .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+        .replace(/[^a-z0-9_]/gi, "_")
+        .toLowerCase()
+    : "";
+  const speciesShort = normalizedSpecies.replace(/^pet/, "");
+
+  const tokens = [
+    normalizedContent,
+    normalizedSpecies,
+    speciesSnake,
+    speciesShort,
+    normalizedItem,
+    rawItemId && rawSkinId ? normalizeTftToken(`${rawItemId}_${rawSkinId}`) : "",
+    normalizedSpecies && rawSkinId ? normalizeTftToken(`${normalizedSpecies}_${rawSkinId}`) : "",
+  ];
+  const uniqueTokens = [...new Set(tokens.filter(Boolean))];
   const urls = [];
   const push = (value) => {
     if (!value || urls.includes(value)) return;
     urls.push(value);
   };
 
-  tokens.forEach((token) => {
+  const itemId = String(companion?.item_ID ?? companion?.itemId ?? "").trim();
+  const contentId = String(companion?.content_ID ?? companion?.contentId ?? "").trim().toLowerCase();
+  if (companionManifest) {
+    push(companionManifest?.byItemId?.[itemId]?.iconUrl);
+    push(companionManifest?.byContentId?.[contentId]?.iconUrl);
+  }
+
+  uniqueTokens.forEach((token) => {
     push(`https://raw.communitydragon.org/latest/game/assets/loadouts/companions/${token}.png`);
     push(`https://raw.communitydragon.org/latest/game/assets/loadouts/companions/${token}.tex.png`);
     push(`https://raw.communitydragon.org/latest/game/assets/loadouts/companions/icons2d/${token}.png`);
+    push(`https://raw.communitydragon.org/latest/game/assets/loadouts/companions/icons2d/${token}.tex.png`);
     push(`https://raw.communitydragon.org/latest/game/assets/loadouts/companions/splashes/${token}.png`);
+    push(`https://raw.communitydragon.org/latest/game/assets/loadouts/companions/splashes/${token}.tex.png`);
     push(
       `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/${token}.png`
     );
     push(
       `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/icons2d/${token}.png`
+    );
+    push(
+      `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/splashes/${token}.png`
     );
   });
 

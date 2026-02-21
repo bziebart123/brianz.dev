@@ -46,6 +46,7 @@ export default function useDuoAnalysis() {
   const [coachSaving, setCoachSaving] = useState(false);
   const [coachMessage, setCoachMessage] = useState("");
   const [iconManifest, setIconManifest] = useState({ traits: {}, augments: {} });
+  const [companionManifest, setCompanionManifest] = useState({ byItemId: {}, byContentId: {} });
   const hasAutoLoadedRef = useRef(false);
 
   useEffect(() => {
@@ -72,6 +73,46 @@ export default function useDuoAnalysis() {
   const availableSets = useMemo(() => {
     const setValues = [...new Set(matches.map((m) => m.setNumber).filter((x) => x !== null))];
     return setValues.sort((a, b) => b - a);
+  }, [matches]);
+
+  useEffect(() => {
+    const companions = matches.flatMap((match) => [match?.playerA?.companion, match?.playerB?.companion]).filter(Boolean);
+    if (!companions.length) {
+      setCompanionManifest({ byItemId: {}, byContentId: {} });
+      return;
+    }
+
+    const itemIds = [...new Set(companions.map((entry) => String(entry?.itemId ?? entry?.item_ID ?? "").trim()).filter(Boolean))];
+    const contentIds = [
+      ...new Set(companions.map((entry) => String(entry?.contentId ?? entry?.content_ID ?? "").trim().toLowerCase()).filter(Boolean)),
+    ];
+    if (!itemIds.length && !contentIds.length) {
+      setCompanionManifest({ byItemId: {}, byContentId: {} });
+      return;
+    }
+
+    let active = true;
+    async function loadCompanionManifest() {
+      try {
+        const params = new URLSearchParams();
+        if (itemIds.length) params.set("itemIds", itemIds.join(","));
+        if (contentIds.length) params.set("contentIds", contentIds.join(","));
+        const response = await fetch(apiUrl(`/api/tft/companion-manifest?${params.toString()}`));
+        const data = await response.json();
+        if (!response.ok || !active) return;
+        setCompanionManifest({
+          byItemId: data?.byItemId || {},
+          byContentId: data?.byContentId || {},
+        });
+      } catch {
+        if (active) setCompanionManifest({ byItemId: {}, byContentId: {} });
+      }
+    }
+
+    loadCompanionManifest();
+    return () => {
+      active = false;
+    };
   }, [matches]);
 
   const availablePatches = useMemo(() => {
@@ -485,6 +526,7 @@ export default function useDuoAnalysis() {
     recentTeamPlacements,
     hasFilteredMatches,
     iconManifest,
+    companionManifest,
     computed,
     duoRisk,
     decisionGrade,

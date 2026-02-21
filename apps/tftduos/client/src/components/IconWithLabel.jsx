@@ -46,7 +46,7 @@ export default function IconWithLabel({ kind, token, label, count, size = 24, ic
 
   return (
     <Tooltip content={`${label}${count ? ` x${count}` : ""}`}>
-      <Pane position="relative" display="inline-flex">
+      <Pane position="relative" display="inline-flex" paddingRight={count ? 8 : 0} paddingBottom={count ? 8 : 0}>
         <Pane
           width={visualSize}
           height={visualSize}
@@ -74,8 +74,8 @@ export default function IconWithLabel({ kind, token, label, count, size = 24, ic
         {count ? (
           <Pane
             position="absolute"
-            right={-6}
-            bottom={-6}
+            right={0}
+            bottom={0}
             minWidth={22}
             height={22}
             borderRadius={11}

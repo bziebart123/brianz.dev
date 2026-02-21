@@ -81,14 +81,26 @@ body {
   transform: translateX(-1px);
 }
 
-.tft-app-shell [role="tab"] {
+.tft-sidebar [role="tab"] {
   border: 1px solid rgba(59, 84, 133, 0.45) !important;
   background: rgba(255, 255, 255, 0.02) !important;
   color: var(--bz-text) !important;
   border-radius: 10px !important;
+  height: 54px !important;
+  min-height: 54px !important;
+  padding: 0 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.2 !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  justify-content: flex-start !important;
 }
 
-.tft-app-shell [role="tab"][aria-selected="true"] {
+.tft-sidebar [role="tab"][aria-selected="true"] {
   border-color: var(--bz-accent) !important;
   background: rgba(111, 194, 255, 0.18) !important;
 }
@@ -102,7 +114,8 @@ body {
 }
 
 .tft-app-shell option {
-  color: #0d1423;
+  color: #eef4ff !important;
+  background: #111a2d !important;
 }
 
 .tft-app-shell button {
@@ -114,12 +127,40 @@ body {
   color: #f2f7ff !important;
 }
 
+.tft-app-shell button[data-appearance="primary"][disabled] {
+  opacity: 1 !important;
+  background: linear-gradient(140deg, rgba(74, 116, 189, 0.9), rgba(58, 143, 189, 0.9)) !important;
+  color: #f7fbff !important;
+  border-color: rgba(126, 170, 245, 0.7) !important;
+}
+
+.tft-app-shell button[data-appearance="primary"]:disabled,
+.tft-app-shell button[data-appearance="primary"][aria-disabled="true"] {
+  opacity: 1 !important;
+  background: linear-gradient(140deg, rgba(74, 116, 189, 0.9), rgba(58, 143, 189, 0.9)) !important;
+  color: #f7fbff !important;
+  border-color: rgba(126, 170, 245, 0.7) !important;
+}
+
+.tft-app-shell button[data-appearance="primary"]:disabled *,
+.tft-app-shell button[data-appearance="primary"][aria-disabled="true"] * {
+  color: #f7fbff !important;
+}
+
 .tft-app-shell [data-evergreen-id="badge"] {
   border-color: rgba(73, 101, 159, 0.42) !important;
   color: #f7fbff !important;
   font-weight: 700 !important;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
   background-color: rgba(20, 31, 52, 0.92) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 5px 11px !important;
+  min-height: 26px !important;
+  border-radius: 999px !important;
+  line-height: 1.2 !important;
+  margin: 2px 0 !important;
 }
 
 .tft-app-shell [data-evergreen-id="badge"] span,
@@ -133,6 +174,13 @@ body {
   color: #f7fbff !important;
   border: 1px solid rgba(93, 122, 183, 0.52) !important;
   text-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 4px 10px !important;
+  min-height: 24px !important;
+  line-height: 1.2 !important;
+  border-radius: 999px !important;
 }
 
 .tft-app-shell strong[class*="ub-bg-clr_"][class*="ub-txt-trns_uppercase"][class*="ub-color_"] {

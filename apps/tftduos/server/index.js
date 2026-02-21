@@ -89,6 +89,11 @@ let tftIconManifestCache = {
   loadedAt: 0,
   bySet: {},
 };
+let companionManifestCache = {
+  loadedAt: 0,
+  byItemId: {},
+  byContentId: {},
+};
 
 const CACHE_TTL = {
   account: 5 * 60 * 1000,
@@ -308,6 +313,15 @@ function iconPathToUrl(iconPath) {
   return `https://raw.communitydragon.org/latest/game/${asPng}`;
 }
 
+function companionIconPathToUrl(loadoutsIconPath) {
+  const raw = String(loadoutsIconPath || "").trim();
+  if (!raw) return null;
+  const withoutPrefix = raw
+    .replace(/^\/lol-game-data\/assets/i, "")
+    .replace(/^\/lol-game-data/i, "");
+  return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default${withoutPrefix}`.toLowerCase();
+}
+
 async function ensureTftIconManifestLoaded() {
   const ttlMs = 6 * 60 * 60 * 1000;
   if (Date.now() - tftIconManifestCache.loadedAt < ttlMs && Object.keys(tftIconManifestCache.bySet).length) {
@@ -360,6 +374,44 @@ async function ensureTftIconManifestLoaded() {
   tftIconManifestCache = {
     loadedAt: Date.now(),
     bySet,
+  };
+}
+
+async function ensureCompanionManifestLoaded() {
+  const ttlMs = 6 * 60 * 60 * 1000;
+  if (Date.now() - companionManifestCache.loadedAt < ttlMs && Object.keys(companionManifestCache.byItemId).length) {
+    return;
+  }
+
+  const response = await fetch(
+    "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/companions.json"
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to load companion manifest (${response.status}).`);
+  }
+  const companions = await response.json();
+  const byItemId = {};
+  const byContentId = {};
+
+  for (const entry of safeCountArray(companions)) {
+    const itemId = String(entry?.itemId || "").trim();
+    const contentId = String(entry?.contentId || "").trim().toLowerCase();
+    const iconUrl = companionIconPathToUrl(entry?.loadoutsIcon);
+    if (!iconUrl) continue;
+    const summary = {
+      iconUrl,
+      name: entry?.name || null,
+      speciesName: entry?.speciesName || null,
+      rarity: entry?.rarity || null,
+    };
+    if (itemId) byItemId[itemId] = summary;
+    if (contentId) byContentId[contentId] = summary;
+  }
+
+  companionManifestCache = {
+    loadedAt: Date.now(),
+    byItemId,
+    byContentId,
   };
 }
 
@@ -885,6 +937,43 @@ app.get("/api/tft/icon-manifest", async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       error: error.message || "Failed to load TFT icon manifest.",
+    });
+  }
+});
+
+app.get("/api/tft/companion-manifest", async (req, res) => {
+  try {
+    await ensureCompanionManifestLoaded();
+    const itemIds = String(req.query.itemIds || "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const contentIds = String(req.query.contentIds || "")
+      .split(",")
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean);
+
+    const byItemId = {};
+    const byContentId = {};
+    for (const itemId of itemIds) {
+      if (companionManifestCache.byItemId[itemId]) {
+        byItemId[itemId] = companionManifestCache.byItemId[itemId];
+      }
+    }
+    for (const contentId of contentIds) {
+      if (companionManifestCache.byContentId[contentId]) {
+        byContentId[contentId] = companionManifestCache.byContentId[contentId];
+      }
+    }
+
+    return res.json({
+      loadedAt: companionManifestCache.loadedAt,
+      byItemId,
+      byContentId,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message || "Failed to load companion manifest.",
     });
   }
 });

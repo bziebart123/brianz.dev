@@ -43,6 +43,7 @@ export default function App() {
               matches={state.matches}
               filteredMatches={state.filteredMatches}
               iconManifest={state.iconManifest}
+              companionManifest={state.companionManifest}
             />
           ) : null}
 

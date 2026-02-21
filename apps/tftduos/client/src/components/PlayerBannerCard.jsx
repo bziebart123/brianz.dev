@@ -2,20 +2,31 @@
 import { Card, Heading, Pane, Text } from "evergreen-ui";
 import { companionArtCandidates, iconCandidates } from "../utils/tft";
 
-export default function PlayerBannerCard({ displayName, riotName, tagLine, rank, companion, fallbackUnitToken = "" }) {
-  const companionUrls = useMemo(() => companionArtCandidates(companion), [companion]);
+export default function PlayerBannerCard({
+  displayName,
+  riotName,
+  tagLine,
+  rank,
+  companion,
+  companionManifest = null,
+  fallbackUnitToken = "",
+}) {
+  const companionUrls = useMemo(
+    () => companionArtCandidates(companion, companionManifest),
+    [companion, companionManifest]
+  );
   const unitFallbackUrls = useMemo(
     () => (fallbackUnitToken ? iconCandidates("unit", fallbackUnitToken) : []),
     [fallbackUnitToken]
   );
-  const urls = companionUrls.length ? companionUrls : unitFallbackUrls;
+  const urls = useMemo(() => [...companionUrls, ...unitFallbackUrls], [companionUrls, unitFallbackUrls]);
   const [index, setIndex] = useState(0);
   const [showFallback, setShowFallback] = useState(false);
 
   useEffect(() => {
     setIndex(0);
     setShowFallback(false);
-  }, [companion]);
+  }, [companion, fallbackUnitToken]);
 
   function handleError() {
     if (index + 1 < urls.length) {

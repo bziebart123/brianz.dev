@@ -58,8 +58,12 @@ export default function Sidebar({
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 34,
-              height: 34,
+              width: 36,
+              height: 36,
+              padding: 0,
+              margin: 0,
+              boxSizing: "border-box",
+              flexShrink: 0,
               borderRadius: 8,
               border: "1px solid rgba(255,255,255,0.14)",
               color: "inherit",
@@ -68,7 +72,9 @@ export default function Sidebar({
               lineHeight: 1,
             }}
           >
-            {"<"}
+            <span style={{ fontSize: 20, lineHeight: 1, fontWeight: 700 }} aria-hidden="true">
+              ←
+            </span>
           </a>
           <Heading size={700}>Duo TFT Coach</Heading>
         </Pane>
@@ -82,6 +88,7 @@ export default function Sidebar({
               onSelect={() => setActiveTab(tab.id)}
               justifyContent="flex-start"
               height={54}
+              width="100%"
             >
               {tab.label}
             </Tab>
@@ -93,7 +100,17 @@ export default function Sidebar({
             <Pane display="grid" gap={10}>
               <Pane>
                 <Text size={500}>Timeline</Text>
-                <Select height={44} marginTop={8} width="100%" value={timelineDays} onChange={(e) => setTimelineDays(e.target.value)}>
+                <Select
+                  height={44}
+                  marginTop={8}
+                  width="100%"
+                  value={timelineDays}
+                  onChange={(e) => {
+                    setTimelineDays(e.target.value);
+                    setSetFilter("all");
+                    setPatchFilter("all");
+                  }}
+                >
                   <option value="7">Last 7 days</option>
                   <option value="30">Last 30 days</option>
                   <option value="90">Last 90 days</option>
@@ -141,13 +158,13 @@ export default function Sidebar({
 
       <Pane marginTop="auto">
         <Button type="button" appearance="primary" height={44} width="100%" disabled={loading} onClick={loadDuoAnalysis}>
-          {loading ? "Refreshing..." : "Refresh Data"}
-        </Button>
-        {loading ? (
-          <Pane marginTop={10}>
-            <Spinner size={22} />
+          <Pane display="flex" alignItems="center" justifyContent="center" gap={8}>
+            {loading ? <Spinner size={14} color="white" /> : null}
+            <Text size={500} color="inherit">
+              {loading ? "Refreshing..." : "Refresh Data"}
+            </Text>
           </Pane>
-        ) : null}
+        </Button>
         {displayedError ? (
           <Alert intent="danger" title={displayedError} marginTop={12} />
         ) : null}

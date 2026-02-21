@@ -5,7 +5,17 @@ import StatCard from "../StatCard";
 import IconWithLabel from "../IconWithLabel";
 import { asArray, formatDuration, formatTime, placementBadgeColor, prettyName } from "../../utils/tft";
 
-export default function HistoryTab({ payload, latestMatchForBanner, kpis, recentTeamPlacements, hasFilteredMatches, matches, filteredMatches, iconManifest }) {
+export default function HistoryTab({
+  payload,
+  latestMatchForBanner,
+  kpis,
+  recentTeamPlacements,
+  hasFilteredMatches,
+  matches,
+  filteredMatches,
+  iconManifest,
+  companionManifest,
+}) {
   return (
     <Pane display="grid" gap={12}>
       <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(280px, 1fr))" gap={12}>
@@ -15,6 +25,7 @@ export default function HistoryTab({ payload, latestMatchForBanner, kpis, recent
           tagLine={payload.players?.a?.tagLine}
           rank={payload.players?.a?.rank}
           companion={latestMatchForBanner?.playerA?.companion}
+          companionManifest={companionManifest}
           fallbackUnitToken={latestMatchForBanner?.playerA?.units?.[0]?.characterId || ""}
         />
         <PlayerBannerCard
@@ -23,6 +34,7 @@ export default function HistoryTab({ payload, latestMatchForBanner, kpis, recent
           tagLine={payload.players?.b?.tagLine}
           rank={payload.players?.b?.rank}
           companion={latestMatchForBanner?.playerB?.companion}
+          companionManifest={companionManifest}
           fallbackUnitToken={latestMatchForBanner?.playerB?.units?.[0]?.characterId || ""}
         />
       </Pane>
