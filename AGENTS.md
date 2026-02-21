@@ -53,6 +53,27 @@ Build and maintain a **personal portfolio hub with sub-apps**:
 - Avoid regressions in filtering, API integration, and coaching workflows.
 - Validate with builds after meaningful changes.
 
+## Documentation Maintenance (Required)
+- Any meaningful code change must include documentation updates in the same task/PR.
+- Do not treat docs as optional or "later" work.
+- At minimum, evaluate and update these files when relevant:
+  - `README.md` (repo-level architecture/deploy/workflow changes)
+  - `apps/tftduos/README.md` (app behavior, commands, env, UX/data rules)
+  - `AGENTS.md` (project goals, priorities, conventions)
+- For UI/behavior changes, document:
+  - what changed
+  - where it changed (path-level)
+  - any new assumptions/configuration
+- For API/data model changes, document:
+  - endpoint/contract changes
+  - new env vars or required settings
+  - migration/backward-compat notes if applicable
+- Before finishing, run this checklist:
+  1. Code updated
+  2. Tests/build verified (or explicitly noted why not run)
+  3. Relevant docs updated
+  4. Final response includes a brief docs-change summary
+
 ## Git And Deploy Workflow
 1. Keep `.gitignore` excluding `node_modules`, `.env`, and build artifacts.
 2. Commit/push to GitHub from repo root.

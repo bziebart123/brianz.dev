@@ -101,3 +101,11 @@ Use exactly what Render Custom Domains asks for:
 - `.gitignore` includes `node_modules`, `.env`, and `dist` outputs.
 - Existing legacy root app files are still present, but canonical deploy targets are now under `portfolio` and `apps/tftduos`.
 
+## AI Context Files
+
+For new IDE sessions and AI tools (including GitHub Copilot), start with:
+
+- `.github/copilot-instructions.md` (repo-wide Copilot context/instructions)
+- `AGENTS.md` (Codex-specific project direction)
+- `apps/tftduos/README.md` (current app behavior and implementation notes)
+
