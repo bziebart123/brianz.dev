@@ -117,6 +117,7 @@ Use exactly what Render Custom Domains asks for:
 - Legacy root app files were removed. Active deploy targets are `portfolio` and `apps/tftduos/*`.
 - TFTDuos client builds now embed release metadata (`major.minor.build` + recent commit subjects) for in-app release notes display, using commit-epoch build IDs and GitHub-API-first commit notes so local/prod stay consistent even with shallow clones.
 - TFTDuos Analysis tab now renders a dashboard-style analytics view with a full-width team rank trend chart, team trend KPIs, patch performance, and per-player breakdowns from filtered match data.
+- TFTDuos Coaching tab now renders a dynamic coaching command center with team priorities, individualized player plans, and a stage-based action workflow driven by filtered match + event data.
 
 ## AI Context Files
 
