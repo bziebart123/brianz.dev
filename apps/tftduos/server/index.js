@@ -277,7 +277,7 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/api/app2/render/overview", async (req, res) => {
+app.get("/api/site-performance/render/overview", async (req, res) => {
   try {
     const hours = Math.max(1, Math.min(168, Number(req.query.hours || 24)));
     const resolutionSeconds = Math.max(30, Math.min(3600, Number(req.query.resolutionSeconds || 300)));
@@ -2234,3 +2234,4 @@ app.get(/^\/(?!api(?:\/|$)).*/, async (_req, res) => {
 app.listen(port, () => {
   console.log(`TFT API server listening on http://localhost:${port}`);
 });
+

@@ -42,7 +42,7 @@ export default function App() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(apiUrl(`/api/app2/render/overview?hours=${encodeURIComponent(hours)}`));
+      const response = await fetch(apiUrl(`/api/site-performance/render/overview?hours=${encodeURIComponent(hours)}`));
       const payload = await response.json();
       if (!response.ok || !payload?.ok) {
         throw new Error(payload?.error || "Failed to load Render overview.");
@@ -68,7 +68,7 @@ export default function App() {
         <div className="header">
           <div>
             <h1>Render Meta Dashboard</h1>
-            <div className="muted">Shared backend model: this app reads `/api/app2/*` from the existing TFT API service.</div>
+            <div className="muted">Shared backend model: this app reads `/api/site-performance/*` from the existing TFT API service.</div>
           </div>
           <div className="controls">
             <label htmlFor="hours" className="muted">Window</label>
@@ -137,3 +137,4 @@ export default function App() {
     </main>
   );
 }
+

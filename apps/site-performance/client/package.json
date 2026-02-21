@@ -1,5 +1,5 @@
 {
-  "name": "app2-client",
+  "name": "site-performance-client",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -18,3 +18,4 @@
     "vite": "^5.4.10"
   }
 }
+
