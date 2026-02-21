@@ -12,6 +12,7 @@ import {
   Text,
 } from "evergreen-ui";
 import { VIEW_TABS } from "../config/constants";
+import { RELEASE_NOTES, RELEASE_VERSION } from "../config/releaseMeta";
 
 export default function Sidebar({
   isMobile,
@@ -169,6 +170,24 @@ export default function Sidebar({
           <Pane display="flex" justifyContent="space-between">
             <Text size={500}>Filtered</Text>
             <Strong>{filteredMatches.length}</Strong>
+          </Pane>
+        </Card>
+
+        <Card className="release-notes-card" elevation={0} border="default" background="rgba(255,255,255,0.03)" padding={14} marginTop={12}>
+          <Pane display="flex" justifyContent="space-between" alignItems="center" marginBottom={8}>
+            <Text size={500}>Release</Text>
+            <Strong>v{RELEASE_VERSION}</Strong>
+          </Pane>
+          <Pane display="grid" gap={6}>
+            {RELEASE_NOTES.length ? (
+              RELEASE_NOTES.slice(0, 8).map((note, index) => (
+                <Text key={`release-note-${index}`} size={400}>
+                  - {note}
+                </Text>
+              ))
+            ) : (
+              <Text size={400} color="muted">No release notes available.</Text>
+            )}
           </Pane>
         </Card>
       </Pane>

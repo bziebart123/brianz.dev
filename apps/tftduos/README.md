@@ -55,6 +55,7 @@ Server env vars (see `.env.example` and server code):
 - Mobile layout uses a filter drawer (left sidebar becomes a slide-in panel with overlay and close action) opened from a top `Menu` button.
 - On mobile breakpoints, History banner/KPI/player grids stack into a single column for readable vertical flow.
 - Mobile drawer controls use plain ASCII glyphs (`<`, `X`) to avoid missing-symbol fallback (`?`) on constrained font stacks.
+- Sidebar now includes a `Release` panel showing `major.minor` version and recent release notes sourced from recent git commit subjects.
 - Global shell `zoom` scaling was removed; text sizing now comes from `TEXT_SCALE` in `client/src/config/constants.js` (currently `1.45`), applied to typography/UI text surfaces (headings, tabs, buttons, selects, badges) while layout dimensions stay stable.
 - Main content (`History`, `Analysis`, `Coaching`) now has an additional dedicated text scale (`--bz-content-text-scale` in `client/src/theme.css`) so right-panel readability can be increased without changing sidebar or layout geometry.
 - `History` now enforces larger, consistent placement/LP chip text and uses larger champion unit slots while keeping rows single-line (desktop clips overflow; mobile allows touch horizontal scroll without showing scrollbars).
@@ -84,3 +85,6 @@ CI:
   - `.github/copilot-instructions.md`
 - Legacy root runtime files were removed; use only `apps/tftduos/client` and `apps/tftduos/server` paths for dev/deploy.
 - `client/src/hooks/useDuoAnalysis.js` keeps an identity-stable empty `matches` list and skips redundant manifest resets to prevent React effect loops (`Maximum update depth exceeded`) before payload data loads.
+- `client/vite.config.js` now injects build-time release metadata:
+  - `__TFTDUOS_VERSION__` from `client/package.json` (`major.minor`)
+  - `__TFTDUOS_RELEASE_NOTES__` from recent `git log` commit subjects
