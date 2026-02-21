@@ -108,5 +108,5 @@ CI:
 - `client/vite.config.js` now injects build-time release metadata:
   - `__TFTDUOS_VERSION__` as `major.minor.build`:
     - `major.minor` from `client/package.json`
-    - `build` from `git rev-list --count HEAD` (fallback: UTC build timestamp when git history is unavailable)
-  - `__TFTDUOS_RELEASE_NOTES__` from recent `git log` commit subjects, with production fallback notes when git log is unavailable in the build environment
+    - `build` from current commit epoch (`git show -s --format=%ct HEAD`), fallback: UTC build timestamp when git metadata is unavailable
+  - `__TFTDUOS_RELEASE_NOTES__` from recent GitHub commits API (repo slug resolved from render/git env), with `git log` fallback and final static fallback notes if both are unavailable
