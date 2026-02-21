@@ -5,7 +5,6 @@ import {
   asArray,
   companionArtCandidates,
   estimatedLpDeltaFromTeamPlacement,
-  iconCandidates,
   prettyName,
   teamPlacementFromMatch,
   toEpochMs,
@@ -192,23 +191,19 @@ function TeamRankChart({ values, startLabel, endLabel }) {
   );
 }
 
-function BlameAvatar({ companion, companionManifest, fallbackUnitToken, label }) {
+function BlameAvatar({ companion, companionManifest, label }) {
   const companionUrls = useMemo(
     () => companionArtCandidates(companion, companionManifest),
     [companion, companionManifest]
   );
-  const fallbackUnitUrls = useMemo(
-    () => (fallbackUnitToken ? iconCandidates("unit", fallbackUnitToken) : []),
-    [fallbackUnitToken]
-  );
-  const urls = useMemo(() => [...companionUrls, ...fallbackUnitUrls], [companionUrls, fallbackUnitUrls]);
+  const urls = useMemo(() => companionUrls, [companionUrls]);
   const [index, setIndex] = useState(0);
   const [showFallback, setShowFallback] = useState(false);
 
   useEffect(() => {
     setIndex(0);
     setShowFallback(false);
-  }, [companion, fallbackUnitToken]);
+  }, [companion]);
 
   function handleError() {
     if (index + 1 < urls.length) {
@@ -333,11 +328,9 @@ export default function AnalysisTab({
   const blameProfiles = {
     [DISPLAY_NAME_A]: {
       companion: latestMatch?.playerA?.companion || null,
-      fallbackUnitToken: latestMatch?.playerA?.units?.[0]?.characterId || "",
     },
     [DISPLAY_NAME_B]: {
       companion: latestMatch?.playerB?.companion || null,
-      fallbackUnitToken: latestMatch?.playerB?.units?.[0]?.characterId || "",
     },
   };
 
@@ -553,7 +546,6 @@ export default function AnalysisTab({
                   <BlameAvatar
                     companion={blameProfiles[award.loser]?.companion}
                     companionManifest={companionManifest}
-                    fallbackUnitToken={blameProfiles[award.loser]?.fallbackUnitToken}
                     label={award.loser}
                   />
                 ) : (

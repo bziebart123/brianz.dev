@@ -72,7 +72,7 @@ Server env vars (see `.env.example` and server code):
   - Meta pressure (traits/units in current lobbies) plus suggested adjustments
   - Individual player breakdown cards (placement/damage/level consistency, per-player damage trend graph with date range labels, top trait/unit profiles), rendered side-by-side on desktop
   - `Blame Game` section (positioned ahead of Meta Pressure) with individual worst-stat awards (placement liability, variance, low-impact losses, econ emergency, damage passenger)
-  - Each blame award now includes a champion-sized (~48px) player chibi/companion icon for the currently blamed player, using latest-match companion art with unit-icon fallback
+  - Each blame award now includes a champion-sized (~48px) player tactician/chibi icon for the currently blamed player, using latest-match companion art (no champion fallback)
 - Analysis page labels/KPIs/sections now include hover tooltips describing what each metric means and how key scores are computed.
 - Rescue/Clutch KPI now includes explicit in-card counts (`rescue events / total events`, `clutch wins / rescues`, `flips / rescues`) so missing clutch signal can be diagnosed without hovering.
 - Several analysis metrics are extrapolated client-side from filtered match payloads (for example momentum, volatility, patch ranking, and per-player consistency).
