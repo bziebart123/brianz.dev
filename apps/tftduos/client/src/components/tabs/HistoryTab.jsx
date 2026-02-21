@@ -99,6 +99,7 @@ export default function HistoryTab({ payload, latestMatchForBanner, kpis, recent
                       kind="trait"
                       token={trait.name}
                       label={prettyName(trait.name)}
+                      traitTier={trait.style}
                       size={56}
                       iconManifest={iconManifest}
                     />
@@ -138,6 +139,7 @@ export default function HistoryTab({ payload, latestMatchForBanner, kpis, recent
                       kind="trait"
                       token={trait.name}
                       label={prettyName(trait.name)}
+                      traitTier={trait.style}
                       size={56}
                       iconManifest={iconManifest}
                     />

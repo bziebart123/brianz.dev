@@ -30,6 +30,7 @@ export default function AnalysisTab({ kpis, computed, iconManifest }) {
                 token={trait.name}
                 label={prettyName(trait.name)}
                 count={trait.count}
+                traitTier={trait.style}
                 size={60}
                 iconManifest={iconManifest}
               />

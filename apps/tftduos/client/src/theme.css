@@ -1,0 +1,140 @@
+﻿:root {
+  --bz-bg-0: #0a0f1c;
+  --bz-bg-1: #10182a;
+  --bz-card: rgba(20, 31, 52, 0.72);
+  --bz-card-strong: rgba(18, 27, 45, 0.9);
+  --bz-border: #2a3b62;
+  --bz-text: #f3f7ff;
+  --bz-muted: #ccdaf7;
+  --bz-accent: #6fc2ff;
+  --bz-gold: #e0bd72;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--bz-text);
+  background:
+    radial-gradient(900px 450px at 85% -10%, rgba(111, 194, 255, 0.2), transparent 60%),
+    radial-gradient(700px 380px at 10% 100%, rgba(224, 189, 114, 0.18), transparent 60%),
+    linear-gradient(150deg, var(--bz-bg-0), var(--bz-bg-1));
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.tft-app-shell {
+  color: var(--bz-text);
+}
+
+.tft-app-shell,
+.tft-app-shell h1,
+.tft-app-shell h2,
+.tft-app-shell h3,
+.tft-app-shell h4,
+.tft-app-shell h5,
+.tft-app-shell h6,
+.tft-app-shell p,
+.tft-app-shell span,
+.tft-app-shell label,
+.tft-app-shell div,
+.tft-app-shell strong {
+  color: #eaf1ff !important;
+}
+
+.tft-app-shell [data-evergreen-id="heading"] {
+  color: #f7f9ff !important;
+}
+
+.tft-app-shell [data-evergreen-id="text"],
+.tft-app-shell [data-evergreen-id="paragraph"] {
+  color: #dbe6ff !important;
+}
+
+.tft-app-shell [data-evergreen-id="text"][color="muted"],
+.tft-app-shell [data-evergreen-id="paragraph"][color="muted"] {
+  color: #d7e3ff !important;
+}
+
+.tft-app-shell [style*="color: rgb"],
+.tft-app-shell [style*="color:#"],
+.tft-app-shell [style*="color: #"] {
+  color: #e7efff !important;
+}
+
+.tft-sidebar {
+  background: linear-gradient(180deg, rgba(16, 24, 42, 0.92), rgba(12, 19, 34, 0.95));
+  border-right-color: var(--bz-border) !important;
+  box-shadow: inset -1px 0 0 rgba(73, 101, 159, 0.2);
+}
+
+.tft-sidebar .back-link {
+  transition: border-color 140ms ease, background-color 140ms ease, transform 140ms ease;
+}
+
+.tft-sidebar .back-link:hover {
+  border-color: var(--bz-accent) !important;
+  background: rgba(111, 194, 255, 0.12);
+  transform: translateX(-1px);
+}
+
+.tft-app-shell [role="tab"] {
+  border: 1px solid rgba(59, 84, 133, 0.45) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  color: var(--bz-text) !important;
+  border-radius: 10px !important;
+}
+
+.tft-app-shell [role="tab"][aria-selected="true"] {
+  border-color: var(--bz-accent) !important;
+  background: rgba(111, 194, 255, 0.18) !important;
+}
+
+.tft-app-shell select,
+.tft-app-shell input,
+.tft-app-shell textarea {
+  background: var(--bz-card-strong) !important;
+  color: var(--bz-text) !important;
+  border-color: var(--bz-border) !important;
+}
+
+.tft-app-shell option {
+  color: #0d1423;
+}
+
+.tft-app-shell button {
+  border-color: rgba(73, 101, 159, 0.45) !important;
+}
+
+.tft-app-shell button[data-appearance="primary"] {
+  background: linear-gradient(140deg, rgba(68, 124, 220, 0.95), rgba(68, 165, 220, 0.95)) !important;
+  color: #f2f7ff !important;
+}
+
+.tft-app-shell [data-evergreen-id="badge"] {
+  border-color: rgba(73, 101, 159, 0.42) !important;
+  color: #f7fbff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+  background-color: rgba(20, 31, 52, 0.92) !important;
+}
+
+.tft-app-shell [data-evergreen-id="badge"] span,
+.tft-app-shell [data-evergreen-id="badge"] div {
+  color: inherit !important;
+}
+
+/* Evergreen badge pills are utility-class driven (ub-bg-clr_*), so override those directly. */
+.tft-app-shell strong[class*="ub-bg-clr_"][class*="ub-txt-trns_uppercase"] {
+  background: rgba(24, 35, 58, 0.96) !important;
+  color: #f7fbff !important;
+  border: 1px solid rgba(93, 122, 183, 0.52) !important;
+  text-shadow: none !important;
+}
+
+.tft-app-shell strong[class*="ub-bg-clr_"][class*="ub-txt-trns_uppercase"][class*="ub-color_"] {
+  color: #f7fbff !important;
+}

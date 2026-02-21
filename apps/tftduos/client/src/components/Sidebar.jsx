@@ -36,6 +36,7 @@ export default function Sidebar({
 
   return (
     <Pane
+      className="tft-sidebar"
       width={340}
       padding={24}
       borderRight="default"
@@ -51,6 +52,7 @@ export default function Sidebar({
         <Pane display="flex" alignItems="center" gap={10}>
           <a
             href={portfolioUrl}
+            className="back-link"
             title="Back to Portfolio"
             style={{
               display: "inline-flex",
@@ -70,9 +72,7 @@ export default function Sidebar({
           </a>
           <Heading size={700}>Duo TFT Coach</Heading>
         </Pane>
-        <Text size={500} color="muted" display="block" marginTop={8} marginBottom={22}>
-          Evergreen UI refresh
-        </Text>
+        <Pane marginBottom={22} />
 
         <Tablist marginBottom={18} display="flex" flexDirection="column" gap={10}>
           {VIEW_TABS.map((tab) => (
@@ -155,4 +155,3 @@ export default function Sidebar({
     </Pane>
   );
 }
-

@@ -173,6 +173,7 @@ export function summarizeFromMatches(matches) {
   const teamWinCount = teamPlacements.filter((p) => p === 1).length;
 
   const traitCounts = {};
+  const traitStyles = {};
   const unitCounts = {};
   matches.forEach((match) => {
     asArray(match.lobby).forEach((player) => {
@@ -180,6 +181,7 @@ export function summarizeFromMatches(matches) {
         .filter((trait) => trait.style > 0)
         .forEach((trait) => {
           traitCounts[trait.name] = (traitCounts[trait.name] || 0) + 1;
+          traitStyles[trait.name] = Math.max(traitStyles[trait.name] || 0, Number(trait.style) || 0);
         });
       asArray(player.units).forEach((unit) => {
         if (unit.characterId) {
@@ -192,7 +194,7 @@ export function summarizeFromMatches(matches) {
   const metaTraits = Object.entries(traitCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8)
-    .map(([name, count]) => ({ name, count }));
+    .map(([name, count]) => ({ name, count, style: traitStyles[name] || 0 }));
 
   const metaUnits = Object.entries(unitCounts)
     .sort((a, b) => b[1] - a[1])

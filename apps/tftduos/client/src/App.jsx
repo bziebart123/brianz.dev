@@ -10,7 +10,7 @@ export default function App() {
   const state = useDuoAnalysis();
 
   return (
-    <Pane display="flex" minHeight="100vh" style={{ fontSize: `${16 * UI_SCALE}px` }}>
+    <Pane className="tft-app-shell" display="flex" minHeight="100vh" style={{ fontSize: `${16 * UI_SCALE}px` }}>
       <Sidebar
         activeTab={state.activeTab}
         setActiveTab={state.setActiveTab}
@@ -103,3 +103,4 @@ export default function App() {
     </Pane>
   );
 }
+
