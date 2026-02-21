@@ -30,6 +30,19 @@ function topEntries(map, limit = 5) {
     .slice(0, limit);
 }
 
+function kpiTone(value, { higherIsBetter = true, good, bad }) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "neutral";
+  if (higherIsBetter) {
+    if (numeric >= good) return "good";
+    if (numeric <= bad) return "bad";
+    return "neutral";
+  }
+  if (numeric <= good) return "good";
+  if (numeric >= bad) return "bad";
+  return "neutral";
+}
+
 function formatDateLabel(value) {
   const epoch = toEpochMs(value);
   if (!epoch) return "-";
@@ -244,8 +257,10 @@ export default function AnalysisTab({
   const giftStatus = String(scorecard?.giftEfficiency?.status || "needs_gift_events");
 
   const decisionGrade = Number(scorecard?.decisionQuality?.grade || 0);
-  const sameTeamGames = Number(kpis.sameTeamGames || 0);
-  const teamTop4Rate = Number(kpis.teamTop4Rate || 0);
+  const rescueClutchScore =
+    rescueEvents > 0
+      ? (rescueRate * 0.4) + (clutchIndex * 0.6)
+      : Number.NaN;
   const avgTeamDamage = sorted.length
     ? average(
         sorted.map(
@@ -256,6 +271,76 @@ export default function AnalysisTab({
 
   const rangeStart = formatDateLabel(sorted[0]?.gameDatetime);
   const rangeEnd = formatDateLabel(sorted[sorted.length - 1]?.gameDatetime);
+
+  const blameAwards = [
+    {
+      title: "Placement Liability",
+      description: "Higher average placement is worse.",
+      metricLabel: "Avg Place",
+      a: playerA.avgPlacement,
+      b: playerB.avgPlacement,
+      higherIsWorse: true,
+      format: (value) => value.toFixed(2),
+    },
+    {
+      title: "Variance Goblin",
+      description: "Higher placement volatility creates more swingy results.",
+      metricLabel: "Consistency (std dev)",
+      a: playerA.consistency,
+      b: playerB.consistency,
+      higherIsWorse: true,
+      format: (value) => value.toFixed(2),
+    },
+    {
+      title: "Low-Impact Losses",
+      description: "More low-damage losses usually means weak board conversion.",
+      metricLabel: "Low dmg losses",
+      a: playerA.lowDamageLosses,
+      b: playerB.lowDamageLosses,
+      higherIsWorse: true,
+      format: (value) => String(value),
+    },
+    {
+      title: "Econ Emergency",
+      description: "More low-gold losses often means unstable econ management.",
+      metricLabel: "Low gold losses",
+      a: playerA.lowGoldLosses,
+      b: playerB.lowGoldLosses,
+      higherIsWorse: true,
+      format: (value) => String(value),
+    },
+    {
+      title: "Damage Passenger",
+      description: "Lower average damage means less pressure applied in fights.",
+      metricLabel: "Avg damage",
+      a: playerA.avgDamage,
+      b: playerB.avgDamage,
+      higherIsWorse: false,
+      format: (value) => value.toFixed(1),
+    },
+  ].map((award) => {
+    const a = Number(award.a || 0);
+    const b = Number(award.b || 0);
+    if (!playerA.games || !playerB.games) {
+      return {
+        ...award,
+        result: "Need more games",
+      };
+    }
+    if (a === b) {
+      return {
+        ...award,
+        result: `Tie (${playerA.label} ${award.format(a)} | ${playerB.label} ${award.format(b)})`,
+      };
+    }
+    const loser = award.higherIsWorse
+      ? (a > b ? playerA.label : playerB.label)
+      : (a < b ? playerA.label : playerB.label);
+    return {
+      ...award,
+      result: `${loser} (${playerA.label} ${award.format(a)} | ${playerB.label} ${award.format(b)})`,
+    };
+  });
 
   return (
     <Pane className="analysis-tab-root" display="grid" gap={12}>
@@ -270,17 +355,51 @@ export default function AnalysisTab({
         </Pane>
 
         <Pane marginTop={12} display="grid" gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))" gap={12}>
-          <StatCard label="Team Avg Place" value={kpis.avgTeamPlacement !== null ? kpis.avgTeamPlacement.toFixed(2) : "-"} compact hideHint labelTooltip="Average duo team placement across filtered games. Lower is better." />
-          <StatCard label="Team Top 2" value={kpis.teamTop2Rate !== null ? `${kpis.teamTop2Rate.toFixed(1)}%` : "-"} compact hideHint labelTooltip="Percent of filtered games where your duo team finishes top 2." />
-          <StatCard label="Team Top 4" value={filteredMatches.length ? `${teamTop4Rate.toFixed(1)}%` : "-"} compact hideHint labelTooltip="Percent of filtered games where your duo team finishes top 4." />
-          <StatCard label="Team Win Rate" value={kpis.teamWinRate !== null ? `${kpis.teamWinRate.toFixed(1)}%` : "-"} compact hideHint labelTooltip="Percent of filtered games where your duo team finishes #1." />
-          <StatCard label="Same-Team Games" value={sameTeamGames} compact hideHint labelTooltip="Shared-match games where both players are detected on the same Double Up team." />
-          <StatCard label="Avg Team Damage" value={filteredMatches.length ? avgTeamDamage.toFixed(1) : "-"} compact hideHint labelTooltip="Average combined player damage to opponents (player A + player B)." />
-          <StatCard label="Decision Grade" value={decisionGrade ? `${decisionGrade}/100` : "-"} compact hideHint labelTooltip="Composite score from decision-quality heuristics and outcome/process mix." />
+          <StatCard
+            label="Team Avg Place"
+            value={kpis.avgTeamPlacement !== null ? kpis.avgTeamPlacement.toFixed(2) : "-"}
+            compact
+            hideHint
+            tone={kpiTone(kpis.avgTeamPlacement, { higherIsBetter: false, good: 2.5, bad: 3.3 })}
+            labelTooltip="Average duo team placement across filtered games. Lower is better."
+          />
+          <StatCard
+            label="Team Top 2"
+            value={kpis.teamTop2Rate !== null ? `${kpis.teamTop2Rate.toFixed(1)}%` : "-"}
+            compact
+            hideHint
+            tone={kpiTone(kpis.teamTop2Rate, { higherIsBetter: true, good: 45, bad: 30 })}
+            labelTooltip="Percent of filtered games where your duo team finishes top 2."
+          />
+          <StatCard
+            label="Team Win Rate"
+            value={kpis.teamWinRate !== null ? `${kpis.teamWinRate.toFixed(1)}%` : "-"}
+            compact
+            hideHint
+            tone={kpiTone(kpis.teamWinRate, { higherIsBetter: true, good: 20, bad: 10 })}
+            labelTooltip="Percent of filtered games where your duo team finishes #1."
+          />
+          <StatCard
+            label="Avg Team Damage"
+            value={filteredMatches.length ? avgTeamDamage.toFixed(1) : "-"}
+            compact
+            hideHint
+            tone={kpiTone(avgTeamDamage, { higherIsBetter: true, good: 130, bad: 95 })}
+            labelTooltip="Average combined player damage to opponents (player A + player B)."
+          />
+          <StatCard
+            label="Decision Grade"
+            value={decisionGrade ? `${decisionGrade}/100` : "-"}
+            compact
+            hideHint
+            tone={kpiTone(decisionGrade, { higherIsBetter: true, good: 70, bad: 50 })}
+            labelTooltip="Composite score from decision-quality heuristics and outcome/process mix."
+          />
           <StatCard
             label="Rescue / Clutch"
             value={rescueEvents > 0 ? `${rescueRate.toFixed(1)}% / ${clutchIndex.toFixed(1)}%` : "- / -"}
             compact
+            tone={kpiTone(rescueClutchScore, { higherIsBetter: true, good: 30, bad: 15 })}
             hint={
               rescueEvents > 0
                 ? `Rescue events ${rescueEvents}/${totalEvents || 0}, clutch wins ${clutchWins}/${rescueEvents}, flips ${successfulFlips}/${rescueEvents}`
@@ -502,6 +621,22 @@ export default function AnalysisTab({
           </Card>
         ))}
       </Pane>
+
+      <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
+        <SectionTitle
+          title="Blame Game"
+          tooltip="Worst-stat awards by player across filtered matches. This is intentionally blunt and should be used as a review prompt, not absolute truth."
+        />
+        <Pane marginTop={10} display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={10}>
+          {blameAwards.map((award) => (
+            <Pane key={award.title} border="default" borderRadius={8} padding={10} background="rgba(255,255,255,0.03)">
+              <Strong>{award.title}</Strong>
+              <Text size={300} display="block" marginTop={4} color="muted">{award.description}</Text>
+              <Text size={400} display="block" marginTop={8}>{award.metricLabel}: {award.result}</Text>
+            </Pane>
+          ))}
+        </Pane>
+      </Card>
     </Pane>
   );
 }

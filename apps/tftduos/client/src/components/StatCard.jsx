@@ -8,7 +8,24 @@ export default function StatCard({
   hideHint = false,
   labelTooltip = "",
   valueTooltip = "",
+  tone = "neutral",
 }) {
+  const toneStyles = {
+    good: {
+      background: "rgba(46, 166, 111, 0.12)",
+      borderColor: "rgba(98, 224, 165, 0.62)",
+    },
+    bad: {
+      background: "rgba(196, 75, 75, 0.14)",
+      borderColor: "rgba(236, 118, 118, 0.62)",
+    },
+    neutral: {
+      background: "rgba(255,255,255,0.03)",
+      borderColor: "rgba(190, 206, 235, 0.45)",
+    },
+  };
+  const toneStyle = toneStyles[tone] || toneStyles.neutral;
+
   const labelNode = (
     <Text size={400} color="muted">
       {label}
@@ -24,10 +41,10 @@ export default function StatCard({
   return (
     <Card
       elevation={0}
-      background="rgba(255,255,255,0.03)"
       border="default"
       paddingX={14}
       paddingY={compact ? 10 : 14}
+      style={toneStyle}
     >
       {labelTooltip ? <Tooltip content={labelTooltip}>{labelNode}</Tooltip> : labelNode}
       {valueTooltip ? <Tooltip content={valueTooltip}>{valueNode}</Tooltip> : valueNode}
