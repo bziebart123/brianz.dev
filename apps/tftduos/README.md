@@ -106,5 +106,7 @@ CI:
 - Legacy root runtime files were removed; use only `apps/tftduos/client` and `apps/tftduos/server` paths for dev/deploy.
 - `client/src/hooks/useDuoAnalysis.js` keeps an identity-stable empty `matches` list and skips redundant manifest resets to prevent React effect loops (`Maximum update depth exceeded`) before payload data loads.
 - `client/vite.config.js` now injects build-time release metadata:
-  - `__TFTDUOS_VERSION__` from `client/package.json` (`major.minor`)
-  - `__TFTDUOS_RELEASE_NOTES__` from recent `git log` commit subjects
+  - `__TFTDUOS_VERSION__` as `major.minor.build`:
+    - `major.minor` from `client/package.json`
+    - `build` from `git rev-list --count HEAD` (fallback: UTC build timestamp when git history is unavailable)
+  - `__TFTDUOS_RELEASE_NOTES__` from recent `git log` commit subjects, with production fallback notes when git log is unavailable in the build environment
