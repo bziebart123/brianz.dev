@@ -59,9 +59,13 @@ export default function useDuoAnalysis() {
   const [quickActor, setQuickActor] = useState("A");
   const [coachSaving, setCoachSaving] = useState(false);
   const [coachMessage, setCoachMessage] = useState("");
+  const [aiCoaching, setAiCoaching] = useState(null);
+  const [aiCoachingLoading, setAiCoachingLoading] = useState(false);
+  const [aiCoachingError, setAiCoachingError] = useState("");
   const [iconManifest, setIconManifest] = useState(EMPTY_ICON_MANIFEST);
   const [companionManifest, setCompanionManifest] = useState(EMPTY_COMPANION_MANIFEST);
   const hasAutoLoadedRef = useRef(false);
+  const aiRequestKeyRef = useRef("");
 
   useEffect(() => {
     let active = true;
@@ -224,6 +228,29 @@ export default function useDuoAnalysis() {
       .sort((a, b) => toEpochMs(a.gameDatetime) - toEpochMs(b.gameDatetime))
       .map((m) => teamPlacementFromMatch(m));
   }, [filteredMatches]);
+  const top2Rate = useMemo(() => {
+    if (!placementTrend.length) return 0;
+    const top2 = placementTrend.filter((value) => Number(value || 9) <= 2).length;
+    return (top2 / placementTrend.length) * 100;
+  }, [placementTrend]);
+  const winRate = useMemo(() => {
+    if (!placementTrend.length) return 0;
+    const wins = placementTrend.filter((value) => Number(value || 9) <= 1).length;
+    return (wins / placementTrend.length) * 100;
+  }, [placementTrend]);
+  const avgPlacement = useMemo(() => {
+    if (!placementTrend.length) return 0;
+    return placementTrend.reduce((sum, value) => sum + Number(value || 0), 0) / placementTrend.length;
+  }, [placementTrend]);
+  const momentum = useMemo(() => {
+    if (!placementTrend.length) return 0;
+    const recent = placementTrend.slice(-8);
+    const prior = placementTrend.slice(-16, -8);
+    if (!recent.length || !prior.length) return 0;
+    const recentAvg = recent.reduce((sum, value) => sum + Number(value || 0), 0) / recent.length;
+    const priorAvg = prior.reduce((sum, value) => sum + Number(value || 0), 0) / prior.length;
+    return priorAvg - recentAvg;
+  }, [placementTrend]);
 
   const coachingInsights = useMemo(() => {
     const summary = {
@@ -475,6 +502,99 @@ export default function useDuoAnalysis() {
     runDuoAnalysis(retryQuery, true);
   }, [retryQuery, rateLimitSeconds, loading]);
 
+  async function loadAiCoaching(force = false) {
+    if (!payload || !filteredMatches.length) return;
+
+    const requestBody = {
+      filter: {
+        timelineDays: Number(timelineDays || 30),
+        set: setFilter,
+        patch: patchFilter === "__current" && currentPatch ? currentPatch : patchFilter,
+      },
+      players: {
+        a: DISPLAY_NAME_A,
+        b: DISPLAY_NAME_B,
+        rankA: String(payload?.players?.a?.rank || "Unranked"),
+        rankB: String(payload?.players?.b?.rank || "Unranked"),
+      },
+      objective: "Climb rank in TFT Double Up as a duo.",
+      metrics: {
+        duoRisk,
+        decisionGrade,
+        top2Rate,
+        winRate,
+        avgPlacement,
+        momentum,
+        rescueRate,
+        clutchIndex,
+        eventSample: Number(scorecard?.sampleSize?.eventCount || 0),
+      },
+      scorecard,
+      coachingIntel,
+      metaSnapshot: {
+        lobbyTraits: asArray(computed?.metaTraits).slice(0, 8),
+        lobbyUnits: asArray(computed?.metaUnits).slice(0, 10),
+        playerAItems: asArray(coachingInsights?.topItemsA).slice(0, 8),
+        playerBItems: asArray(coachingInsights?.topItemsB).slice(0, 8),
+        suggestions: asArray(computed?.suggestions).slice(0, 4),
+      },
+      matches: filteredMatches.slice(0, 60),
+    };
+    const requestKey = JSON.stringify({
+      filter: requestBody.filter,
+      metrics: requestBody.metrics,
+      matches: requestBody.matches.map((m) => m.id),
+    });
+    if (!force && aiRequestKeyRef.current === requestKey) return;
+    aiRequestKeyRef.current = requestKey;
+
+    setAiCoachingLoading(true);
+    setAiCoachingError("");
+    try {
+      const response = await fetch(apiUrl("/api/coach/llm-brief"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+      const data = await response.json();
+      if (!response.ok || !data?.ok) {
+        throw new Error(data?.error || "Failed to generate AI coaching.");
+      }
+      setAiCoaching(data);
+    } catch (requestError) {
+      setAiCoachingError(requestError.message);
+    } finally {
+      setAiCoachingLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab !== "coaching") return;
+    if (!payload || !filteredMatches.length) return;
+    const timer = setTimeout(() => {
+      loadAiCoaching(false);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [
+    activeTab,
+    payload,
+    filteredMatches,
+    timelineDays,
+    setFilter,
+    patchFilter,
+    currentPatch,
+    duoRisk,
+    decisionGrade,
+    top2Rate,
+    winRate,
+    avgPlacement,
+    momentum,
+    rescueRate,
+    clutchIndex,
+    scorecard,
+    coachingIntel,
+  ]);
+
   async function submitJournal() {
     if (!duoId) return;
     setCoachSaving(true);
@@ -628,5 +748,9 @@ export default function useDuoAnalysis() {
     setQuickActor,
     submitQuickEvent,
     coachMessage,
+    aiCoaching,
+    aiCoachingLoading,
+    aiCoachingError,
+    loadAiCoaching,
   };
 }

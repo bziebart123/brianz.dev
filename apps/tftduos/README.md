@@ -38,6 +38,10 @@ Server env vars (see `.env.example` and server code):
 
 - `RIOT_API_KEY` (required)
 - `ALLOWED_ORIGINS`
+- `OPENAI_API_KEY` (optional, enables live AI coaching brief generation)
+- `OPENAI_MODEL` (optional, default `gpt-4o-mini`)
+- `OPENAI_TIMEOUT_MS` (optional request timeout, default `15000`)
+- `OPENAI_WEB_SEARCH_ENABLED` (optional, default `1`; enables OpenAI web search tool for live meta lookups)
 
 ## Current Product Behavior
 
@@ -87,6 +91,22 @@ Server env vars (see `.env.example` and server code):
   - Stage-based dynamic plan from scorecard replay fields and branches
   - Journal + Quick Event panels preserved for feedback-loop logging
 - Coaching recommendations are rule-driven and data-adaptive (not hardcoded static text), and become more specific as event sample size grows.
+- Coaching now includes an `AI Coach Brief` card that calls `POST /api/coach/llm-brief` with current filtered metrics/match summaries and returns:
+  - headline + summary
+  - meta comparison bullets (your tendencies vs inferred current patch/lobby pressure)
+  - explicit `Meta vs Your Builds` deltas generated from your recent traits/units/items and current web/meta context
+  - team-level actions
+  - per-player focus/actions
+  - patch context note (explicitly states whether balance conclusions are inferred)
+  - confidence + model metadata + source list
+- AI briefing payload now includes richer per-game build fingerprints (top traits and core units with item names per player) to reduce generic output and improve direct comp/item comparisons.
+- Backend now uses OpenAI Responses API with optional `web_search_preview` tool so current patch build trends and balance context can be consulted during generation.
+- `OPENAI_TIMEOUT_MS` is applied per provider request attempt (Responses with web search, Responses without web search, then Chat Completions fallback), so increasing it can help when live web/meta calls are slow.
+- LLM prompt guidance now explicitly frames the duo objective as rank climbing and requests:
+  - rank-aware coaching
+  - comparison against inferred current meta/build/item pressure
+  - buff/nerf impact framing with uncertainty called out when patch-note specifics are not provided in payload
+- If OpenAI is unavailable (missing key, timeout, provider failure), server returns a deterministic fallback brief so coaching remains functional.
 - Coaching now includes additional inferred modules:
   - Tilt & streak detection banner with reset-rule recommendation
   - Playstyle fingerprints (per player + duo)

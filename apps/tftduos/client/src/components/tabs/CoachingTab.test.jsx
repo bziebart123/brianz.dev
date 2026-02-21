@@ -64,6 +64,20 @@ const baseProps = {
   setQuickActor: vi.fn(),
   submitQuickEvent: vi.fn(),
   coachMessage: "",
+  aiCoaching: {
+    model: "gpt-4o-mini",
+    fallback: false,
+    brief: {
+      headline: "AI brief",
+      summary: "Summary",
+      teamPlan: ["Plan A"],
+      playerPlans: [{ player: "Seb", focus: "Tempo", actions: ["Action"] }],
+      confidence: "medium",
+    },
+  },
+  aiCoachingLoading: false,
+  aiCoachingError: "",
+  loadAiCoaching: vi.fn(),
   coachingIntel: {
     tilt: { inTiltWindow: true, tiltScore: 72, recentAvg: 3.4, priorAvg: 2.1, currentBadStreak: 3, resetRule: "Pause and reset" },
     fingerprints: {
@@ -88,6 +102,7 @@ describe("CoachingTab", () => {
     render(<CoachingTab {...baseProps} />);
 
     expect(screen.getByText("Duo Coaching Command Center")).toBeInTheDocument();
+    expect(screen.getByText("AI Coach Brief")).toBeInTheDocument();
     expect(screen.getByText("Tilt Window Detected")).toBeInTheDocument();
     expect(screen.getByText("Playstyle Fingerprints")).toBeInTheDocument();
     expect(screen.getByText("Win Condition Miner")).toBeInTheDocument();

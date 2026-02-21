@@ -148,6 +148,10 @@ export default function App() {
               submitQuickEvent={state.submitQuickEvent}
               coachMessage={state.coachMessage}
               coachingIntel={state.coachingIntel}
+              aiCoaching={state.aiCoaching}
+              aiCoachingLoading={state.aiCoachingLoading}
+              aiCoachingError={state.aiCoachingError}
+              loadAiCoaching={state.loadAiCoaching}
             />
           ) : null}
 
