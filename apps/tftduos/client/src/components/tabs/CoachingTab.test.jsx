@@ -23,6 +23,10 @@ const baseProps = {
       teamPlan: ["Plan A"],
       playerPlans: [{ player: "Seb", focus: "Tempo", actions: ["Action"] }],
       metaDelta: ["Delta A"],
+      topLeaks: ["Leak A"],
+      winConditions: ["WinCon A"],
+      fiveGamePlan: ["Step 1"],
+      championBuilds: [{ player: "Seb", champion: "tft16_garen", items: ["item_a"], games: 3, top2Rate: 66.7, note: "Strong" }],
       confidence: "medium",
       sources: ["local"],
     },
@@ -40,6 +44,10 @@ describe("CoachingTab", () => {
     expect(screen.getByText("AI Coach Brief")).toBeInTheDocument();
     expect(screen.getByText("Individual Action Plans")).toBeInTheDocument();
     expect(screen.getByText("Meta vs Your Builds")).toBeInTheDocument();
+    expect(screen.getByText("Top Leaks")).toBeInTheDocument();
+    expect(screen.getByText("Win Conditions")).toBeInTheDocument();
+    expect(screen.getByText("Next 5 Games Plan")).toBeInTheDocument();
+    expect(screen.getByText("Champion Build Signals")).toBeInTheDocument();
   });
 
   it("shows full-page loading state while AI brief is pending", () => {

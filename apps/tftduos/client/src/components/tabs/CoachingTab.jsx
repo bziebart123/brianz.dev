@@ -187,6 +187,59 @@ export default function CoachingTab({
                 </Pane>
               </Pane>
             ) : null}
+
+            {asArray(aiCoaching.brief.topLeaks).length ? (
+              <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                <Text size={400} color="muted">Top Leaks</Text>
+                <Pane marginTop={6} display="grid" gap={4}>
+                  {asArray(aiCoaching.brief.topLeaks).slice(0, 4).map((line, idx) => (
+                    <Text key={`ai-leak-${idx}`} size={400}>- {line}</Text>
+                  ))}
+                </Pane>
+              </Pane>
+            ) : null}
+
+            {asArray(aiCoaching.brief.winConditions).length ? (
+              <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                <Text size={400} color="muted">Win Conditions</Text>
+                <Pane marginTop={6} display="grid" gap={4}>
+                  {asArray(aiCoaching.brief.winConditions).slice(0, 4).map((line, idx) => (
+                    <Text key={`ai-wincon-${idx}`} size={400}>- {line}</Text>
+                  ))}
+                </Pane>
+              </Pane>
+            ) : null}
+
+            {asArray(aiCoaching.brief.fiveGamePlan).length ? (
+              <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                <Text size={400} color="muted">Next 5 Games Plan</Text>
+                <Pane marginTop={6} display="grid" gap={4}>
+                  {asArray(aiCoaching.brief.fiveGamePlan).slice(0, 5).map((line, idx) => (
+                    <Text key={`ai-plan5-${idx}`} size={400}>- {line}</Text>
+                  ))}
+                </Pane>
+              </Pane>
+            ) : null}
+
+            {asArray(aiCoaching.brief.championBuilds).length ? (
+              <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                <Text size={400} color="muted">Champion Build Signals</Text>
+                <Pane marginTop={8} display="grid" gap={6}>
+                  {asArray(aiCoaching.brief.championBuilds).slice(0, 6).map((row, idx) => (
+                    <Pane key={`ai-build-${idx}`} padding={8} border="default" borderRadius={6} background="rgba(255,255,255,0.02)">
+                      <Text size={400}>
+                        <Strong>{row.player}</Strong> - {row.champion}
+                        {asArray(row.items).length ? ` | ${asArray(row.items).join(", ")}` : ""}
+                      </Text>
+                      <Text size={300} color="muted" display="block" marginTop={4}>
+                        {Number(row.top2Rate || 0).toFixed(1)}% Top2 over {Number(row.games || 0)} games
+                        {row.note ? ` | ${row.note}` : ""}
+                      </Text>
+                    </Pane>
+                  ))}
+                </Pane>
+              </Pane>
+            ) : null}
           </Pane>
         ) : (
           <Text size={400} color="muted" marginTop={10} display="block">
