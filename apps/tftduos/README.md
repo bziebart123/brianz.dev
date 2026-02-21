@@ -79,6 +79,14 @@ Server env vars (see `.env.example` and server code):
 - Analysis page labels/KPIs/sections now include hover tooltips describing what each metric means and how key scores are computed.
 - Rescue/Clutch KPI now includes explicit in-card counts (`rescue events / total events`, `clutch wins / rescues`, `flips / rescues`) so missing clutch signal can be diagnosed without hovering.
 - Several analysis metrics are extrapolated client-side from filtered match payloads (for example momentum, volatility, patch ranking, and per-player consistency).
+- Coaching tab now uses a dashboard-style command center with:
+  - Team KPI strip (`Decision Grade`, `Top2`, `Win Rate`, `Recent Avg`, `Momentum`, `Events Logged`)
+  - Dynamic team priorities generated from filtered metrics (`decisionGrade`, leak count, momentum, rescue/clutch, gift ROI, roll stagger guidance)
+  - Per-player action plans with individualized strengths, reps, and near-term targets
+  - Trend + pressure visualization and prioritized fix queue
+  - Stage-based dynamic plan from scorecard replay fields and branches
+  - Journal + Quick Event panels preserved for feedback-loop logging
+- Coaching recommendations are rule-driven and data-adaptive (not hardcoded static text), and become more specific as event sample size grows.
 - Timeline auto-default selection now prioritizes `30` days before shorter windows.
 - Quick event stage default for manual logging is now `4.1` to better align with late-stage clutch/rescue signal capture.
 

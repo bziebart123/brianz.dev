@@ -238,6 +238,10 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.coaching-player-plan-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .blame-awards-grid {
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
@@ -410,7 +414,8 @@ body {
   }
 
   .analysis-graphs-grid,
-  .analysis-player-grid {
+  .analysis-player-grid,
+  .coaching-player-plan-grid {
     grid-template-columns: 1fr !important;
   }
 
