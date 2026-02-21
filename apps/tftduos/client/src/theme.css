@@ -201,6 +201,11 @@ body {
   padding-bottom: 0 !important;
 }
 
+.release-notes-card {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
 .tft-app-shell select,
 .tft-app-shell input,
 .tft-app-shell textarea {
@@ -403,5 +408,9 @@ body {
 
   .tft-main-content .history-unit-row::-webkit-scrollbar {
     display: none;
+  }
+
+  .release-notes-card {
+    max-height: 180px;
   }
 }
