@@ -80,7 +80,7 @@ export default function Sidebar({
               }}
             >
               <span style={{ fontSize: 20, lineHeight: 1, fontWeight: 700 }} aria-hidden="true">
-                ?
+                {"<"}
               </span>
             </a>
             <Heading size={700}>Duo TFT Coach</Heading>
@@ -88,7 +88,7 @@ export default function Sidebar({
 
           {isMobile ? (
             <button type="button" className="tft-sidebar-close" onClick={closeIfMobile} aria-label="Close filters">
-              ?
+              X
             </button>
           ) : null}
         </Pane>

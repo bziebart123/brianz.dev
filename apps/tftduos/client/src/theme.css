@@ -286,14 +286,15 @@ body {
 
 @media (max-width: 1024px) {
   .tft-app-shell {
-    --bz-text-scale: 1.18;
-    --bz-content-text-scale: 1.24;
+    --bz-text-scale: 1.1;
+    --bz-content-text-scale: 1.12;
     display: block !important;
     position: relative;
   }
 
   .tft-main-content {
     padding: 14px !important;
+    overflow-x: hidden;
   }
 
   .tft-mobile-topbar {
@@ -365,6 +366,33 @@ body {
   .history-kpi-grid,
   .history-player-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .history-match-header {
+    align-items: flex-start !important;
+  }
+
+  .history-match-meta {
+    width: 100%;
+    margin-top: 2px;
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+  }
+
+  .tft-main-content .history-chip {
+    min-height: 24px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .tft-main-content .history-chip [data-evergreen-id="text"] {
+    font-size: 12px !important;
+  }
+
+  .tft-main-content .history-stat-badge {
+    font-size: 10px !important;
+    min-height: 22px !important;
+    padding: 1px 6px !important;
   }
 
   .tft-main-content .history-unit-row {
