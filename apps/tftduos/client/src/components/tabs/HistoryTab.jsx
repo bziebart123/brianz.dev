@@ -25,7 +25,7 @@ function starsForTier(tierValue) {
 }
 
 const UNIT_SLOT_SIZE = 48;
-const CHIP_TEXT_STYLE = { color: "#f7fbff", fontWeight: 700, fontSize: 18, lineHeight: 1 };
+const CHIP_TEXT_STYLE = { color: "#f7fbff", fontWeight: 700, lineHeight: 1 };
 
 export default function HistoryTab({
   payload,
@@ -39,8 +39,8 @@ export default function HistoryTab({
   companionManifest,
 }) {
   return (
-    <Pane display="grid" gap={12}>
-      <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(280px, 1fr))" gap={12}>
+    <Pane className="history-tab-root" display="grid" gap={12}>
+      <Pane className="history-banner-grid" display="grid" gridTemplateColumns="repeat(auto-fit, minmax(280px, 1fr))" gap={12}>
         <PlayerBannerCard
           displayName={DISPLAY_NAME_A}
           riotName={payload.players?.a?.gameName}
@@ -60,7 +60,7 @@ export default function HistoryTab({
           fallbackUnitToken={latestMatchForBanner?.playerB?.units?.[0]?.characterId || ""}
         />
       </Pane>
-      <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))" gap={12}>
+      <Pane className="history-kpi-grid" display="grid" gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))" gap={12}>
         <StatCard label="Games" value={kpis.gamesTogether} hint="In current filters" compact hideHint />
         <StatCard
           label="Team Avg Place"
@@ -120,7 +120,7 @@ export default function HistoryTab({
         const isTopTwo = teamPlacement <= 2;
         return (
         <Card key={match.id} elevation={0} padding={14} background="rgba(255,255,255,0.03)">
-          <Pane display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={8}>
+          <Pane className="history-match-header" display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={8}>
             <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
               <Pane
                 className="history-chip"
@@ -151,12 +151,12 @@ export default function HistoryTab({
                 </Text>
               </Pane>
             </Pane>
-            <Text size={300} color="muted">
+            <Text className="history-match-meta" size={300} color="muted">
               Set {match.setNumber ?? "?"} · Patch {match.patch || "?"} · {formatDate(match.gameDatetime)}
             </Text>
           </Pane>
 
-          <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={12} marginTop={12}>
+          <Pane className="history-player-grid" display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={12} marginTop={12}>
             <Card padding={10} elevation={0} background="rgba(255,255,255,0.04)">
               <Pane display="flex" justifyContent="space-between" alignItems="center" marginBottom={8} gap={8} flexWrap="wrap">
                 <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
