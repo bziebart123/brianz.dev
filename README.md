@@ -40,6 +40,12 @@ From `apps/tftduos`:
 - `npm run build`
 - `npm start`
 
+From `apps/tftduos/client`:
+
+- `npm run test`
+- `npm run test:watch`
+- `npm run test:coverage`
+
 ## Render setup
 
 ### Portfolio hub (Static Site)
@@ -56,7 +62,7 @@ From `apps/tftduos`:
 
 - Service type: `Static Site`
 - Root Directory: `apps/tftduos/client`
-- Build Command: `npm ci && npm run build`
+- Build Command: `npm ci && npm run test && npm run build`
 - Publish Directory: `dist`
 - Domain: `tftduos.brianz.dev`
 - Env vars:
@@ -84,8 +90,15 @@ For backend Web Service apps in this repo:
 
 For static sites:
 
-- Build Command: `npm ci && npm run build`
+- Build Command: `npm ci && npm run test && npm run build`
 - Publish Directory: `dist`
+
+## CI / Test Gate
+
+- GitHub Actions workflow: `.github/workflows/ci.yml`
+- Trigger: push to `main`
+- Current job runs `apps/tftduos/client` tests with Vitest.
+- Render deployment should use test-inclusive build commands so a failing test blocks publish.
 
 ## DNS (Porkbun)
 

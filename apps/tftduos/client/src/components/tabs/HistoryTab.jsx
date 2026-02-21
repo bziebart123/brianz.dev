@@ -181,7 +181,13 @@ export default function HistoryTab({
               <Pane display="flex" flexWrap="wrap" gap={4} marginTop={8}>
                 {boardSlots(match.playerA?.units).map((unit, idx) =>
                   unit?.characterId ? (
-                    <Pane key={`a-unit-${match.id}-${unit.characterId}-${idx}`} display="grid" justifyItems="center" gap={2}>
+                    <Pane
+                      key={`a-unit-${match.id}-${unit.characterId}-${idx}`}
+                      display="grid"
+                      justifyItems="center"
+                      gap={2}
+                      data-testid="a-board-slot"
+                    >
                       <IconWithLabel
                         kind="unit"
                         token={unit.characterId}
@@ -194,7 +200,7 @@ export default function HistoryTab({
                       </Text>
                     </Pane>
                   ) : (
-                    <Pane key={`a-empty-${match.id}-${idx}`} display="grid" justifyItems="center">
+                    <Pane key={`a-empty-${match.id}-${idx}`} display="grid" justifyItems="center" data-testid="a-board-slot">
                       <Pane
                         width={44}
                         height={44}
@@ -236,7 +242,13 @@ export default function HistoryTab({
               <Pane display="flex" flexWrap="wrap" gap={4} marginTop={8}>
                 {boardSlots(match.playerB?.units).map((unit, idx) =>
                   unit?.characterId ? (
-                    <Pane key={`b-unit-${match.id}-${unit.characterId}-${idx}`} display="grid" justifyItems="center" gap={2}>
+                    <Pane
+                      key={`b-unit-${match.id}-${unit.characterId}-${idx}`}
+                      display="grid"
+                      justifyItems="center"
+                      gap={2}
+                      data-testid="b-board-slot"
+                    >
                       <IconWithLabel
                         kind="unit"
                         token={unit.characterId}
@@ -249,7 +261,7 @@ export default function HistoryTab({
                       </Text>
                     </Pane>
                   ) : (
-                    <Pane key={`b-empty-${match.id}-${idx}`} display="grid" justifyItems="center">
+                    <Pane key={`b-empty-${match.id}-${idx}`} display="grid" justifyItems="center" data-testid="b-board-slot">
                       <Pane
                         width={44}
                         height={44}
