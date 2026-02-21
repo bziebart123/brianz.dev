@@ -74,3 +74,4 @@ CI:
   - `client/src/components/tabs/HistoryTab.jsx`
   - `.github/copilot-instructions.md`
 - Legacy root runtime files were removed; use only `apps/tftduos/client` and `apps/tftduos/server` paths for dev/deploy.
+- `client/src/hooks/useDuoAnalysis.js` keeps an identity-stable empty `matches` list and skips redundant manifest resets to prevent React effect loops (`Maximum update depth exceeded`) before payload data loads.

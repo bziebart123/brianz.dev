@@ -15,6 +15,10 @@ import {
 } from "../utils/tft";
 
 const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").trim().replace(/\/+$/, "");
+const EMPTY_MATCHES = [];
+const EMPTY_ICON_MANIFEST = { traits: {}, augments: {} };
+const EMPTY_COMPANION_MANIFEST = { byItemId: {}, byContentId: {} };
+
 function apiUrl(path) {
   if (!API_BASE_URL) return path;
   return `${API_BASE_URL}${path}`;
@@ -46,8 +50,8 @@ export default function useDuoAnalysis() {
   const [quickActor, setQuickActor] = useState("A");
   const [coachSaving, setCoachSaving] = useState(false);
   const [coachMessage, setCoachMessage] = useState("");
-  const [iconManifest, setIconManifest] = useState({ traits: {}, augments: {} });
-  const [companionManifest, setCompanionManifest] = useState({ byItemId: {}, byContentId: {} });
+  const [iconManifest, setIconManifest] = useState(EMPTY_ICON_MANIFEST);
+  const [companionManifest, setCompanionManifest] = useState(EMPTY_COMPANION_MANIFEST);
   const hasAutoLoadedRef = useRef(false);
 
   useEffect(() => {
@@ -68,7 +72,10 @@ export default function useDuoAnalysis() {
     };
   }, []);
 
-  const matches = asArray(payload?.matches);
+  const matches = useMemo(() => {
+    const next = asArray(payload?.matches);
+    return next.length ? next : EMPTY_MATCHES;
+  }, [payload?.matches]);
   const duoId = payload?.duoId || "";
 
   const availableSets = useMemo(() => {
@@ -79,7 +86,12 @@ export default function useDuoAnalysis() {
   useEffect(() => {
     const companions = matches.flatMap((match) => [match?.playerA?.companion, match?.playerB?.companion]).filter(Boolean);
     if (!companions.length) {
-      setCompanionManifest({ byItemId: {}, byContentId: {} });
+      setCompanionManifest((current) => {
+        if (Object.keys(current.byItemId || {}).length || Object.keys(current.byContentId || {}).length) {
+          return EMPTY_COMPANION_MANIFEST;
+        }
+        return current;
+      });
       return;
     }
 
@@ -88,7 +100,12 @@ export default function useDuoAnalysis() {
       ...new Set(companions.map((entry) => String(entry?.contentId ?? entry?.content_ID ?? "").trim().toLowerCase()).filter(Boolean)),
     ];
     if (!itemIds.length && !contentIds.length) {
-      setCompanionManifest({ byItemId: {}, byContentId: {} });
+      setCompanionManifest((current) => {
+        if (Object.keys(current.byItemId || {}).length || Object.keys(current.byContentId || {}).length) {
+          return EMPTY_COMPANION_MANIFEST;
+        }
+        return current;
+      });
       return;
     }
 
@@ -106,7 +123,7 @@ export default function useDuoAnalysis() {
           byContentId: data?.byContentId || {},
         });
       } catch {
-        if (active) setCompanionManifest({ byItemId: {}, byContentId: {} });
+        if (active) setCompanionManifest(EMPTY_COMPANION_MANIFEST);
       }
     }
 
@@ -320,7 +337,12 @@ export default function useDuoAnalysis() {
   useEffect(() => {
     const sets = [...new Set(matches.map((match) => String(match.setNumber || "")).filter(Boolean))];
     if (!sets.length) {
-      setIconManifest({ traits: {}, augments: {} });
+      setIconManifest((current) => {
+        if (Object.keys(current.traits || {}).length || Object.keys(current.augments || {}).length) {
+          return EMPTY_ICON_MANIFEST;
+        }
+        return current;
+      });
       return;
     }
 
@@ -338,7 +360,7 @@ export default function useDuoAnalysis() {
         });
         setIconManifest(merged);
       } catch {
-        if (active) setIconManifest({ traits: {}, augments: {} });
+        if (active) setIconManifest(EMPTY_ICON_MANIFEST);
       }
     }
 
