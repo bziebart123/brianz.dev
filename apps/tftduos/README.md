@@ -41,6 +41,7 @@ Server env vars (see `.env.example` and server code):
 - `OPENAI_API_KEY` (optional, enables live AI coaching brief generation)
 - `OPENAI_MODEL` (optional, default `gpt-4o-mini`)
 - `OPENAI_TIMEOUT_MS` (optional request timeout, default `15000`)
+- `OPENAI_WEB_SEARCH_ENABLED` (optional, default `1`; enables OpenAI web search tool for live meta lookups)
 
 ## Current Product Behavior
 
@@ -93,10 +94,13 @@ Server env vars (see `.env.example` and server code):
 - Coaching now includes an `AI Coach Brief` card that calls `POST /api/coach/llm-brief` with current filtered metrics/match summaries and returns:
   - headline + summary
   - meta comparison bullets (your tendencies vs inferred current patch/lobby pressure)
+  - explicit `Meta vs Your Builds` deltas generated from your recent traits/units/items and current web/meta context
   - team-level actions
   - per-player focus/actions
   - patch context note (explicitly states whether balance conclusions are inferred)
-  - confidence + model metadata
+  - confidence + model metadata + source list
+- AI briefing payload now includes richer per-game build fingerprints (top traits and core units with item names per player) to reduce generic output and improve direct comp/item comparisons.
+- Backend now uses OpenAI Responses API with optional `web_search_preview` tool so current patch build trends and balance context can be consulted during generation.
 - LLM prompt guidance now explicitly frames the duo objective as rank climbing and requests:
   - rank-aware coaching
   - comparison against inferred current meta/build/item pressure

@@ -83,6 +83,7 @@ From `apps/tftduos/client`:
   - `OPENAI_API_KEY=<optional, enables AI coaching brief>`
   - `OPENAI_MODEL=gpt-4o-mini` (optional)
   - `OPENAI_TIMEOUT_MS=15000` (optional)
+  - `OPENAI_WEB_SEARCH_ENABLED=1` (optional; enables web-backed meta lookup during AI brief generation)
 
 ## Standard Render Commands
 
@@ -122,7 +123,7 @@ Use exactly what Render Custom Domains asks for:
 - TFTDuos Analysis tab now renders a dashboard-style analytics view with a full-width team rank trend chart, team trend KPIs, patch performance, and per-player breakdowns from filtered match data.
 - TFTDuos Coaching tab now renders a dynamic coaching command center with team priorities, individualized player plans, and a stage-based action workflow driven by filtered match + event data.
 - TFTDuos backend now supports optional OpenAI-powered coaching synthesis (`/api/coach/llm-brief`) with deterministic fallback output when model access is unavailable.
-- The AI coaching prompt is now guided for rank-climb use: it compares duo patterns vs inferred current meta/build/item pressure and includes patch-context uncertainty notes when hard buff/nerf data is not directly provided.
+- The AI coaching prompt is guided for rank-climb use and now supports web-backed meta lookup (via OpenAI Responses API web search tool), plus richer per-game build fingerprints for direct “your builds vs current meta” comparison with source visibility in UI.
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.
 

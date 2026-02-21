@@ -34,6 +34,11 @@ function pct(numerator, denominator) {
 function clamp(value, min = 0, max = 100) {
   return Math.max(min, Math.min(max, value));
 }
+function formatGeneratedTime(value) {
+  const ms = Number(value || 0);
+  if (!Number.isFinite(ms) || ms <= 0) return "unknown";
+  return new Date(ms).toLocaleString();
+}
 
 function toneForRisk(value) {
   if (value >= 65) return "red";
@@ -487,6 +492,7 @@ export default function CoachingTab({
           <Pane display="flex" alignItems="center" gap={8}>
             <Heading size={500}>AI Coach Brief</Heading>
             {aiCoaching?.fallback ? <Badge color="yellow">Fallback</Badge> : <Badge color="green">Live LLM</Badge>}
+            {aiCoaching?.webSearchUsed ? <Badge color="blue">Web Meta</Badge> : null}
           </Pane>
           <Pane display="flex" alignItems="center" gap={8}>
             {aiCoaching?.model ? <Badge color="neutral">{aiCoaching.model}</Badge> : null}
@@ -523,6 +529,7 @@ export default function CoachingTab({
               <Text size={300} color="muted" display="block" marginTop={6}>
                 Confidence: {aiCoaching.brief.confidence || "unknown"}
                 {aiCoaching?.reason ? ` | ${aiCoaching.reason}` : ""}
+                {` | Generated ${formatGeneratedTime(aiCoaching?.generatedAt)}`}
               </Text>
             </Pane>
             {asArray(aiCoaching.brief.teamPlan).length ? (
@@ -564,6 +571,39 @@ export default function CoachingTab({
               <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
                 <Text size={400} color="muted">Patch Context</Text>
                 <Text size={400} display="block" marginTop={6}>{aiCoaching.brief.patchContext}</Text>
+              </Pane>
+            ) : null}
+            {asArray(aiCoaching.brief.metaDelta).length ? (
+              <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                <Text size={400} color="muted">Meta vs Your Builds</Text>
+                <Pane marginTop={6} display="grid" gap={4}>
+                  {asArray(aiCoaching.brief.metaDelta).map((line, idx) => (
+                    <Text key={`ai-delta-${idx}`} size={400}>- {line}</Text>
+                  ))}
+                </Pane>
+              </Pane>
+            ) : null}
+            {asArray(aiCoaching.brief.sources).length ? (
+              <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                <Text size={400} color="muted">Sources</Text>
+                <Pane marginTop={6} display="grid" gap={4}>
+                  {asArray(aiCoaching.brief.sources).map((source, idx) => {
+                    const isUrl = /^https?:\/\//i.test(String(source || ""));
+                    return isUrl ? (
+                      <a
+                        key={`ai-source-${idx}`}
+                        href={source}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ color: "#8fc6ff", textDecoration: "underline", fontSize: 13 }}
+                      >
+                        {source}
+                      </a>
+                    ) : (
+                      <Text key={`ai-source-${idx}`} size={300}>{source}</Text>
+                    );
+                  })}
+                </Pane>
               </Pane>
             ) : null}
           </Pane>

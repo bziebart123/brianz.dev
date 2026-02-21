@@ -16,6 +16,7 @@ const riotApiKey = process.env.RIOT_API_KEY;
 const openAiApiKey = String(process.env.OPENAI_API_KEY || "").trim();
 const openAiModel = String(process.env.OPENAI_MODEL || "gpt-4o-mini").trim();
 const openAiTimeoutMs = Math.max(3000, Number(process.env.OPENAI_TIMEOUT_MS || 15000));
+const openAiWebSearchEnabled = String(process.env.OPENAI_WEB_SEARCH_ENABLED || "1") !== "0";
 const debugTftPayload = process.env.DEBUG_TFT_PAYLOAD === "1";
 const allowedOrigins = String(process.env.ALLOWED_ORIGINS || "")
   .split(",")
@@ -741,6 +742,44 @@ function safeJsonParse(text, fallback) {
   }
 }
 
+function safeTopTraits(participant, limit = 4) {
+  return asArray(participant?.traits)
+    .filter((trait) => Number(trait?.style || 0) > 0 && trait?.name)
+    .sort((left, right) => Number(right.style || 0) - Number(left.style || 0) || Number(right.numUnits || 0) - Number(left.numUnits || 0))
+    .slice(0, limit)
+    .map((trait) => ({
+      name: String(trait.name),
+      style: Number(trait.style || 0),
+      numUnits: Number(trait.numUnits || 0),
+    }));
+}
+
+function safeCoreUnits(participant, limit = 8) {
+  return asArray(participant?.units)
+    .filter((unit) => unit?.characterId)
+    .sort((left, right) => Number(right.tier || 0) - Number(left.tier || 0) || Number(right.rarity || 0) - Number(left.rarity || 0))
+    .slice(0, limit)
+    .map((unit) => ({
+      characterId: String(unit.characterId),
+      tier: Number(unit.tier || 0),
+      rarity: Number(unit.rarity || 0),
+      items: asArray(unit.itemNames).map((item) => String(item)).filter(Boolean).slice(0, 3),
+    }));
+}
+
+function dedupeStrings(values, limit = 10) {
+  const out = [];
+  const seen = new Set();
+  for (const value of asArray(values)) {
+    const token = String(value || "").trim();
+    if (!token || seen.has(token)) continue;
+    seen.add(token);
+    out.push(token);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
 function fallbackAiCoaching(payload) {
   const decisionGrade = Number(payload?.metrics?.decisionGrade || 0);
   const top2Rate = Number(payload?.metrics?.top2Rate || 0);
@@ -782,6 +821,9 @@ function fallbackAiCoaching(payload) {
       },
     ],
     patchContext: "No live patch-note feed attached in this request; recommendations are trend-inferred.",
+    metaDelta: [
+      "Your builds are compared against lobby-trend proxies, not a live external comp tier feed.",
+    ],
     confidence: "low",
     sources: ["local-fallback"],
   };
@@ -790,15 +832,21 @@ function fallbackAiCoaching(payload) {
 
 async function fetchOpenAiCoaching(payload) {
   if (!openAiApiKey) {
-    return { fallback: true, data: fallbackAiCoaching(payload), reason: "OPENAI_API_KEY missing" };
+    return {
+      fallback: true,
+      data: fallbackAiCoaching(payload),
+      reason: "OPENAI_API_KEY missing",
+      webSearchUsed: false,
+    };
   }
 
   const systemPrompt = [
     "You are an expert TFT Double Up coach focused on helping a duo climb rank.",
     "You must compare their current filtered match patterns against current patch/meta expectations.",
     "In your analysis include: contested lines, unit/item tendencies, likely buff/nerf pressure, and rank-appropriate risk.",
-    "If real-time patch-note specifics are not in the input, explicitly say assumptions are inferred from lobby trends and current patch id.",
-    "Never fabricate exact patch-note facts that are not in input.",
+    "If web sources are available, use them for current patch builds, items, and buff/nerf context.",
+    "If web sources are unavailable or uncertain, explicitly say assumptions are inferred from lobby trends and current patch id.",
+    "Never fabricate exact patch-note facts that are not supported by provided data or citations.",
     "Return strict JSON only.",
     "Use only supplied numbers; never invent stats.",
     "Keep advice concise, concrete, and execution-focused.",
@@ -811,7 +859,7 @@ async function fetchOpenAiCoaching(payload) {
         payload?.objective ||
         "Climb rank in TFT Double Up as a duo.",
       requiredComparisons: [
-        "Compare duo tendencies vs inferred current meta pressure.",
+        "Compare duo tendencies vs current web/meta pressure.",
         "Identify where their unit/item patterns look outdated or over-contested.",
         "Suggest safer alternatives for their current rank and sample size.",
       ],
@@ -823,6 +871,7 @@ async function fetchOpenAiCoaching(payload) {
       teamPlan: ["string"],
       playerPlans: [{ player: "string", focus: "string", actions: ["string"] }],
       patchContext: "string",
+      metaDelta: ["string"],
       confidence: "low|medium|high",
       sources: ["string"],
     },
@@ -832,22 +881,75 @@ async function fetchOpenAiCoaching(payload) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), openAiTimeoutMs);
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const responsePayload = {
+      model: openAiModel,
+      temperature: 0.45,
+      text: {
+        format: {
+          type: "json_schema",
+          name: "duo_coaching_brief",
+          strict: true,
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              headline: { type: "string" },
+              summary: { type: "string" },
+              metaRead: { type: "array", items: { type: "string" } },
+              teamPlan: { type: "array", items: { type: "string" } },
+              playerPlans: {
+                type: "array",
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  properties: {
+                    player: { type: "string" },
+                    focus: { type: "string" },
+                    actions: { type: "array", items: { type: "string" } },
+                  },
+                  required: ["player", "focus", "actions"],
+                },
+              },
+              patchContext: { type: "string" },
+              metaDelta: { type: "array", items: { type: "string" } },
+              confidence: { type: "string", enum: ["low", "medium", "high"] },
+              sources: { type: "array", items: { type: "string" } },
+            },
+            required: [
+              "headline",
+              "summary",
+              "metaRead",
+              "teamPlan",
+              "playerPlans",
+              "patchContext",
+              "metaDelta",
+              "confidence",
+              "sources",
+            ],
+          },
+        },
+      },
+      input: [
+        { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
+        { role: "user", content: [{ type: "input_text", text: userPrompt }] },
+      ],
+      tools: openAiWebSearchEnabled
+        ? [
+            {
+              type: "web_search_preview",
+              search_context_size: "medium",
+            },
+          ]
+        : [],
+    };
+
+    const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${openAiApiKey}`,
       },
-      body: JSON.stringify({
-        model: openAiModel,
-        temperature: 0.2,
-        max_tokens: 900,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
+      body: JSON.stringify(responsePayload),
       signal: controller.signal,
     });
 
@@ -858,12 +960,19 @@ async function fetchOpenAiCoaching(payload) {
         data: fallbackAiCoaching(payload),
         reason: `OpenAI request failed (${response.status})`,
         detail: raw.slice(0, 500),
+        webSearchUsed: false,
       };
     }
 
     const parsedResponse = safeJsonParse(raw, {});
-    const content = parsedResponse?.choices?.[0]?.message?.content || "{}";
-    const modelOutput = safeJsonParse(content, {});
+    const textJson = parsedResponse?.output_text || "{}";
+    const modelOutput = safeJsonParse(textJson, {});
+    const citations = dedupeStrings(
+      asArray(parsedResponse?.output)
+        .flatMap((entry) => asArray(entry?.content))
+        .flatMap((contentEntry) => asArray(contentEntry?.annotations))
+        .map((annotation) => annotation?.url || annotation?.title)
+    );
 
     const normalized = {
       headline: String(modelOutput?.headline || "AI Coaching Brief"),
@@ -879,21 +988,39 @@ async function fetchOpenAiCoaching(payload) {
         .filter((row) => row.player && (row.focus || row.actions.length))
         .slice(0, 3),
       patchContext: String(modelOutput?.patchContext || ""),
+      metaDelta: asArray(modelOutput?.metaDelta).map((x) => String(x)).filter(Boolean).slice(0, 5),
       confidence: ["low", "medium", "high"].includes(String(modelOutput?.confidence || ""))
         ? String(modelOutput.confidence)
         : "medium",
-      sources: asArray(modelOutput?.sources).map((x) => String(x)).filter(Boolean).slice(0, 8),
+      sources: dedupeStrings(
+        [
+          ...asArray(modelOutput?.sources).map((x) => String(x)).filter(Boolean),
+          ...citations,
+        ],
+        10
+      ),
     };
 
     if (!normalized.summary && !normalized.teamPlan.length) {
-      return { fallback: true, data: fallbackAiCoaching(payload), reason: "Empty model response" };
+      return {
+        fallback: true,
+        data: fallbackAiCoaching(payload),
+        reason: "Empty model response",
+        webSearchUsed: false,
+      };
     }
-    return { fallback: false, data: normalized, reason: null };
+    return {
+      fallback: false,
+      data: normalized,
+      reason: null,
+      webSearchUsed: openAiWebSearchEnabled && citations.length > 0,
+    };
   } catch (error) {
     return {
       fallback: true,
       data: fallbackAiCoaching(payload),
       reason: error?.name === "AbortError" ? "OpenAI request timed out" : "OpenAI request error",
+      webSearchUsed: false,
     };
   } finally {
     clearTimeout(timeout);
@@ -1393,12 +1520,16 @@ app.post("/api/coach/llm-brief", async (req, res) => {
           level: Number(match?.playerA?.level || 0),
           damage: Number(match?.playerA?.totalDamageToPlayers || 0),
           goldLeft: Number(match?.playerA?.goldLeft || 0),
+          traits: safeTopTraits(match?.playerA, 4),
+          coreUnits: safeCoreUnits(match?.playerA, 8),
         },
         playerB: {
           placement: Number(match?.playerB?.placement || 0),
           level: Number(match?.playerB?.level || 0),
           damage: Number(match?.playerB?.totalDamageToPlayers || 0),
           goldLeft: Number(match?.playerB?.goldLeft || 0),
+          traits: safeTopTraits(match?.playerB, 4),
+          coreUnits: safeCoreUnits(match?.playerB, 8),
         },
       })),
     };
@@ -1409,6 +1540,7 @@ app.post("/api/coach/llm-brief", async (req, res) => {
       fallback: ai.fallback,
       reason: ai.reason || null,
       model: openAiModel,
+      webSearchUsed: Boolean(ai.webSearchUsed),
       generatedAt: Date.now(),
       brief: ai.data,
     });
