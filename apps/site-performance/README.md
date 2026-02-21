@@ -46,3 +46,4 @@ Response includes:
 - summary KPIs (request count, bandwidth, CPU, memory)
 - raw metric rollups by endpoint/resource
 - warnings for partial metric failures
+- no public dashboard deep links in UI (service list is informational only)

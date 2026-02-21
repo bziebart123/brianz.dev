@@ -109,7 +109,6 @@ export default function App() {
                 <th>Type</th>
                 <th>Region</th>
                 <th>Runtime</th>
-                <th>Dashboard</th>
               </tr>
             </thead>
             <tbody>
@@ -119,15 +118,10 @@ export default function App() {
                   <td>{service.type}</td>
                   <td>{service.region || "-"}</td>
                   <td>{service.runtime || "-"}</td>
-                  <td>
-                    {service.dashboardUrl ? (
-                      <a href={service.dashboardUrl} target="_blank" rel="noreferrer">Open</a>
-                    ) : "-"}
-                  </td>
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={5} className="muted">No services returned in this filter.</td>
+                  <td colSpan={4} className="muted">No services returned in this filter.</td>
                 </tr>
               )}
             </tbody>
