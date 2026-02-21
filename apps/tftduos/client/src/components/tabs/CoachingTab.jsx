@@ -520,6 +520,16 @@ export default function CoachingTab({
                 </Pane>
               </Pane>
             ) : null}
+            {asArray(aiCoaching.brief.metaRead).length ? (
+              <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                <Text size={400} color="muted">Meta Comparison</Text>
+                <Pane marginTop={6} display="grid" gap={4}>
+                  {asArray(aiCoaching.brief.metaRead).map((line, idx) => (
+                    <Text key={`ai-meta-${idx}`} size={400}>- {line}</Text>
+                  ))}
+                </Pane>
+              </Pane>
+            ) : null}
             {asArray(aiCoaching.brief.playerPlans).length ? (
               <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={8}>
                 {asArray(aiCoaching.brief.playerPlans).map((plan, idx) => (
@@ -533,6 +543,12 @@ export default function CoachingTab({
                     </Pane>
                   </Pane>
                 ))}
+              </Pane>
+            ) : null}
+            {aiCoaching.brief.patchContext ? (
+              <Pane padding={10} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                <Text size={400} color="muted">Patch Context</Text>
+                <Text size={400} display="block" marginTop={6}>{aiCoaching.brief.patchContext}</Text>
               </Pane>
             ) : null}
           </Pane>

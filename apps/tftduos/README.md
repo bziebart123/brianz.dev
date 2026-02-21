@@ -92,9 +92,15 @@ Server env vars (see `.env.example` and server code):
 - Coaching recommendations are rule-driven and data-adaptive (not hardcoded static text), and become more specific as event sample size grows.
 - Coaching now includes an `AI Coach Brief` card that calls `POST /api/coach/llm-brief` with current filtered metrics/match summaries and returns:
   - headline + summary
+  - meta comparison bullets (your tendencies vs inferred current patch/lobby pressure)
   - team-level actions
   - per-player focus/actions
+  - patch context note (explicitly states whether balance conclusions are inferred)
   - confidence + model metadata
+- LLM prompt guidance now explicitly frames the duo objective as rank climbing and requests:
+  - rank-aware coaching
+  - comparison against inferred current meta/build/item pressure
+  - buff/nerf impact framing with uncertainty called out when patch-note specifics are not provided in payload
 - If OpenAI is unavailable (missing key, timeout, provider failure), server returns a deterministic fallback brief so coaching remains functional.
 - Coaching now includes additional inferred modules:
   - Tilt & streak detection banner with reset-rule recommendation

@@ -514,7 +514,10 @@ export default function useDuoAnalysis() {
       players: {
         a: DISPLAY_NAME_A,
         b: DISPLAY_NAME_B,
+        rankA: String(payload?.players?.a?.rank || "Unranked"),
+        rankB: String(payload?.players?.b?.rank || "Unranked"),
       },
+      objective: "Climb rank in TFT Double Up as a duo.",
       metrics: {
         duoRisk,
         decisionGrade,
@@ -528,6 +531,13 @@ export default function useDuoAnalysis() {
       },
       scorecard,
       coachingIntel,
+      metaSnapshot: {
+        lobbyTraits: asArray(computed?.metaTraits).slice(0, 8),
+        lobbyUnits: asArray(computed?.metaUnits).slice(0, 10),
+        playerAItems: asArray(coachingInsights?.topItemsA).slice(0, 8),
+        playerBItems: asArray(coachingInsights?.topItemsB).slice(0, 8),
+        suggestions: asArray(computed?.suggestions).slice(0, 4),
+      },
       matches: filteredMatches.slice(0, 60),
     };
     const requestKey = JSON.stringify({

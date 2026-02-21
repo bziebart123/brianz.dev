@@ -754,6 +754,10 @@ function fallbackAiCoaching(payload) {
     summary: `Decision ${decisionGrade}/100, Top2 ${top2Rate.toFixed(1)}%, Avg ${avgPlacement.toFixed(
       2
     )}, Momentum ${momentum >= 0 ? "+" : ""}${momentum.toFixed(2)}, Risk ${duoRisk}%.`,
+    metaRead: [
+      "Meta comparison is inferred from your lobby trends in the current filter.",
+      "Assume contested lines are high if your top traits/units mirror lobby-most-played lists.",
+    ],
     teamPlan: [
       "Commit one tempo and one econ role by Stage 2 carousel.",
       "If both players are bleeding, only one player rolls hard at a time.",
@@ -777,6 +781,7 @@ function fallbackAiCoaching(payload) {
         ],
       },
     ],
+    patchContext: "No live patch-note feed attached in this request; recommendations are trend-inferred.",
     confidence: "low",
     sources: ["local-fallback"],
   };
@@ -789,19 +794,35 @@ async function fetchOpenAiCoaching(payload) {
   }
 
   const systemPrompt = [
-    "You are a TFT Double Up coach.",
+    "You are an expert TFT Double Up coach focused on helping a duo climb rank.",
+    "You must compare their current filtered match patterns against current patch/meta expectations.",
+    "In your analysis include: contested lines, unit/item tendencies, likely buff/nerf pressure, and rank-appropriate risk.",
+    "If real-time patch-note specifics are not in the input, explicitly say assumptions are inferred from lobby trends and current patch id.",
+    "Never fabricate exact patch-note facts that are not in input.",
     "Return strict JSON only.",
     "Use only supplied numbers; never invent stats.",
-    "Keep advice concise and actionable.",
+    "Keep advice concise, concrete, and execution-focused.",
   ].join(" ");
 
   const userPrompt = JSON.stringify({
-    task: "Generate coaching briefing for this duo.",
+    task: "Generate a rank-climbing coaching briefing for this duo.",
+    context: {
+      objective:
+        payload?.objective ||
+        "Climb rank in TFT Double Up as a duo.",
+      requiredComparisons: [
+        "Compare duo tendencies vs inferred current meta pressure.",
+        "Identify where their unit/item patterns look outdated or over-contested.",
+        "Suggest safer alternatives for their current rank and sample size.",
+      ],
+    },
     schema: {
       headline: "string",
       summary: "string",
+      metaRead: ["string"],
       teamPlan: ["string"],
       playerPlans: [{ player: "string", focus: "string", actions: ["string"] }],
+      patchContext: "string",
       confidence: "low|medium|high",
       sources: ["string"],
     },
@@ -847,6 +868,7 @@ async function fetchOpenAiCoaching(payload) {
     const normalized = {
       headline: String(modelOutput?.headline || "AI Coaching Brief"),
       summary: String(modelOutput?.summary || ""),
+      metaRead: asArray(modelOutput?.metaRead).map((x) => String(x)).filter(Boolean).slice(0, 5),
       teamPlan: asArray(modelOutput?.teamPlan).map((x) => String(x)).filter(Boolean).slice(0, 5),
       playerPlans: asArray(modelOutput?.playerPlans)
         .map((row) => ({
@@ -856,6 +878,7 @@ async function fetchOpenAiCoaching(payload) {
         }))
         .filter((row) => row.player && (row.focus || row.actions.length))
         .slice(0, 3),
+      patchContext: String(modelOutput?.patchContext || ""),
       confidence: ["low", "medium", "high"].includes(String(modelOutput?.confidence || ""))
         ? String(modelOutput.confidence)
         : "medium",
@@ -1341,7 +1364,10 @@ app.post("/api/coach/llm-brief", async (req, res) => {
       players: {
         a: String(input?.players?.a || "Player A"),
         b: String(input?.players?.b || "Player B"),
+        rankA: String(input?.players?.rankA || "Unranked"),
+        rankB: String(input?.players?.rankB || "Unranked"),
       },
+      objective: String(input?.objective || "Climb rank in TFT Double Up as a duo."),
       metrics: {
         duoRisk: Number(input?.metrics?.duoRisk || 0),
         decisionGrade: Number(input?.metrics?.decisionGrade || 0),
@@ -1355,6 +1381,7 @@ app.post("/api/coach/llm-brief", async (req, res) => {
       },
       coachingIntel: input?.coachingIntel && typeof input.coachingIntel === "object" ? input.coachingIntel : {},
       scorecard: input?.scorecard && typeof input.scorecard === "object" ? input.scorecard : {},
+      metaSnapshot: input?.metaSnapshot && typeof input.metaSnapshot === "object" ? input.metaSnapshot : {},
       matches: matches.map((match) => ({
         id: String(match?.id || ""),
         gameDatetime: Number(match?.gameDatetime || 0),
