@@ -83,13 +83,12 @@ Server env vars (see `.env.example` and server code):
 - Analysis page labels/KPIs/sections now include hover tooltips describing what each metric means and how key scores are computed.
 - Rescue/Clutch KPI now includes explicit in-card counts (`rescue events / total events`, `clutch wins / rescues`, `flips / rescues`) so missing clutch signal can be diagnosed without hovering.
 - Several analysis metrics are extrapolated client-side from filtered match payloads (for example momentum, volatility, patch ranking, and per-player consistency).
-- Coaching tab now uses a dashboard-style command center with:
-  - Team KPI strip (`Decision Grade`, `Top2`, `Win Rate`, `Recent Avg`, `Momentum`, `Events Logged`)
-  - Dynamic team priorities generated from filtered metrics (`decisionGrade`, leak count, momentum, rescue/clutch, gift ROI, roll stagger guidance)
-  - Per-player action plans with individualized strengths, reps, and near-term targets
-  - Trend + pressure visualization and prioritized fix queue
-  - Stage-based dynamic plan from scorecard replay fields and branches
-  - Journal + Quick Event panels preserved for feedback-loop logging
+- Coaching tab now uses an AI-first layout:
+  - Compact high-signal KPI strip (`Decision Grade`, `Team Top2`, `Team Win`, `Rescue/Clutch`)
+  - Primary full-width `AI Coach Brief` panel (summary, team actions, meta/build deltas, model/source badges)
+  - `Individual Action Plans` section directly below AI output (one card per player, AI-driven when available)
+  - Less auxiliary box density to keep coaching readable and execution-focused
+- Coaching page now waits for AI briefing before rendering the full content area and shows a full-page GPT loading state during generation.
 - Coaching recommendations are rule-driven and data-adaptive (not hardcoded static text), and become more specific as event sample size grows.
 - Coaching now includes an `AI Coach Brief` card that calls `POST /api/coach/llm-brief` with current filtered metrics/match summaries and returns:
   - headline + summary
