@@ -1151,176 +1151,198 @@ async function fetchOpenAiCoaching(payload, deterministicFindings = null) {
     }
 
     async function requestResponses(useWebSearch) {
-      const responsePayload = {
-        model: openAiModel,
-        temperature: 0.45,
-        text: {
-          format: {
-            type: "json_schema",
-            name: "duo_coaching_brief",
-            strict: true,
-            schema: {
-              type: "object",
-              additionalProperties: false,
-              properties: {
-                headline: { type: "string" },
-                summary: { type: "string" },
-                metaRead: { type: "array", items: { type: "string" } },
-                teamPlan: { type: "array", items: { type: "string" } },
-                playerPlans: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    additionalProperties: false,
-                    properties: {
-                      player: { type: "string" },
-                      focus: { type: "string" },
-                      actions: { type: "array", items: { type: "string" } },
+      try {
+        const responsePayload = {
+          model: openAiModel,
+          temperature: 0.45,
+          text: {
+            format: {
+              type: "json_schema",
+              name: "duo_coaching_brief",
+              strict: true,
+              schema: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  headline: { type: "string" },
+                  summary: { type: "string" },
+                  metaRead: { type: "array", items: { type: "string" } },
+                  teamPlan: { type: "array", items: { type: "string" } },
+                  playerPlans: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      additionalProperties: false,
+                      properties: {
+                        player: { type: "string" },
+                        focus: { type: "string" },
+                        actions: { type: "array", items: { type: "string" } },
+                      },
+                      required: ["player", "focus", "actions"],
                     },
-                    required: ["player", "focus", "actions"],
                   },
-                },
-                patchContext: { type: "string" },
-                metaDelta: { type: "array", items: { type: "string" } },
-                topImprovementAreas: { type: "array", items: { type: "string" } },
-                winConditions: { type: "array", items: { type: "string" } },
-                fiveGamePlan: { type: "array", items: { type: "string" } },
-                championBuilds: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    additionalProperties: false,
-                    properties: {
-                      player: { type: "string" },
-                      champion: { type: "string" },
-                      items: { type: "array", items: { type: "string" } },
-                      games: { type: "number" },
-                      top2Rate: { type: "number" },
-                      note: { type: "string" },
+                  patchContext: { type: "string" },
+                  metaDelta: { type: "array", items: { type: "string" } },
+                  topImprovementAreas: { type: "array", items: { type: "string" } },
+                  winConditions: { type: "array", items: { type: "string" } },
+                  fiveGamePlan: { type: "array", items: { type: "string" } },
+                  championBuilds: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      additionalProperties: false,
+                      properties: {
+                        player: { type: "string" },
+                        champion: { type: "string" },
+                        items: { type: "array", items: { type: "string" } },
+                        games: { type: "number" },
+                        top2Rate: { type: "number" },
+                        note: { type: "string" },
+                      },
+                      required: ["player", "champion", "items", "games", "top2Rate", "note"],
                     },
-                    required: ["player", "champion", "items", "games", "top2Rate", "note"],
                   },
+                  confidence: { type: "string", enum: ["low", "medium", "high"] },
+                  sources: { type: "array", items: { type: "string" } },
                 },
-                confidence: { type: "string", enum: ["low", "medium", "high"] },
-                sources: { type: "array", items: { type: "string" } },
+                required: [
+                  "headline",
+                  "summary",
+                  "metaRead",
+                  "teamPlan",
+                  "playerPlans",
+                  "patchContext",
+                  "metaDelta",
+                  "topImprovementAreas",
+                  "winConditions",
+                  "fiveGamePlan",
+                  "championBuilds",
+                  "confidence",
+                  "sources",
+                ],
               },
-              required: [
-                "headline",
-                "summary",
-                "metaRead",
-                "teamPlan",
-                "playerPlans",
-                "patchContext",
-                "metaDelta",
-                "topImprovementAreas",
-                "winConditions",
-                "fiveGamePlan",
-                "championBuilds",
-                "confidence",
-                "sources",
-              ],
             },
           },
-        },
-        input: [
-          { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
-          { role: "user", content: [{ type: "input_text", text: userPrompt }] },
-        ],
-        tools: useWebSearch
-          ? [
-              {
-                type: "web_search_preview",
-                search_context_size: "medium",
-              },
-            ]
-          : [],
-      };
+          input: [
+            { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
+            { role: "user", content: [{ type: "input_text", text: userPrompt }] },
+          ],
+          tools: useWebSearch
+            ? [
+                {
+                  type: "web_search_preview",
+                  search_context_size: "medium",
+                },
+              ]
+            : [],
+        };
 
-      const response = await fetchWithTimeout("https://api.openai.com/v1/responses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${openAiApiKey}`,
-        },
-        body: JSON.stringify(responsePayload),
-      });
+        const response = await fetchWithTimeout("https://api.openai.com/v1/responses", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${openAiApiKey}`,
+          },
+          body: JSON.stringify(responsePayload),
+        });
 
-      const raw = await response.text();
-      if (!response.ok) {
+        const raw = await response.text();
+        if (!response.ok) {
+          return {
+            ok: false,
+            reason: `OpenAI request failed (${response.status})`,
+            detail: raw.slice(0, 500),
+            modelOutput: {},
+            citations: [],
+            outputSummary: "none",
+          };
+        }
+
+        const parsedResponse = safeJsonParse(raw, {});
+        const modelOutput = extractResponsesModelOutput(parsedResponse);
+        const citations = dedupeStrings(
+          asArray(parsedResponse?.output)
+            .flatMap((entry) => asArray(entry?.content))
+            .flatMap((contentEntry) => asArray(contentEntry?.annotations))
+            .map((annotation) => annotation?.url || annotation?.title)
+        );
+
+        return {
+          ok: true,
+          reason: null,
+          detail: null,
+          modelOutput,
+          citations,
+          outputSummary: summarizeResponsesOutput(parsedResponse),
+        };
+      } catch (error) {
         return {
           ok: false,
-          reason: `OpenAI request failed (${response.status})`,
-          detail: raw.slice(0, 500),
+          reason: error?.name === "AbortError"
+            ? `OpenAI responses request timed out${useWebSearch ? " (web search)" : ""}`
+            : "OpenAI responses request error",
+          detail: String(error?.message || ""),
           modelOutput: {},
           citations: [],
           outputSummary: "none",
         };
       }
-
-      const parsedResponse = safeJsonParse(raw, {});
-      const modelOutput = extractResponsesModelOutput(parsedResponse);
-      const citations = dedupeStrings(
-        asArray(parsedResponse?.output)
-          .flatMap((entry) => asArray(entry?.content))
-          .flatMap((contentEntry) => asArray(contentEntry?.annotations))
-          .map((annotation) => annotation?.url || annotation?.title)
-      );
-
-      return {
-        ok: true,
-        reason: null,
-        detail: null,
-        modelOutput,
-        citations,
-        outputSummary: summarizeResponsesOutput(parsedResponse),
-      };
     }
 
     async function requestChatCompletions() {
-      const response = await fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${openAiApiKey}`,
-        },
-        body: JSON.stringify({
-          model: openAiModel,
-          temperature: 0.35,
-          max_tokens: 1100,
-          response_format: { type: "json_object" },
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-        }),
-      });
+      try {
+        const response = await fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${openAiApiKey}`,
+          },
+          body: JSON.stringify({
+            model: openAiModel,
+            temperature: 0.35,
+            max_tokens: 1100,
+            response_format: { type: "json_object" },
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+          }),
+        });
 
-      const raw = await response.text();
-      if (!response.ok) {
+        const raw = await response.text();
+        if (!response.ok) {
+          return {
+            ok: false,
+            reason: `OpenAI chat fallback failed (${response.status})`,
+            detail: raw.slice(0, 500),
+            modelOutput: {},
+          };
+        }
+
+        const parsed = safeJsonParse(raw, {});
+        const content = String(parsed?.choices?.[0]?.message?.content || "").trim();
+        const modelOutput = safeJsonParse(content, {});
+        return {
+          ok: true,
+          reason: null,
+          detail: null,
+          modelOutput,
+        };
+      } catch (error) {
         return {
           ok: false,
-          reason: `OpenAI chat fallback failed (${response.status})`,
-          detail: raw.slice(0, 500),
+          reason: error?.name === "AbortError" ? "OpenAI chat fallback timed out" : "OpenAI chat fallback error",
+          detail: String(error?.message || ""),
           modelOutput: {},
         };
       }
-
-      const parsed = safeJsonParse(raw, {});
-      const content = String(parsed?.choices?.[0]?.message?.content || "").trim();
-      const modelOutput = safeJsonParse(content, {});
-      return {
-        ok: true,
-        reason: null,
-        detail: null,
-        modelOutput,
-      };
     }
 
     let attempt = await requestResponses(openAiWebSearchEnabled);
     let webSearchUsed = openAiWebSearchEnabled && attempt.citations.length > 0;
 
     // Some accounts/models return structured output in an unexpected shape when web search is enabled.
-    if (attempt.ok && (!attempt.modelOutput || !Object.keys(attempt.modelOutput).length) && openAiWebSearchEnabled) {
+    if ((!attempt.ok || !attempt.modelOutput || !Object.keys(attempt.modelOutput).length) && openAiWebSearchEnabled) {
       attempt = await requestResponses(false);
       webSearchUsed = false;
     }
