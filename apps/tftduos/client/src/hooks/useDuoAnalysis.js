@@ -8,7 +8,6 @@ import {
   asArray,
   comparePatchVersionsDesc,
   patchFromVersion,
-  prettyName,
   summarizeFromMatches,
   teamPlacementFromMatch,
   toEpochMs,
@@ -139,16 +138,6 @@ export default function useDuoAnalysis() {
   const [currentPatch, setCurrentPatch] = useState("");
   const [didAutoSelectFilters, setDidAutoSelectFilters] = useState(false);
 
-  const [coachMatchId, setCoachMatchId] = useState("");
-  const [planAt32, setPlanAt32] = useState("");
-  const [executedPlan, setExecutedPlan] = useState("");
-  const [tagPanicRoll, setTagPanicRoll] = useState(false);
-  const [tagMissedGift, setTagMissedGift] = useState(false);
-  const [tagBothRoll, setTagBothRoll] = useState(false);
-  const [quickStage, setQuickStage] = useState("4.1");
-  const [quickActor, setQuickActor] = useState("A");
-  const [coachSaving, setCoachSaving] = useState(false);
-  const [coachMessage, setCoachMessage] = useState("");
   const [aiCoaching, setAiCoaching] = useState(null);
   const [aiCoachingLoading, setAiCoachingLoading] = useState(false);
   const [aiCoachingError, setAiCoachingError] = useState("");
@@ -412,16 +401,10 @@ export default function useDuoAnalysis() {
   }, [filteredMatches]);
 
   const scorecard = payload?.analysisV2 || null;
-  const playbook = payload?.playbook || null;
-  const highlights = asArray(payload?.highlights?.highlights);
   const decisionGrade = Number(scorecard?.decisionQuality?.grade || 0);
   const decisionLeaks = asArray(scorecard?.decisionQuality?.biggestLeaks).slice(0, 4);
-  const coachingBranches = asArray(scorecard?.coachingReplay?.ifThenExamples).slice(0, 4);
-  const giftMetrics = scorecard?.giftEfficiency?.metrics || {};
   const rescueRate = Number(scorecard?.rescueIndex?.rescueRate || 0);
   const clutchIndex = Number(scorecard?.rescueIndex?.clutchIndex || 0);
-  const openerCards = asArray(playbook?.topOpeners).slice(0, 3);
-  const staggerSuggestions = asArray(scorecard?.econCoordination?.staggerSuggestions).slice(0, 3);
   const coachingIntel = useMemo(
     () =>
       buildCoachingIntel({
@@ -442,23 +425,6 @@ export default function useDuoAnalysis() {
   const totalPressureB = lowGoldLossB + lowDamageLossB;
   const duoRisk = Math.max(0, Math.min(100, Math.round((leakCount * 12) + (totalPressureA + totalPressureB) * 8)));
 
-  const suggestionCards = [
-    ...decisionLeaks.map((item, idx) => ({
-      id: `leak-${idx}-${item?.leak || "unknown"}`,
-      title: item?.leak || "Leak detected",
-      why: item?.whyItMatters || "Weak execution pattern detected in current sample.",
-      fix: item?.doInstead || "Play lower variance lines and pre-assign roles.",
-      icon: "warning-sign",
-    })),
-    ...coachingInsights.blame.map((item, idx) => ({
-      id: `blame-${idx}`,
-      title: `Blame Signal ${idx + 1}`,
-      why: item,
-      fix: "Review the stage where this pattern appears and assign one owner.",
-      icon: "issue",
-    })),
-  ].slice(0, 6);
-
   useEffect(() => {
     try {
       localStorage.setItem("tftduos-enable-wild-correlations", enableWildCorrelations ? "1" : "0");
@@ -472,17 +438,6 @@ export default function useDuoAnalysis() {
       setActiveTab("history");
     }
   }, [enableWildCorrelations, activeTab]);
-
-  useEffect(() => {
-    if (!filteredMatches.length) {
-      setCoachMatchId("");
-      return;
-    }
-    setCoachMatchId((prev) => {
-      if (prev && filteredMatches.some((m) => m.id === prev)) return prev;
-      return filteredMatches[0].id;
-    });
-  }, [filteredMatches]);
 
   useEffect(() => {
     const sets = [...new Set(matches.map((match) => String(match.setNumber || "")).filter(Boolean))];
@@ -723,85 +678,6 @@ export default function useDuoAnalysis() {
     coachingIntel,
   ]);
 
-  async function submitJournal() {
-    if (!duoId) return;
-    setCoachSaving(true);
-    setCoachMessage("");
-    try {
-      const tags = [];
-      if (tagPanicRoll) tags.push("panic_roll");
-      if (tagMissedGift) tags.push("missed_gift");
-      if (tagBothRoll) tags.push("both_roll_same_stage");
-
-      const response = await fetch(apiUrl("/api/duo/journal"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          duoId,
-          matchId: coachMatchId || null,
-          planAt32,
-          executed: executedPlan,
-          tags,
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to save journal.");
-
-      setCoachMessage("Journal saved.");
-      await runDuoAnalysis(buildQueryString(), true);
-    } catch (submitError) {
-      setCoachMessage(submitError.message);
-    } finally {
-      setCoachSaving(false);
-    }
-  }
-
-  async function submitQuickEvent(type) {
-    if (!duoId) return;
-    setCoachSaving(true);
-    setCoachMessage("");
-    try {
-      const payloadByType = {
-        gift_sent: { giftType: "item", partnerState: "bleeding", outcome: "became_carry" },
-        rescue_arrival: { teammateAtRisk: true, roundOutcomeBefore: "loss_likely", roundOutcomeAfter: "won" },
-        roll_down: { goldBefore: 52, goldAfter: 18, reason: "stabilize" },
-      };
-
-      const [stageMajorRaw, stageMinorRaw] = quickStage.split(".");
-      const stageMajor = Number(stageMajorRaw);
-      const stageMinor = Number(stageMinorRaw);
-
-      const response = await fetch(apiUrl("/api/duo/events/batch"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          duoId,
-          matchId: coachMatchId || null,
-          events: [
-            {
-              type,
-              stageMajor: Number.isFinite(stageMajor) ? stageMajor : 3,
-              stageMinor: Number.isFinite(stageMinor) ? stageMinor : 2,
-              actorSlot: quickActor,
-              payload: payloadByType[type] || {},
-            },
-          ],
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to save event.");
-
-      setCoachMessage(`Logged ${type}.`);
-      await runDuoAnalysis(buildQueryString(), true);
-    } catch (submitError) {
-      setCoachMessage(submitError.message);
-    } finally {
-      setCoachSaving(false);
-    }
-  }
-
   const displayedError =
     rateLimitSeconds > 0
       ? `${rateLimitMessage || "Riot rate limit hit."} Auto retry in ${rateLimitSeconds}s.`
@@ -834,7 +710,6 @@ export default function useDuoAnalysis() {
     computed,
     duoRisk,
     decisionGrade,
-    leakCount,
     rescueRate,
     clutchIndex,
     placementTrend,
@@ -847,35 +722,8 @@ export default function useDuoAnalysis() {
     lowGoldLossB,
     lowDamageLossA,
     lowDamageLossB,
-    suggestionCards,
     scorecard,
-    coachingBranches,
-    giftMetrics,
-    staggerSuggestions,
-    openerCards,
     coachingInsights,
-    highlights,
-    coachMatchId,
-    setCoachMatchId,
-    planAt32,
-    setPlanAt32,
-    executedPlan,
-    setExecutedPlan,
-    tagPanicRoll,
-    setTagPanicRoll,
-    tagMissedGift,
-    setTagMissedGift,
-    tagBothRoll,
-    setTagBothRoll,
-    submitJournal,
-    duoId,
-    coachSaving,
-    quickStage,
-    setQuickStage,
-    quickActor,
-    setQuickActor,
-    submitQuickEvent,
-    coachMessage,
     aiCoaching,
     aiCoachingLoading,
     aiCoachingError,

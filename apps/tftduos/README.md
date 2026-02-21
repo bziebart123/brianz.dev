@@ -150,7 +150,11 @@ Server env vars (see `.env.example` and server code):
 CI:
 
 - GitHub workflow: `.github/workflows/ci.yml`
-- Runs on push to `main` and executes client tests.
+- Runs on `pull_request` and `push` for `main`.
+- Validates:
+  - `apps/tftduos/client` tests + production build
+  - `apps/tftduos/server` syntax (`node --check`)
+  - `portfolio` static build (`npm run build:portfolio`)
 - Recommended Render frontend build command:
   - `npm ci && npm run test && npm run build`
 
@@ -162,6 +166,9 @@ CI:
   - `.github/copilot-instructions.md`
 - Legacy root runtime files were removed; use only `apps/tftduos/client` and `apps/tftduos/server` paths for dev/deploy.
 - `client/src/hooks/useDuoAnalysis.js` keeps an identity-stable empty `matches` list and skips redundant manifest resets to prevent React effect loops (`Maximum update depth exceeded`) before payload data loads.
+- Coaching client-state cleanup (no user-facing behavior change):
+  - `client/src/App.jsx` now passes only actively consumed `CoachingTab` props.
+  - `client/src/hooks/useDuoAnalysis.js` removed unused client-side coaching journal/event state and handlers that were no longer rendered by UI.
 - `client/vite.config.js` now injects build-time release metadata:
   - `__TFTDUOS_VERSION__` as `major.minor.build`:
     - `major.minor` from `client/package.json`

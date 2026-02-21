@@ -17,7 +17,7 @@ export default function WildCorrelationsTab({ coachingIntel, timelineDays, setFi
 
   const rangeLabel = useMemo(() => {
     const timeline = timelineDays === "0" ? "All time" : `Last ${timelineDays} days`;
-    return `${timeline} · Patch filter: ${patchFilter || "all"} · Set: ${setFilter || "all"}`;
+    return `${timeline} | Patch filter: ${patchFilter || "all"} | Set: ${setFilter || "all"}`;
   }, [timelineDays, patchFilter, setFilter]);
 
   function generateTake() {
@@ -94,7 +94,7 @@ export default function WildCorrelationsTab({ coachingIntel, timelineDays, setFi
             </Pane>
             <Text size={400} display="block" marginTop={8}>{card.body}</Text>
             <Text size={300} color="muted" display="block" marginTop={8}>
-              Confidence: {card.confidence}% · Method: {method}
+              Confidence: {card.confidence}% | Method: {method}
             </Text>
           </Card>
         )) : null}
@@ -102,4 +102,3 @@ export default function WildCorrelationsTab({ coachingIntel, timelineDays, setFi
     </Pane>
   );
 }
-
