@@ -5,7 +5,9 @@
   "scripts": {
     "build:portfolio": "npm run build --prefix portfolio",
     "build:tftduos": "npm run build --prefix apps/tftduos",
+    "build:app2": "npm run build --prefix apps/app2",
     "dev:tftduos:client": "npm --prefix apps/tftduos/client run dev",
-    "dev:tftduos:server": "npm --prefix apps/tftduos/server run start"
+    "dev:tftduos:server": "npm --prefix apps/tftduos/server run start",
+    "dev:app2:client": "npm --prefix apps/app2/client run dev"
   }
 }

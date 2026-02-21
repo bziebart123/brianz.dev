@@ -1,4 +1,4 @@
-﻿# Project Context For Codex
+# Project Context For Codex
 
 ## Primary Goal
 Build and maintain a **personal portfolio hub with sub-apps**:
@@ -13,9 +13,10 @@ Build and maintain a **personal portfolio hub with sub-apps**:
 ## Current Architecture
 - Monorepo layout:
   - `portfolio/` -> static portfolio hub (Render Static Site, root domain)
+  - `apps/app2/client/` -> Render meta dashboard frontend (Vite + React)
   - `apps/tftduos/` -> TFT app split into frontend + backend services
   - `apps/tftduos/client/` -> Vite + React + Evergreen UI frontend
-  - `apps/tftduos/server/` -> Node + Express backend API (`/api` routes)
+  - `apps/tftduos/server/` -> Node + Express shared backend API (`/api/tft*`, `/api/duo*`, `/api/coach*`, `/api/app2*`)
 - Canonical frontend entry:
   - `apps/tftduos/client/src/App.jsx`
 - Root-level legacy app/server files have been removed; do not add alternate root runtimes.
@@ -27,6 +28,9 @@ Build and maintain a **personal portfolio hub with sub-apps**:
 - TFTDuos should deploy as:
   - frontend Static Site (`apps/tftduos/client`)
   - backend Web Service (`apps/tftduos/server`)
+- App2 should deploy as:
+  - frontend Static Site (`apps/app2/client`)
+  - shared backend remains `apps/tftduos/server` (no separate app2 backend service)
 
 ## Data And Config
 - Frontend Riot IDs/regions come from client env vars:

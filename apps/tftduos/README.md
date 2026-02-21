@@ -42,6 +42,9 @@ Server env vars (see `.env.example` and server code):
 - `OPENAI_MODEL` (optional, default `gpt-4o-mini`)
 - `OPENAI_TIMEOUT_MS` (optional request timeout, default `15000`)
 - `OPENAI_WEB_SEARCH_ENABLED` (optional, default `1`; enables OpenAI web search tool for live meta lookups)
+- `RENDER_API_KEY` (required for app2 dashboard routes)
+- `RENDER_API_BASE_URL` (optional, default `https://api.render.com/v1`)
+- `RENDER_DASHBOARD_SERVICE_IDS` (optional comma-separated Render service IDs to scope app2 dashboard)
 
 ## Current Product Behavior
 
@@ -129,6 +132,8 @@ Server env vars (see `.env.example` and server code):
   - Includes disclaimer, cosmic summary + copy action, cursed/blessed queue windows, generated nonsense takes, and transparent joke "method" labels
 - Timeline auto-default selection now prioritizes `30` days before shorter windows.
 - Quick event stage default for manual logging is now `4.1` to better align with late-stage clutch/rescue signal capture.
+- Shared backend now also exposes app2 metrics routes:
+  - `GET /api/app2/render/overview` (Render service/metric rollups for the app2 dashboard)
 
 ## Testing
 

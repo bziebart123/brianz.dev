@@ -1,0 +1,140 @@
+:root {
+  --bg-0: #0d111a;
+  --bg-1: #12192b;
+  --card: rgba(17, 27, 47, 0.78);
+  --border: #2d3f67;
+  --text: #e9f0ff;
+  --muted: #b7c6e7;
+  --accent: #67c7ff;
+  --good: #62d4a1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(103, 199, 255, 0.2), transparent 60%),
+    radial-gradient(600px 400px at 8% 110%, rgba(98, 212, 161, 0.16), transparent 60%),
+    linear-gradient(160deg, var(--bg-0), var(--bg-1));
+}
+
+.app {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 18px 44px;
+  display: grid;
+  gap: 14px;
+}
+
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 14px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+select,
+button {
+  background: #16233f;
+  color: var(--text);
+  border: 1px solid #38507f;
+  border-radius: 9px;
+  min-height: 38px;
+  padding: 0 12px;
+  font-weight: 600;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(10, 18, 34, 0.52);
+  padding: 10px;
+}
+
+.card .k {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.card .v {
+  margin-top: 6px;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.table-wrap {
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border-bottom: 1px solid rgba(115, 145, 199, 0.24);
+  text-align: left;
+  padding: 8px 6px;
+  font-size: 0.95rem;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(98, 212, 161, 0.4);
+  padding: 2px 10px;
+  color: var(--good);
+}
+
+.error {
+  border: 1px solid rgba(230, 96, 96, 0.5);
+  background: rgba(92, 26, 26, 0.5);
+  border-radius: 10px;
+  padding: 10px;
+}

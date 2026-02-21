@@ -1,4 +1,4 @@
-﻿# Portfolio + Apps Monorepo (Render)
+# Portfolio + Apps Monorepo (Render)
 
 This repo is now organized for Render with a root portfolio site and app subdomains.
 
@@ -14,6 +14,8 @@ Create a personal portfolio site at the root domain and host multiple sub-apps o
 
 ```txt
 /portfolio          # Static site for brianz.dev
+/apps/app2          # App2 Render meta dashboard (frontend-only, shared backend API)
+  /client           # Vite React app
 /apps/tftduos       # TFTDuos app sources
   /client           # Vite React app
   /server           # Express API service
@@ -32,8 +34,10 @@ From repo root:
 
 - `npm run build:portfolio`
 - `npm run build:tftduos`
+- `npm run build:app2`
 - `npm run dev:tftduos:client`
 - `npm run dev:tftduos:server`
+- `npm run dev:app2:client`
 
 From `apps/tftduos`:
 
@@ -79,11 +83,24 @@ From `apps/tftduos/client`:
 - Domain: optional custom API domain (or keep Render URL)
 - Env vars:
   - `RIOT_API_KEY=<your key>`
-  - `ALLOWED_ORIGINS=https://tftduos.brianz.dev,https://brianz.dev,https://www.brianz.dev`
+  - `ALLOWED_ORIGINS=https://tftduos.brianz.dev,https://app2.brianz.dev,https://brianz.dev,https://www.brianz.dev`
   - `OPENAI_API_KEY=<optional, enables AI coaching brief>`
   - `OPENAI_MODEL=gpt-4o-mini` (optional)
   - `OPENAI_TIMEOUT_MS=15000` (optional)
   - `OPENAI_WEB_SEARCH_ENABLED=1` (optional; enables web-backed meta lookup during AI brief generation)
+  - `RENDER_API_KEY=<required for app2 dashboard>`
+  - `RENDER_API_BASE_URL=https://api.render.com/v1` (optional)
+  - `RENDER_DASHBOARD_SERVICE_IDS=<optional comma-separated service IDs>`
+
+### App2 Frontend (Static Site)
+
+- Service type: `Static Site`
+- Root Directory: `apps/app2/client`
+- Build Command: `npm ci && npm run build`
+- Publish Directory: `dist`
+- Domain: `app2.brianz.dev`
+- Env vars:
+  - `VITE_API_BASE_URL=https://<your-tftduos-api-service>.onrender.com`
 
 ## Standard Render Commands
 
@@ -131,6 +148,7 @@ Use exactly what Render Custom Domains asks for:
 - Coaching UI now uses high-contrast custom error/warning banners and compact AI payload requests to improve readability and reduce large-timeline AI network failures.
 - Coaching AI responses are cached client-side by duo/filter and reused until a newer shared match is detected, reducing repeated OpenAI calls when no new duo games were played.
 - Coaching data flow is now trimmed to the active UI surface: `App.jsx` only passes `CoachingTab` the props it renders, and `useDuoAnalysis` drops unused journal/event-only client state.
+- App2 now exists as a frontend-only Render Meta Dashboard (`apps/app2/client`) and consumes shared backend routes under `/api/app2/*` from `apps/tftduos/server`.
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.
 

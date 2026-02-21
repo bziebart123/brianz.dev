@@ -17,6 +17,14 @@ const openAiApiKey = String(process.env.OPENAI_API_KEY || "").trim();
 const openAiModel = String(process.env.OPENAI_MODEL || "gpt-4o-mini").trim();
 const openAiTimeoutMs = Math.max(3000, Number(process.env.OPENAI_TIMEOUT_MS || 15000));
 const openAiWebSearchEnabled = String(process.env.OPENAI_WEB_SEARCH_ENABLED || "1") !== "0";
+const renderApiKey = String(process.env.RENDER_API_KEY || "").trim();
+const renderApiBaseUrl = String(process.env.RENDER_API_BASE_URL || "https://api.render.com/v1")
+  .trim()
+  .replace(/\/+$/, "");
+const renderDashboardServiceIds = String(process.env.RENDER_DASHBOARD_SERVICE_IDS || "")
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
 const debugTftPayload = process.env.DEBUG_TFT_PAYLOAD === "1";
 const allowedOrigins = String(process.env.ALLOWED_ORIGINS || "")
   .split(",")
@@ -116,8 +124,289 @@ const QUEUE_LABELS = {
   6110: "Revival",
 };
 
+function asFiniteNumber(value, fallback = null) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function toIso(value) {
+  const ms = Number(value || 0);
+  return Number.isFinite(ms) && ms > 0 ? new Date(ms).toISOString() : null;
+}
+
+function parseMetricUnitToGb(value, unit) {
+  const n = asFiniteNumber(value, null);
+  if (n === null) return null;
+  const normalized = String(unit || "").trim().toLowerCase();
+  if (!normalized || normalized === "gb") return n;
+  if (normalized === "mb") return n / 1024;
+  if (normalized === "kb") return n / (1024 * 1024);
+  if (normalized === "b" || normalized === "byte" || normalized === "bytes") return n / (1024 * 1024 * 1024);
+  return n;
+}
+
+function metricResourceId(labels) {
+  for (const label of asArray(labels)) {
+    const field = String(label?.field || "").toLowerCase();
+    if (field === "resource" || field === "service") {
+      return String(label?.value || "").trim();
+    }
+  }
+  return "";
+}
+
+function summarizeMetricSeries(seriesCollection) {
+  const series = asArray(seriesCollection);
+  let total = 0;
+  let sum = 0;
+  let sampleCount = 0;
+  let max = null;
+  let unit = null;
+  const byResource = {};
+
+  for (const item of series) {
+    const resourceId = metricResourceId(item?.labels);
+    const itemUnit = String(item?.unit || "").trim();
+    if (!unit && itemUnit) unit = itemUnit;
+
+    const values = asArray(item?.values)
+      .map((value) => ({
+        ts: Date.parse(String(value?.timestamp || "")),
+        value: asFiniteNumber(value?.value, null),
+      }))
+      .filter((value) => value.value !== null);
+
+    if (!values.length) continue;
+
+    let latest = values[0];
+    for (const point of values) {
+      sampleCount += 1;
+      total += point.value;
+      sum += point.value;
+      if (max === null || point.value > max) {
+        max = point.value;
+      }
+      if (point.ts >= latest.ts) {
+        latest = point;
+      }
+    }
+
+    if (resourceId) {
+      byResource[resourceId] = {
+        latestValue: latest.value,
+        latestAt: toIso(latest.ts),
+        unit: itemUnit || unit || null,
+        samples: values.length,
+      };
+    }
+  }
+
+  return {
+    seriesCount: series.length,
+    sampleCount,
+    total,
+    avg: sampleCount ? sum / sampleCount : null,
+    max,
+    unit,
+    byResource,
+  };
+}
+
+async function renderApiRequest(pathname, query = {}) {
+  if (!renderApiKey) {
+    const error = new Error("RENDER_API_KEY is missing.");
+    error.status = 500;
+    throw error;
+  }
+
+  const url = new URL(`${renderApiBaseUrl}${pathname}`);
+  for (const [key, value] of Object.entries(query || {})) {
+    if (value === null || value === undefined || value === "") continue;
+    url.searchParams.set(key, String(value));
+  }
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${renderApiKey}`,
+      Accept: "application/json",
+    },
+  });
+  const raw = await response.text();
+  let data = null;
+  try {
+    data = raw ? JSON.parse(raw) : null;
+  } catch {
+    data = raw || null;
+  }
+
+  if (!response.ok) {
+    const error = new Error(`Render API request failed (${response.status}).`);
+    error.status = response.status;
+    error.body = data;
+    throw error;
+  }
+  return data;
+}
+
+async function fetchRenderServices() {
+  const results = [];
+  let cursor = "";
+  let page = 0;
+  const maxPages = 10;
+
+  while (page < maxPages) {
+    const rows = await renderApiRequest("/services", {
+      limit: 100,
+      includePreviews: false,
+      ...(cursor ? { cursor } : {}),
+    });
+    const list = asArray(rows);
+    if (!list.length) break;
+
+    results.push(...list.map((entry) => entry?.service || entry).filter(Boolean));
+    const lastCursor = list[list.length - 1]?.cursor;
+    if (!lastCursor) break;
+    cursor = String(lastCursor);
+    page += 1;
+  }
+
+  return results;
+}
+
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
+});
+
+app.get("/api/app2/render/overview", async (req, res) => {
+  try {
+    const hours = Math.max(1, Math.min(168, Number(req.query.hours || 24)));
+    const resolutionSeconds = Math.max(30, Math.min(3600, Number(req.query.resolutionSeconds || 300)));
+    const endTimeMs = Date.now();
+    const startTimeMs = endTimeMs - hours * 60 * 60 * 1000;
+    const startTime = new Date(startTimeMs).toISOString();
+    const endTime = new Date(endTimeMs).toISOString();
+
+    const allServices = await fetchRenderServices();
+    const services = allServices
+      .filter((service) => {
+        if (!service?.id) return false;
+        if (renderDashboardServiceIds.length > 0) {
+          return renderDashboardServiceIds.includes(service.id);
+        }
+        const type = String(service?.type || "");
+        return [
+          "web_service",
+          "static_site",
+          "private_service",
+          "background_worker",
+          "cron_job",
+        ].includes(type);
+      })
+      .map((service) => ({
+        id: service.id,
+        name: service.name || service.id,
+        type: service.type || "unknown",
+        suspended: service.suspended || "unknown",
+        dashboardUrl: service.dashboardUrl || null,
+        region:
+          service?.serviceDetails?.region ||
+          service?.serviceDetails?.envSpecificDetails?.region ||
+          null,
+        runtime:
+          service?.serviceDetails?.plan ||
+          service?.serviceDetails?.runtime ||
+          service?.serviceDetails?.instanceType ||
+          null,
+      }));
+
+    if (!services.length) {
+      return res.json({
+        ok: true,
+        generatedAt: Date.now(),
+        window: { hours, resolutionSeconds, startTime, endTime },
+        services: [],
+        summary: {
+          serviceCount: 0,
+          totalHttpRequests: 0,
+          totalBandwidthBytes: 0,
+          avgCpuPercent: null,
+          avgMemoryGb: null,
+          peakMemoryGb: null,
+        },
+        metrics: {},
+        warnings: ["No Render services matched this dashboard filter."],
+      });
+    }
+
+    const resource = services.map((service) => service.id).join(",");
+    const metricQuery = {
+      startTime,
+      endTime,
+      resolutionSeconds,
+      resource,
+      aggregationMethod: "AVG",
+    };
+
+    const metricEndpoints = {
+      httpRequests: "/metrics/http-requests",
+      bandwidth: "/metrics/bandwidth",
+      cpu: "/metrics/cpu",
+      memory: "/metrics/memory",
+      instanceCount: "/metrics/instance-count",
+    };
+
+    const metrics = {};
+    const warnings = [];
+
+    await Promise.all(
+      Object.entries(metricEndpoints).map(async ([key, pathname]) => {
+        try {
+          const response = await renderApiRequest(pathname, metricQuery);
+          metrics[key] = summarizeMetricSeries(response);
+        } catch (error) {
+          metrics[key] = {
+            seriesCount: 0,
+            sampleCount: 0,
+            total: 0,
+            avg: null,
+            max: null,
+            unit: null,
+            byResource: {},
+          };
+          warnings.push(`${key}: ${error?.message || "metric unavailable"}`);
+        }
+      })
+    );
+
+    const avgMemoryGb = parseMetricUnitToGb(metrics?.memory?.avg, metrics?.memory?.unit);
+    const peakMemoryGb = parseMetricUnitToGb(metrics?.memory?.max, metrics?.memory?.unit);
+
+    return res.json({
+      ok: true,
+      generatedAt: Date.now(),
+      window: { hours, resolutionSeconds, startTime, endTime },
+      services,
+      summary: {
+        serviceCount: services.length,
+        totalHttpRequests: Math.round(Number(metrics?.httpRequests?.total || 0)),
+        totalBandwidthBytes: Number(metrics?.bandwidth?.total || 0),
+        avgCpuPercent: metrics?.cpu?.avg ?? null,
+        avgMemoryGb,
+        peakMemoryGb,
+      },
+      metrics,
+      warnings,
+    });
+  } catch (error) {
+    return res.status(error?.status || 500).json({
+      ok: false,
+      error:
+        error?.status === 500 && String(error?.message || "").includes("RENDER_API_KEY")
+          ? "RENDER_API_KEY is missing on the backend service."
+          : error?.message || "Failed to load Render dashboard metrics.",
+      details: error?.body || null,
+    });
+  }
 });
 
 function getFromCache(key) {
