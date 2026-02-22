@@ -533,7 +533,7 @@
             <span>TFT Duos</span>
           </a>
 
-          <a class="star-node" id="meta-link" data-kind="meta" data-x="80" data-y="30" data-drift="24" href="https://site-performance.brianz.dev" aria-label="Open Render Meta Dashboard">
+          <a class="star-node" id="meta-link" data-kind="meta" data-x="80" data-y="30" data-drift="24" href="https://backend.brianz.dev/api/site-performance/render/overview?hours=24" aria-label="Load Render Meta in terminal">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
@@ -605,9 +605,11 @@
         var terminalDock = document.querySelector(".terminal-dock");
         var bootLog = document.getElementById("boot-log");
         var terminalStatus = document.getElementById("terminal-status");
-        var backendExpanded = false;
+        var terminalExpanded = false;
         var backendRequestCount = 0;
+        var renderMetaRequestCount = 0;
         var terminalQueueOffset = 0;
+        var renderMetaChain = Promise.resolve();
         var subAppHosts = [
           "tftduos.brianz.dev",
           "site-performance.brianz.dev",
@@ -619,10 +621,10 @@
 
         if (isLocal) {
           if (tftLink) tftLink.setAttribute("href", "http://localhost:4173");
-          if (metaLink) metaLink.setAttribute("href", "http://localhost:4174");
+          if (metaLink) metaLink.setAttribute("href", "http://localhost:3001/api/site-performance/render/overview?hours=24");
         } else {
           if (tftLink) tftLink.setAttribute("href", "https://tftduos.brianz.dev");
-          if (metaLink) metaLink.setAttribute("href", "https://site-performance.brianz.dev");
+          if (metaLink) metaLink.setAttribute("href", "https://backend.brianz.dev/api/site-performance/render/overview?hours=24");
         }
 
         var organism = document.getElementById("organism");
@@ -642,6 +644,10 @@
         if (backendLink) {
           backendLink.removeAttribute("target");
           backendLink.removeAttribute("rel");
+        }
+        if (metaLink) {
+          metaLink.removeAttribute("target");
+          metaLink.removeAttribute("rel");
         }
 
         function speakGreeting() {
@@ -748,19 +754,15 @@
           terminalQueueOffset += (cursor + 1) * delay;
         }
 
-        function setBackendTerminalExpanded(expanded) {
-          backendExpanded = expanded;
+        function setTerminalExpanded(expanded) {
+          terminalExpanded = expanded;
           if (terminalDock) {
             terminalDock.classList.toggle("expanded", expanded);
           }
           if (terminalStatus) {
             terminalStatus.textContent = expanded
-              ? "backend api manifest mode // press esc to collapse"
+              ? "terminal data mode // press esc to collapse"
               : "terminal synced // node lattice online";
-          }
-          if (expanded) {
-            appendApiManifest();
-            if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
           }
         }
 
@@ -768,17 +770,162 @@
           backendLink.addEventListener("click", function (event) {
             if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
             event.preventDefault();
-            if (!backendExpanded) {
-              setBackendTerminalExpanded(true);
-            } else {
-              appendApiManifest();
+            if (!terminalExpanded) setTerminalExpanded(true);
+            appendApiManifest();
+            if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
+          });
+        }
+
+        function formatNumber(value) {
+          var n = Number(value || 0);
+          if (!Number.isFinite(n)) return "-";
+          return n.toLocaleString();
+        }
+
+        function formatPercent(value) {
+          var n = Number(value || 0);
+          if (!Number.isFinite(n)) return "-";
+          return n.toFixed(2) + "%";
+        }
+
+        function formatBytes(value) {
+          var n = Number(value || 0);
+          if (!Number.isFinite(n) || n <= 0) return "0 B";
+          var units = ["B", "KB", "MB", "GB", "TB"];
+          var i = Math.min(Math.floor(Math.log(n) / Math.log(1024)), units.length - 1);
+          var scaled = n / Math.pow(1024, i);
+          var precision = scaled >= 10 || i === 0 ? 0 : 2;
+          return scaled.toFixed(precision) + " " + units[i];
+        }
+
+        function formatDate(value) {
+          var ms = Date.parse(String(value || ""));
+          if (!Number.isFinite(ms)) return "-";
+          return new Date(ms).toLocaleString();
+        }
+
+        async function appendRenderMetaSnapshot() {
+          if (!bootLog) return;
+          renderMetaRequestCount += 1;
+          var backendBase = isLocal ? "http://localhost:3001" : "https://backend.brianz.dev";
+          var url = backendBase + "/api/site-performance/render/overview?hours=24";
+          var now = new Date();
+          var hh = String(now.getHours()).padStart(2, "0");
+          var mm = String(now.getMinutes()).padStart(2, "0");
+          var ss = String(now.getSeconds()).padStart(2, "0");
+          var stamp = hh + ":" + mm + ":" + ss;
+          var delay = 170;
+          var cursor = 0;
+
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Render Meta snapshot request accepted [" + stamp + "] #" + renderMetaRequestCount, true);
+          });
+          cursor += 1;
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Query: GET /api/site-performance/render/overview?hours=24", false);
+          });
+          cursor += 1;
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Connected API origin: " + backendBase, false);
+          });
+          cursor += 1;
+
+          try {
+            var response = await fetch(url);
+            var payload = await response.json();
+            if (!response.ok || !payload || payload.ok === false) {
+              throw new Error((payload && payload.error) || "Render overview request failed.");
             }
+
+            var summary = payload.summary || {};
+            var services = Array.isArray(payload.services) ? payload.services : [];
+
+            queueTerminalLine(cursor, delay, function () {
+              pushBootLine("> Snapshot generated: " + formatDate(payload.generatedAt), false);
+            });
+            cursor += 1;
+            queueTerminalLine(cursor, delay, function () {
+              pushBootLine("> Services tracked: " + formatNumber(summary.serviceCount), false);
+            });
+            cursor += 1;
+            queueTerminalLine(cursor, delay, function () {
+              pushBootLine("> HTTP requests: " + formatNumber(summary.totalHttpRequests), false);
+            });
+            cursor += 1;
+            queueTerminalLine(cursor, delay, function () {
+              pushBootLine("> Bandwidth: " + formatBytes(summary.totalBandwidthBytes), false);
+            });
+            cursor += 1;
+            queueTerminalLine(cursor, delay, function () {
+              pushBootLine("> Avg CPU: " + formatPercent(summary.avgCpuPercent), false);
+            });
+            cursor += 1;
+            queueTerminalLine(cursor, delay, function () {
+              var avgMemory = summary.avgMemoryGb ? Number(summary.avgMemoryGb).toFixed(2) + " GB" : "-";
+              pushBootLine("> Avg memory: " + avgMemory, false);
+            });
+            cursor += 1;
+
+            if (services.length) {
+              services.slice(0, 8).forEach(function (service) {
+                queueTerminalLine(cursor, delay, function () {
+                  var name = service.name || "unnamed-service";
+                  var type = service.type || "-";
+                  var region = service.region || "-";
+                  var runtime = service.runtime || "-";
+                  pushBootLineHtml(
+                    "&gt; <strong>[svc]</strong> " + name + "  // type: " + type + " | region: " + region + " | runtime: " + runtime,
+                    "api-line"
+                  );
+                });
+                cursor += 1;
+              });
+              if (services.length > 8) {
+                queueTerminalLine(cursor, delay, function () {
+                  pushBootLine("> ... +" + (services.length - 8) + " additional services", false);
+                });
+                cursor += 1;
+              }
+            } else {
+              queueTerminalLine(cursor, delay, function () {
+                pushBootLine("> No services returned for this snapshot", false);
+              });
+              cursor += 1;
+            }
+
+            queueTerminalLine(cursor, delay, function () {
+              pushBootLine("> Render Meta snapshot stream complete", true);
+            });
+            cursor += 1;
+          } catch (error) {
+            queueTerminalLine(cursor, delay, function () {
+              pushBootLine("> Render Meta stream error: " + String(error && error.message ? error.message : error), true);
+            });
+            cursor += 1;
+          }
+
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Press ESC to collapse terminal view", false);
+          });
+          terminalQueueOffset += (cursor + 1) * delay;
+        }
+
+        if (metaLink) {
+          metaLink.addEventListener("click", function (event) {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            if (!terminalExpanded) setTerminalExpanded(true);
+            renderMetaChain = renderMetaChain.then(function () {
+              return appendRenderMetaSnapshot();
+            }).catch(function () {
+              return appendRenderMetaSnapshot();
+            });
           });
         }
 
         window.addEventListener("keydown", function (event) {
-          if (event.key === "Escape" && backendExpanded) {
-            setBackendTerminalExpanded(false);
+          if (event.key === "Escape" && terminalExpanded) {
+            setTerminalExpanded(false);
           }
         });
 

@@ -162,13 +162,14 @@ Use exactly what Render Custom Domains asks for:
 - Clicking the `Backend` node now toggles an expanded full-height terminal mode and prints the connected backend API manifest (health, TFT, duo, coach, and site-performance routes); `Esc` collapses back to docked mode.
 - Backend manifest output now streams line-by-line (terminal typing cadence), and terminal expansion/collapse is animated from the docked bottom edge (no top-hop before expansion).
 - Every `Backend` click now appends a fresh manifest request block at the bottom of terminal history (timestamped), replaying line-by-line like a new backend call.
+- `Render Meta` launcher node is now terminal-native (no separate dashboard navigation from the portfolio node): it queries `/api/site-performance/render/overview` from the shared backend and streams service/summary output line-by-line into the same terminal stack.
 - When landing on portfolio from known app/subdomain hosts (`tftduos`, `site-performance`, and local app ports), boot handshake animation is skipped for immediate map access.
 - Portfolio scene suppresses ambient page caret/cursor artifacts in the lattice viewport while keeping terminal history selectable for copy.
 - Portfolio launcher opens HTTP(S) app destinations in new tabs so the landing scene remains open while navigating.
 - TFTDuos + Site Performance frontends now share portfolio visual language tokens (thin luminous blue outlines, translucent navy cards, controlled glow/opacity) and starfield-backed atmospherics while preserving foreground readability.
 - Portfolio launcher link assumptions:
-  - production: `https://tftduos.brianz.dev` and `https://site-performance.brianz.dev`
-  - local host: `http://localhost:4173` for TFTDuos and `http://localhost:4174` for Site Performance
+  - production node links: `https://tftduos.brianz.dev` (TFT) and `https://backend.brianz.dev` (backend + Render Meta terminal data source)
+  - local host node links: `http://localhost:4173` (TFT) and `http://localhost:3001` (backend + Render Meta terminal data source)
 
 ## AI Context Files
 
