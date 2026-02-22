@@ -520,13 +520,13 @@
 
         <div class="map-hud">
           <div class="chip"><span class="chip-dot" aria-hidden="true"></span> brianz.dev lattice</div>
-          <div class="chip">touch or move to navigate</div>
+          <div class="chip">tap nodes to explore</div>
         </div>
 
         <div class="organism" id="organism">
           <div class="core" aria-hidden="true"></div>
 
-          <a class="star-node" id="tftduos-link" data-kind="core" data-x="20" data-y="26" data-drift="22" href="https://tftduos.brianz.dev" aria-label="Open TFT Duos Coach">
+          <a class="star-node" id="tftduos-link" data-kind="core" data-x="20" data-y="26" href="https://tftduos.brianz.dev" aria-label="Open TFT Duos Coach">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M32 4L56 18V46L32 60L8 46V18L32 4Z" fill="#16223B" stroke="#E0BD72" stroke-width="2.4"/>
@@ -538,7 +538,7 @@
             <span>TFT Duos</span>
           </a>
 
-          <a class="star-node" id="meta-link" data-kind="meta" data-x="80" data-y="30" data-drift="24" href="https://api.brianz.dev/api/site-performance/render/overview?hours=24" aria-label="Load Render Meta in terminal">
+          <a class="star-node" id="meta-link" data-kind="meta" data-x="80" data-y="30" href="https://api.brianz.dev/api/site-performance/render/overview?hours=24" aria-label="Load Render Meta in terminal">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
@@ -551,7 +551,7 @@
             <span>Render Meta</span>
           </a>
 
-          <a class="star-node" id="backend-link" data-kind="meta" data-x="74" data-y="76" data-drift="18" href="https://api.brianz.dev/health" aria-label="Open Backend Health">
+          <a class="star-node" id="backend-link" data-kind="meta" data-x="74" data-y="76" href="https://api.brianz.dev/health" aria-label="Open Backend Health">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="32" cy="32" r="24" fill="#11253E" stroke="#6FC2FF" stroke-width="2.2"/>
@@ -563,7 +563,7 @@
             <span>Backend</span>
           </a>
 
-          <a class="star-node" data-x="28" data-y="74" data-drift="20" href="https://github.com/bziebart123/brianz.dev" aria-label="Open GitHub Repository">
+          <a class="star-node" data-x="28" data-y="74" href="https://github.com/bziebart123/brianz.dev" aria-label="Open GitHub Repository">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="9" y="9" width="46" height="46" rx="12" fill="#121f35" stroke="#E0BD72" stroke-width="2.2"/>
@@ -574,7 +574,7 @@
             <span>Source</span>
           </a>
 
-          <a class="star-node" data-x="50" data-y="16" data-drift="14" href="https://brianz.dev" aria-label="Reload home hub">
+          <a class="star-node" data-x="50" data-y="16" href="https://brianz.dev" aria-label="Reload home hub">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M32 8L52 24V52H12V24L32 8Z" fill="#13233A" stroke="#6FC2FF" stroke-width="2.2"/>
@@ -584,7 +584,7 @@
             <span>Home</span>
           </a>
 
-          <a class="star-node" id="contact-link" data-kind="meta" data-x="50" data-y="86" data-drift="16" href="#" aria-label="Open contact relay">
+          <a class="star-node" id="contact-link" data-kind="meta" data-x="50" data-y="86" href="#" aria-label="Open contact relay">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="10" y="14" width="44" height="36" rx="8" fill="#13223A" stroke="#8EF0C8" stroke-width="2.2"/>
@@ -636,8 +636,8 @@
         }
 
         var organism = document.getElementById("organism");
+        var core = organism ? organism.querySelector(".core") : null;
         var nodes = Array.prototype.slice.call(document.querySelectorAll(".star-node"));
-        var pointer = { x: 0, y: 0 };
         var nodeAnimationStarted = false;
         var spokeGreeting = false;
 
@@ -713,7 +713,8 @@
 
           if (!nodeAnimationStarted) {
             nodeAnimationStarted = true;
-            requestAnimationFrame(updateNodes);
+            updateNodeLayout();
+            requestAnimationFrame(updateLattice);
           }
         }
 
@@ -1067,44 +1068,50 @@
         var nodeState = nodes.map(function (node, index) {
           var x = Number(node.getAttribute("data-x") || 50) / 100;
           var y = Number(node.getAttribute("data-y") || 50) / 100;
-          var drift = Number(node.getAttribute("data-drift") || 14);
           return {
             el: node,
             x: x,
             y: y,
-            drift: drift,
             phase: index * 1.2,
             px: 0,
             py: 0
           };
         });
 
-        var linkPairs = [
-          [0, 4], [1, 4], [2, 5], [3, 5], [0, 3], [1, 2], [0, 1], [2, 3], [4, 5], [1, 5]
-        ];
-
-        function clamp(v, min, max) {
-          return Math.max(min, Math.min(max, v));
-        }
-
-        function updatePointer(clientX, clientY) {
-          if (!organism) return;
-          var rect = organism.getBoundingClientRect();
-          pointer.x = clamp((clientX - rect.left) / rect.width - 0.5, -0.5, 0.5);
-          pointer.y = clamp((clientY - rect.top) / rect.height - 0.5, -0.5, 0.5);
-        }
-
-        window.addEventListener("mousemove", function (event) {
-          updatePointer(event.clientX, event.clientY);
+        var latticePulseLines = nodes.map(function (_node, index) {
+          return {
+            nodeIndex: index,
+            phase: index * 0.72,
+            speed: 0.28 + (index % 3) * 0.07
+          };
         });
-
-        window.addEventListener("touchmove", function (event) {
-          if (!event.touches || !event.touches[0]) return;
-          updatePointer(event.touches[0].clientX, event.touches[0].clientY);
-        }, { passive: true });
 
         var latticeCanvas = document.getElementById("lattice-layer");
         var latticeCtx = latticeCanvas ? latticeCanvas.getContext("2d") : null;
+        var corePoint = { x: 0, y: 0 };
+
+        function updateNodeLayout() {
+          if (!organism) return;
+          var rect = organism.getBoundingClientRect();
+
+          for (var i = 0; i < nodeState.length; i += 1) {
+            var state = nodeState[i];
+            var x = state.x * rect.width;
+            var y = state.y * rect.height;
+            state.px = rect.left + x;
+            state.py = rect.top + y;
+            state.el.style.transform = "translate(-50%, -50%) translate(" + x.toFixed(2) + "px," + y.toFixed(2) + "px)";
+          }
+
+          if (core) {
+            var coreRect = core.getBoundingClientRect();
+            corePoint.x = coreRect.left + coreRect.width * 0.5;
+            corePoint.y = coreRect.top + coreRect.height * 0.5;
+          } else {
+            corePoint.x = rect.left + rect.width * 0.5;
+            corePoint.y = rect.top + rect.height * 0.5;
+          }
+        }
 
         function resizeLattice() {
           if (!latticeCanvas || !latticeCtx) return;
@@ -1115,6 +1122,7 @@
             latticeCanvas.height = h;
           }
           latticeCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+          updateNodeLayout();
         }
 
         window.addEventListener("resize", resizeLattice);
@@ -1124,27 +1132,47 @@
           if (!latticeCtx || !latticeCanvas) return;
 
           latticeCtx.clearRect(0, 0, latticeCanvas.width, latticeCanvas.height);
-          latticeCtx.lineWidth = 1.2;
+          latticeCtx.lineWidth = 1.1;
 
-          for (var i = 0; i < linkPairs.length; i += 1) {
-            var pair = linkPairs[i];
-            var a = nodeState[pair[0]];
-            var b = nodeState[pair[1]];
-            if (!a || !b) continue;
+          for (var i = 0; i < latticePulseLines.length; i += 1) {
+            var stream = latticePulseLines[i];
+            var target = nodeState[stream.nodeIndex];
+            if (!target) continue;
 
-            var pulse = 0.26 + (Math.sin(timeSec * 1.6 + i) + 1) * 0.16;
+            var pulse = 0.2 + (Math.sin(timeSec * 1.1 + stream.phase) + 1) * 0.11;
             latticeCtx.strokeStyle = "rgba(126, 186, 255," + pulse.toFixed(3) + ")";
             latticeCtx.beginPath();
-            latticeCtx.moveTo(a.px, a.py);
-            latticeCtx.lineTo(b.px, b.py);
+            latticeCtx.moveTo(corePoint.x, corePoint.y);
+            latticeCtx.lineTo(target.px, target.py);
             latticeCtx.stroke();
+
+            var travel = (timeSec * stream.speed + stream.phase) % 1;
+            var px = corePoint.x + (target.px - corePoint.x) * travel;
+            var py = corePoint.y + (target.py - corePoint.y) * travel;
+            var pulseRadius = 2 + (Math.sin((timeSec + stream.phase) * 7.5) + 1) * 1.7;
+            var pulseGlow = latticeCtx.createRadialGradient(px, py, 0, px, py, pulseRadius * 5);
+            pulseGlow.addColorStop(0, "rgba(224, 245, 255, 0.95)");
+            pulseGlow.addColorStop(1, "rgba(224, 245, 255, 0)");
+            latticeCtx.fillStyle = pulseGlow;
+            latticeCtx.beginPath();
+            latticeCtx.arc(px, py, pulseRadius * 5, 0, Math.PI * 2);
+            latticeCtx.fill();
           }
+
+          var coreGlowRadius = 16 + (Math.sin(timeSec * 2.3) + 1) * 7;
+          var coreGlow = latticeCtx.createRadialGradient(corePoint.x, corePoint.y, 0, corePoint.x, corePoint.y, coreGlowRadius * 2.4);
+          coreGlow.addColorStop(0, "rgba(186, 230, 255, 0.82)");
+          coreGlow.addColorStop(1, "rgba(186, 230, 255, 0)");
+          latticeCtx.fillStyle = coreGlow;
+          latticeCtx.beginPath();
+          latticeCtx.arc(corePoint.x, corePoint.y, coreGlowRadius * 2.4, 0, Math.PI * 2);
+          latticeCtx.fill();
 
           for (var j = 0; j < nodeState.length; j += 1) {
             var n = nodeState[j];
-            var r = 4 + ((Math.sin(timeSec * 1.4 + j) + 1) * 1.5);
+            var r = 3 + ((Math.sin(timeSec * 1.2 + j * 0.7) + 1) * 1.1);
             var glow = latticeCtx.createRadialGradient(n.px, n.py, 0, n.px, n.py, r * 4);
-            glow.addColorStop(0, "rgba(180, 224, 255, 0.9)");
+            glow.addColorStop(0, "rgba(180, 224, 255, 0.76)");
             glow.addColorStop(1, "rgba(180, 224, 255, 0)");
             latticeCtx.fillStyle = glow;
             latticeCtx.beginPath();
@@ -1153,26 +1181,9 @@
           }
         }
 
-        function updateNodes(now) {
-          if (!organism) return;
-          var rect = organism.getBoundingClientRect();
-          var t = now * 0.001;
-          var driftX = pointer.x * 28;
-          var driftY = pointer.y * 24;
-
-          for (var i = 0; i < nodeState.length; i += 1) {
-            var state = nodeState[i];
-            var ox = Math.sin(t * 0.7 + state.phase) * state.drift;
-            var oy = Math.cos(t * 0.8 + state.phase * 1.1) * (state.drift * 0.75);
-            var x = state.x * rect.width + ox + driftX;
-            var y = state.y * rect.height + oy + driftY;
-            state.px = rect.left + x;
-            state.py = rect.top + y;
-            state.el.style.transform = "translate(-50%, -50%) translate(" + x.toFixed(2) + "px," + y.toFixed(2) + "px)";
-          }
-
-          drawLinks(t);
-          requestAnimationFrame(updateNodes);
+        function updateLattice(now) {
+          drawLinks(now * 0.001);
+          requestAnimationFrame(updateLattice);
         }
 
         var depthCanvas = document.getElementById("depth-layer");
