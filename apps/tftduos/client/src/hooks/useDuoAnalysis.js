@@ -699,7 +699,7 @@ export default function useDuoAnalysis() {
       const cached = readAiCoachCache(cacheKey);
       if (cached && cached.newestMatchToken === newestMatchToken) {
         aiRequestKeyRef.current = requestKey;
-        setAiCoaching(cached.response);
+        setAiCoaching({ ...cached.response, cacheHit: true });
         setAiCoachingError("");
         return;
       }
@@ -720,11 +720,11 @@ export default function useDuoAnalysis() {
       if (!response.ok || !data?.ok) {
         throw new Error(data?.error || "Failed to generate AI coaching.");
       }
-      setAiCoaching(data);
+      setAiCoaching({ ...data, cacheHit: false });
       writeAiCoachCache(cacheKey, {
         newestMatchToken,
         generatedAt: Date.now(),
-        response: data,
+        response: { ...data, cacheHit: false },
       });
     } catch (requestError) {
       const fallbackMessage = "AI coach network request failed. Try Refresh AI or a smaller timeline window.";

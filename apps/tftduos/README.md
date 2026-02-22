@@ -116,6 +116,7 @@ Server env vars (see `.env.example` and server code):
 - Champion build analysis is inferred from each player's core units and attached item names in your recent games, then surfaced as `Champion Build Signals` in the coaching brief.
 - AI coaching request payload is now compacted client-side (most recent 32 minimal match records) to avoid large-timeline network/request-size failures when generating the brief.
 - AI coaching responses are now cached per duo/filter in local storage and automatically reused until a newer shared match appears in that filtered view (manual `Refresh AI` still forces regeneration).
+- `AI Coach Brief` now reveals generated output line-by-line after payload load (terminal style): cache hits stream faster for quick review, while fresh/regenerated runs use the standard terminal pacing.
 - Sidebar/coaching/history warnings and errors now use high-contrast custom banners for readability, and refresh actions use a dedicated CTA button style.
 - Coaching recommendations are rule-driven and data-adaptive (not hardcoded static text), and become more specific as event sample size grows.
 - Coaching now includes an `AI Coach Brief` card that calls `POST /api/coach/llm-brief` with current filtered metrics/match summaries and returns:
@@ -215,4 +216,3 @@ CI:
     - `major.minor` from `client/package.json`
     - `build` from current commit epoch (`git show -s --format=%ct HEAD`), fallback: UTC build timestamp when git metadata is unavailable
   - `__TFTDUOS_RELEASE_NOTES__` from recent GitHub commits API (repo slug resolved from render/git env), with `git log` fallback and final static fallback notes if both are unavailable
-
