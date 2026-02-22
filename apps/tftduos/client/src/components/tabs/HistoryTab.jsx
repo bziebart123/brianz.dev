@@ -162,10 +162,10 @@ export default function HistoryTab({
           </Pane>
 
           <Pane className="history-player-grid" display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={12} marginTop={12}>
-            <Card padding={10} elevation={0} background="rgba(255,255,255,0.04)">
+            <Card className="history-player-card" padding={10} elevation={0} background="rgba(255,255,255,0.04)">
               <Pane display="flex" justifyContent="space-between" alignItems="center" marginBottom={8} gap={8} flexWrap="wrap">
                 <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
-                  <Strong>{DISPLAY_NAME_A}</Strong>
+                  <Strong className="history-player-name">{DISPLAY_NAME_A}</Strong>
                   <Badge className="history-stat-badge" color={placementBadgeColor(match.playerA?.placement)}>
                     #{match.playerA?.placement ?? "?"}
                   </Badge>
@@ -225,10 +225,10 @@ export default function HistoryTab({
                 )}
               </Pane>
             </Card>
-            <Card padding={10} elevation={0} background="rgba(255,255,255,0.04)">
+            <Card className="history-player-card" padding={10} elevation={0} background="rgba(255,255,255,0.04)">
               <Pane display="flex" justifyContent="space-between" alignItems="center" marginBottom={8} gap={8} flexWrap="wrap">
                 <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
-                  <Strong>{DISPLAY_NAME_B}</Strong>
+                  <Strong className="history-player-name">{DISPLAY_NAME_B}</Strong>
                   <Badge className="history-stat-badge" color={placementBadgeColor(match.playerB?.placement)}>
                     #{match.playerB?.placement ?? "?"}
                   </Badge>

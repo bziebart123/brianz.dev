@@ -94,6 +94,10 @@ Server env vars (see `.env.example` and server code):
 - Coaching text now replaces recognized champion/trait mentions with inline TFT icons (summary/actions/meta/win conditions/5-game plan/player actions and champion build rows), using mention matching against the current filtered match trait+unit pool.
 - GPT-generated coaching lines now render with larger body text/icon sizes for readability, and displayed model text sanitizes `TFT##_*` tokens (for example `TFT16_Ahri`) into clean names (for example `Ahri`).
 - Coaching GPT text/icon sizing now responds to viewport width (keeps larger desktop readability while scaling down on mobile), and long generated lines are forced to wrap to prevent card overflow on narrow screens.
+- History mobile overflow hardening:
+  - player cards now explicitly allow shrink (`min-width: 0`) inside the history grid.
+  - long player names now wrap instead of forcing horizontal overflow.
+  - unit rows are constrained to card width and horizontal-scroll inside the row, preventing content from pushing off the right viewport edge.
 - Coaching page now waits for AI briefing before rendering the full content area and shows a full-page GPT loading state during generation.
 - AI coaching now includes a deterministic findings engine (server-side) that computes:
   - top improvement areas
