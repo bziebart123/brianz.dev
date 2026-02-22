@@ -201,6 +201,7 @@ export default function useDuoAnalysis() {
     const next = asArray(payload?.matches);
     return next.length ? next : EMPTY_MATCHES;
   }, [payload?.matches]);
+  const rankContext = payload?.rankContext || null;
   const duoId = payload?.duoId || "";
 
   const availableSets = useMemo(() => {
@@ -637,6 +638,8 @@ export default function useDuoAnalysis() {
       metaSnapshot: {
         lobbyTraits: asArray(computed?.metaTraits).slice(0, 8),
         lobbyUnits: asArray(computed?.metaUnits).slice(0, 10),
+        regionalMetaTraits: asArray(rankContext?.ladderMeta?.topTraits).slice(0, 8),
+        regionalMetaChampions: asArray(rankContext?.ladderMeta?.topChampions).slice(0, 10),
         playerAItems: asArray(coachingInsights?.topItemsA).slice(0, 8),
         playerBItems: asArray(coachingInsights?.topItemsB).slice(0, 8),
         suggestions: asArray(computed?.suggestions).slice(0, 4),
@@ -713,6 +716,7 @@ export default function useDuoAnalysis() {
     clutchIndex,
     scorecard,
     coachingIntel,
+    rankContext,
   ]);
 
   const displayedError =
@@ -745,6 +749,7 @@ export default function useDuoAnalysis() {
     iconManifest,
     companionManifest,
     computed,
+    rankContext,
     duoRisk,
     decisionGrade,
     rescueRate,

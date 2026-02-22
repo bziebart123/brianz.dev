@@ -156,6 +156,7 @@ export default function CoachingTab({
   loadAiCoaching,
   filteredMatches,
   iconManifest,
+  rankContext,
 }) {
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth <= MOBILE_BREAKPOINT : false
@@ -178,6 +179,9 @@ export default function CoachingTab({
   const dynamicSignal = clamp(
     Math.round(((decisionGrade || 0) * 0.42) + ((100 - duoRisk) * 0.33) + (top2Rate * 0.25))
   );
+
+  const regionalTraits = asArray(rankContext?.ladderMeta?.topTraits).slice(0, 4);
+  const regionalChamps = asArray(rankContext?.ladderMeta?.topChampions).slice(0, 6);
 
   const aiPlans = asArray(aiCoaching?.brief?.playerPlans);
   const fallbackPlans = [
@@ -292,6 +296,51 @@ export default function CoachingTab({
             <Text size={400} color="muted">Rescue / Clutch</Text>
             <Heading size={700} marginTop={6}>{rescueRate.toFixed(1)}% / {clutchIndex.toFixed(1)}%</Heading>
           </Card>
+        </Pane>
+      </Card>
+
+
+      <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
+        <Pane display="flex" alignItems="center" justifyContent="space-between" gap={10} flexWrap="wrap">
+          <Heading size={500}>Regional Meta Pressure</Heading>
+          <Badge color="blue">{String(rankContext?.platform || "-").toUpperCase()}</Badge>
+        </Pane>
+        <Text size={400} color="muted" marginTop={6} display="block">
+          Apex ladder sample: {Number(rankContext?.queuePopulation?.apexPopulation?.total || 0)} players · Snapshot {rankContext?.snapshotAt ? formatGeneratedTime(Date.parse(rankContext.snapshotAt)) : "unknown"}
+        </Text>
+        <Pane marginTop={10} display="grid" gridTemplateColumns="repeat(auto-fit, minmax(240px, 1fr))" gap={10}>
+          <Pane>
+            <Text size={400} color="muted">Most Pressured Traits</Text>
+            <Pane marginTop={6} display="flex" flexWrap="wrap" gap={6}>
+              {regionalTraits.length ? regionalTraits.map((trait) => (
+                <IconWithLabel
+                  key={`coach-regional-trait-${trait.name}`}
+                  kind="trait"
+                  token={trait.name}
+                  label={prettyName(trait.name)}
+                  count={trait.count}
+                  size={20}
+                  iconManifest={iconManifest}
+                />
+              )) : <Text size={300} color="muted">No trait snapshot.</Text>}
+            </Pane>
+          </Pane>
+          <Pane>
+            <Text size={400} color="muted">Most Pressured Champions</Text>
+            <Pane marginTop={6} display="flex" flexWrap="wrap" gap={6}>
+              {regionalChamps.length ? regionalChamps.map((unit) => (
+                <IconWithLabel
+                  key={`coach-regional-unit-${unit.characterId}`}
+                  kind="unit"
+                  token={unit.characterId}
+                  label={prettyName(unit.characterId)}
+                  count={unit.count}
+                  size={20}
+                  iconManifest={iconManifest}
+                />
+              )) : <Text size={300} color="muted">No champion snapshot.</Text>}
+            </Pane>
+          </Pane>
         </Pane>
       </Card>
 

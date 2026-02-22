@@ -109,6 +109,7 @@ export default function App() {
               filteredMatches={state.filteredMatches}
               scorecard={state.scorecard}
               coachingInsights={state.coachingInsights}
+              rankContext={state.rankContext}
             />
           ) : null}
 
@@ -131,6 +132,7 @@ export default function App() {
               loadAiCoaching={state.loadAiCoaching}
               filteredMatches={state.filteredMatches}
               iconManifest={state.iconManifest}
+              rankContext={state.rankContext}
             />
           ) : null}
 

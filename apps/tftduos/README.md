@@ -84,6 +84,9 @@ Server env vars (see `.env.example` and server code):
   - Detailed per-player award numbers now live in hover tooltips on each blame card (visible card shows only the verdict)
   - On desktop, the 5 blame awards render in a single row; mobile still stacks for readability
 - Analysis page labels/KPIs/sections now include hover tooltips describing what each metric means and how key scores are computed.
+- `/api/tft/duo-history` now returns `rankContext` with ladder snapshot metadata: `region`, `platform`, `snapshotAt`, `queuePopulation` hints, and `ladderMeta` (`topTraits`, `topChampions`, sampled top-player count).
+- `rankContext` is cached briefly server-side and built from official TFT ladder routes (apex leagues + tier/division entries pages) to reduce latency while keeping snapshot context current.
+- Analysis and Coaching tabs surface `rankContext` as **Regional Meta Pressure** so duo trends and action plans can be compared against regional high-ELO ladder pressure.
 - Rescue/Clutch KPI now includes explicit in-card counts (`rescue events / total events`, `clutch wins / rescues`, `flips / rescues`) so missing clutch signal can be diagnosed without hovering.
 - Several analysis metrics are extrapolated client-side from filtered match payloads (for example momentum, volatility, patch ranking, and per-player consistency).
 - Coaching tab now uses an AI-first layout:

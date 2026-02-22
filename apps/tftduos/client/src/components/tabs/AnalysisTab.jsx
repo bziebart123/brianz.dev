@@ -258,6 +258,7 @@ export default function AnalysisTab({
   scorecard,
   coachingInsights,
   companionManifest,
+  rankContext,
 }) {
   const sorted = [...filteredMatches].sort((a, b) => toEpochMs(a.gameDatetime) - toEpochMs(b.gameDatetime));
   const teamPlacements = sorted.map((match) => teamPlacementFromMatch(match));
@@ -305,6 +306,12 @@ export default function AnalysisTab({
     .sort((left, right) => left.avgPlacement - right.avgPlacement || right.games - left.games)
     .slice(0, 5);
 
+
+  const regionalTraits = asArray(rankContext?.ladderMeta?.topTraits).slice(0, 6);
+  const regionalChamps = asArray(rankContext?.ladderMeta?.topChampions).slice(0, 8);
+  const regionalSnapshotAt = rankContext?.snapshotAt
+    ? new Date(rankContext.snapshotAt).toLocaleString()
+    : "unknown";
   const playerA = summarizePlayer(sorted, "playerA", DISPLAY_NAME_A, coachingInsights?.summary?.a);
   const playerB = summarizePlayer(sorted, "playerB", DISPLAY_NAME_B, coachingInsights?.summary?.b);
 
@@ -584,6 +591,55 @@ export default function AnalysisTab({
               </Pane>
             </Tooltip>
           ))}
+        </Pane>
+      </Card>
+
+      <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
+        <SectionTitle
+          title="Regional Meta Pressure"
+          tooltip="High-ELO ladder snapshot (challenger/grandmaster/master + sampled matches) used as context for duo trend comparison."
+        />
+        <Pane marginTop={10} display="grid" gap={8}>
+          <Text size={400} color="muted">
+            {`Region ${String(rankContext?.region || "-").toUpperCase()} / Platform ${String(rankContext?.platform || "-").toUpperCase()} · Snapshot ${regionalSnapshotAt}`}
+          </Text>
+          <Text size={400} color="muted">
+            Apex pool: {Number(rankContext?.queuePopulation?.apexPopulation?.total || 0)} players · Estimated apex cutoff: {rankContext?.queuePopulation?.percentileHints?.apexCutoffPercentile ?? "-"}%
+          </Text>
+
+          <Pane marginTop={4}>
+            <Text size={400} color="muted">Top Regional Traits</Text>
+            <Pane marginTop={8} display="flex" flexWrap="wrap" gap={8}>
+              {regionalTraits.length ? regionalTraits.map((trait) => (
+                <IconWithLabel
+                  key={`regional-trait-${trait.name}`}
+                  kind="trait"
+                  token={trait.name}
+                  label={prettyName(trait.name)}
+                  count={trait.count}
+                  size={50}
+                  iconManifest={iconManifest}
+                />
+              )) : <Text size={400} color="muted">No regional ladder trait snapshot available.</Text>}
+            </Pane>
+          </Pane>
+
+          <Pane marginTop={4}>
+            <Text size={400} color="muted">Top Regional Champions</Text>
+            <Pane marginTop={8} display="flex" flexWrap="wrap" gap={8}>
+              {regionalChamps.length ? regionalChamps.map((unit) => (
+                <IconWithLabel
+                  key={`regional-champ-${unit.characterId}`}
+                  kind="unit"
+                  token={unit.characterId}
+                  label={prettyName(unit.characterId)}
+                  count={unit.count}
+                  size={48}
+                  iconManifest={iconManifest}
+                />
+              )) : <Text size={400} color="muted">No regional ladder champion snapshot available.</Text>}
+            </Pane>
+          </Pane>
         </Pane>
       </Card>
 
