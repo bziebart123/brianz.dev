@@ -1,12 +1,16 @@
 :root {
-  --bg-0: #0d111a;
-  --bg-1: #12192b;
-  --card: rgba(17, 27, 47, 0.78);
-  --border: #2d3f67;
-  --text: #e9f0ff;
-  --muted: #b7c6e7;
-  --accent: #67c7ff;
-  --good: #62d4a1;
+  --bg-0: #070d1a;
+  --bg-1: #0e1830;
+  --bg-2: #13223f;
+  --card: linear-gradient(170deg, rgba(16, 28, 52, 0.72), rgba(11, 19, 36, 0.84));
+  --border: rgba(103, 150, 228, 0.42);
+  --border-strong: rgba(111, 194, 255, 0.58);
+  --text: #e9efff;
+  --muted: #a8bddf;
+  --accent: #6fc2ff;
+  --good: #8ef0c8;
+  --warn: #e0bd72;
+  --glow: 0 0 0 1px rgba(111, 194, 255, 0.1), 0 12px 28px rgba(2, 8, 20, 0.46);
 }
 
 * {
@@ -19,9 +23,9 @@ body {
   font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--text);
   background:
-    radial-gradient(900px 500px at 85% -10%, rgba(103, 199, 255, 0.2), transparent 60%),
-    radial-gradient(600px 400px at 8% 110%, rgba(98, 212, 161, 0.16), transparent 60%),
-    linear-gradient(160deg, var(--bg-0), var(--bg-1));
+    radial-gradient(920px 540px at 84% -10%, rgba(111, 194, 255, 0.18), transparent 62%),
+    radial-gradient(640px 440px at 9% 108%, rgba(224, 189, 114, 0.14), transparent 62%),
+    linear-gradient(158deg, var(--bg-0), var(--bg-1));
   position: relative;
 }
 
@@ -35,20 +39,28 @@ body::after {
 }
 
 body::before {
+  opacity: 0.36;
   background-image:
-    radial-gradient(circle at 10% 24%, rgba(255, 255, 255, 0.18) 0 1px, transparent 2px),
-    radial-gradient(circle at 72% 12%, rgba(255, 255, 255, 0.16) 0 1px, transparent 2px),
-    radial-gradient(circle at 86% 56%, rgba(255, 255, 255, 0.15) 0 1px, transparent 2px),
-    radial-gradient(circle at 22% 68%, rgba(255, 255, 255, 0.18) 0 1px, transparent 2px),
-    radial-gradient(circle at 48% 88%, rgba(255, 255, 255, 0.14) 0 1px, transparent 2px);
-  opacity: 0.24;
+    linear-gradient(rgba(132, 194, 255, 0.9), rgba(132, 194, 255, 0.9)),
+    linear-gradient(rgba(132, 194, 255, 0.86), rgba(132, 194, 255, 0.86)),
+    linear-gradient(rgba(132, 194, 255, 0.8), rgba(132, 194, 255, 0.8)),
+    linear-gradient(rgba(132, 194, 255, 0.82), rgba(132, 194, 255, 0.82)),
+    linear-gradient(rgba(224, 189, 114, 0.66), rgba(224, 189, 114, 0.66)),
+    linear-gradient(rgba(132, 194, 255, 0.82), rgba(132, 194, 255, 0.82)),
+    linear-gradient(rgba(132, 194, 255, 0.84), rgba(132, 194, 255, 0.84)),
+    linear-gradient(rgba(132, 194, 255, 0.8), rgba(132, 194, 255, 0.8)),
+    linear-gradient(rgba(224, 189, 114, 0.62), rgba(224, 189, 114, 0.62)),
+    linear-gradient(rgba(132, 194, 255, 0.86), rgba(132, 194, 255, 0.86));
+  background-size: 3px 3px, 2px 2px, 2px 2px, 3px 3px, 2px 2px, 2px 2px, 3px 3px, 2px 2px, 2px 2px, 3px 3px;
+  background-position: 4% 10%, 12% 72%, 29% 30%, 40% 84%, 53% 18%, 64% 68%, 74% 36%, 82% 12%, 90% 60%, 96% 88%;
+  background-repeat: no-repeat;
 }
 
 body::after {
+  opacity: 0.42;
   background:
-    radial-gradient(520px 300px at 15% 18%, rgba(103, 199, 255, 0.08), transparent 68%),
-    radial-gradient(440px 280px at 82% 78%, rgba(98, 212, 161, 0.07), transparent 68%);
-  opacity: 0.46;
+    radial-gradient(580px 360px at 16% 18%, rgba(111, 194, 255, 0.1), transparent 68%),
+    radial-gradient(460px 320px at 82% 78%, rgba(142, 240, 200, 0.08), transparent 68%);
 }
 
 #root {
@@ -59,7 +71,7 @@ body::after {
 .app {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 32px 18px 44px;
+  padding: 28px 18px 40px;
   display: grid;
   gap: 14px;
 }
@@ -68,6 +80,7 @@ body::after {
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--card);
+  box-shadow: var(--glow);
   padding: 14px;
 }
 
@@ -79,9 +92,14 @@ body::after {
   align-items: center;
 }
 
-h1 {
+h1,
+h2 {
   margin: 0;
-  font-size: clamp(1.4rem, 3vw, 2rem);
+  letter-spacing: 0.02em;
+}
+
+h1 {
+  font-size: clamp(1.35rem, 2.8vw, 1.95rem);
 }
 
 .muted {
@@ -97,13 +115,14 @@ h1 {
 
 select,
 button {
-  background: #16233f;
+  background: linear-gradient(170deg, rgba(15, 31, 56, 0.84), rgba(12, 22, 42, 0.92));
   color: var(--text);
-  border: 1px solid #38507f;
-  border-radius: 9px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
   min-height: 38px;
   padding: 0 12px;
   font-weight: 600;
+  box-shadow: 0 0 0 1px rgba(111, 194, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 button {
@@ -111,7 +130,8 @@ button {
 }
 
 button:hover {
-  border-color: var(--accent);
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 1px rgba(111, 194, 255, 0.16), 0 6px 14px rgba(3, 10, 24, 0.34);
 }
 
 .grid {
@@ -122,9 +142,10 @@ button:hover {
 
 .card {
   border: 1px solid var(--border);
-  border-radius: 10px;
-  background: rgba(10, 18, 34, 0.52);
-  padding: 10px;
+  border-radius: 11px;
+  background: linear-gradient(170deg, rgba(14, 26, 48, 0.68), rgba(10, 19, 36, 0.78));
+  box-shadow: var(--glow);
+  padding: 11px;
 }
 
 .card .k {
@@ -134,12 +155,15 @@ button:hover {
 
 .card .v {
   margin-top: 6px;
-  font-size: 1.25rem;
+  font-size: 1.22rem;
   font-weight: 700;
 }
 
 .table-wrap {
   overflow: auto;
+  border: 1px solid rgba(103, 150, 228, 0.28);
+  border-radius: 10px;
+  background: rgba(10, 18, 34, 0.42);
 }
 
 table {
@@ -149,24 +173,42 @@ table {
 
 th,
 td {
-  border-bottom: 1px solid rgba(115, 145, 199, 0.24);
+  border-bottom: 1px solid rgba(103, 150, 228, 0.24);
   text-align: left;
-  padding: 8px 6px;
+  padding: 9px 8px;
   font-size: 0.95rem;
+}
+
+th {
+  color: #d5e4ff;
+  background: rgba(15, 30, 54, 0.6);
 }
 
 .status {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  border: 1px solid rgba(98, 212, 161, 0.4);
+  border: 1px solid rgba(142, 240, 200, 0.46);
   padding: 2px 10px;
   color: var(--good);
+  background: rgba(20, 44, 52, 0.36);
 }
 
 .error {
   border: 1px solid rgba(230, 96, 96, 0.5);
-  background: rgba(92, 26, 26, 0.5);
+  background: linear-gradient(145deg, rgba(88, 28, 35, 0.72), rgba(62, 20, 26, 0.78));
   border-radius: 10px;
+  box-shadow: var(--glow);
   padding: 10px;
+}
+
+@media (max-width: 760px) {
+  .app {
+    padding: 14px 10px 18px;
+    gap: 10px;
+  }
+
+  .panel {
+    padding: 10px;
+  }
 }

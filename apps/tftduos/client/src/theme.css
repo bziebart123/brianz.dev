@@ -726,3 +726,43 @@ body::after {
     max-height: 180px;
   }
 }
+
+/* Portfolio visual-language alignment */
+:root {
+  --bz-border-soft: rgba(103, 150, 228, 0.42);
+  --bz-glow: 0 0 0 1px rgba(111, 194, 255, 0.12), 0 10px 26px rgba(3, 10, 24, 0.42);
+}
+
+.tft-main-content [data-evergreen-id="card"],
+.tft-sidebar [data-evergreen-id="card"],
+.tft-main-content .history-player-card {
+  border: 1px solid var(--bz-border-soft) !important;
+  background: linear-gradient(170deg, rgba(16, 28, 52, 0.72), rgba(11, 19, 36, 0.84)) !important;
+  box-shadow: var(--bz-glow) !important;
+}
+
+.tft-main-content [data-evergreen-id="card"]:hover,
+.tft-sidebar [data-evergreen-id="card"]:hover {
+  border-color: rgba(111, 194, 255, 0.62) !important;
+}
+
+.tft-main-content [data-evergreen-id="badge"],
+.tft-main-content .history-chip,
+.tft-main-content .history-stat-badge,
+.tft-main-content .analysis-chip {
+  border-color: rgba(111, 194, 255, 0.44) !important;
+  box-shadow: 0 0 0 1px rgba(111, 194, 255, 0.08), 0 5px 12px rgba(4, 10, 22, 0.32);
+}
+
+.tft-app-shell select,
+.tft-app-shell input,
+.tft-app-shell textarea,
+.tft-app-shell button {
+  border: 1px solid rgba(103, 150, 228, 0.52) !important;
+  box-shadow: 0 0 0 1px rgba(111, 194, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.tft-sidebar {
+  border-right: 1px solid var(--bz-border-soft) !important;
+  box-shadow: inset -1px 0 0 rgba(111, 194, 255, 0.12), 0 0 0 1px rgba(111, 194, 255, 0.06);
+}
