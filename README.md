@@ -148,6 +148,9 @@ Use exactly what Render Custom Domains asks for:
 - Coaching UI now uses high-contrast custom error/warning banners and compact AI payload requests to improve readability and reduce large-timeline AI network failures.
 - Coaching AI responses are cached client-side by duo/filter and reused until a newer shared match is detected, reducing repeated OpenAI calls when no new duo games were played.
 - Coaching data flow is now trimmed to the active UI surface: `App.jsx` only passes `CoachingTab` the props it renders, and `useDuoAnalysis` drops unused journal/event-only client state.
+- `/api/tft/duo-history` now includes a compact `rankContext` snapshot (region/platform, apex ladder population hints, sampled challenger+ ladder meta traits/champions, snapshot timestamp) so duo trends can be compared against regional high-ELO pressure.
+- `rankContext` ladder sampling now uses Riot's TFT tier/division entries route (`/tft/league/v1/entries/{queue}/{tier}/{division}`) and a short backend cache window to avoid repeated heavy ladder fetches on every duo-history request.
+- Analysis + Coaching now render this `rankContext` as a Regional Meta Pressure context card to keep recommendations grounded in current ladder pressure.
 - Site Performance now exists as a frontend-only Render Meta Dashboard (`apps/site-performance/client`) and consumes shared backend routes under `/api/site-performance/*` from `apps/backend`.
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.

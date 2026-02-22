@@ -113,6 +113,8 @@ const CACHE_TTL = {
   match: 24 * 60 * 60 * 1000,
   summoner: 5 * 60 * 1000,
   rank: 60 * 1000,
+  ladder: 10 * 60 * 1000,
+  ladderMatch: 10 * 60 * 1000,
 };
 
 const QUEUE_LABELS = {
@@ -452,6 +454,188 @@ async function riotRequestCached(url, ttl) {
   if (hit) return hit;
   const data = await riotRequest(url);
   return setCache(key, data, ttl);
+}
+
+function riotPlatformUrl(platformRegion, pathname) {
+  return `https://${platformRegion}.api.riotgames.com${pathname}`;
+}
+
+function riotRoutingUrl(routingRegion, pathname) {
+  return `https://${routingRegion}.api.riotgames.com${pathname}`;
+}
+
+async function fetchTftApexLeague(platformRegion, tier, queue = "RANKED_TFT") {
+  return riotRequestCached(
+    riotPlatformUrl(platformRegion, `/tft/league/v1/${tier.toLowerCase()}leagues/by-queue/${encodeURIComponent(queue)}`),
+    CACHE_TTL.ladder
+  );
+}
+
+async function fetchTftTierDivisionPage(platformRegion, {
+  queue = "RANKED_TFT",
+  tier = "DIAMOND",
+  division = "I",
+  page = 1,
+} = {}) {
+  return riotRequestCached(
+    riotPlatformUrl(platformRegion, `/tft/league/v1/entries/${encodeURIComponent(queue)}/${encodeURIComponent(tier)}/${encodeURIComponent(division)}?page=${encodeURIComponent(String(page))}`),
+    CACHE_TTL.ladder
+  );
+}
+
+function sampleTopLadderEntries(apexSnapshots, sampleSize = 10) {
+  const entries = [];
+  for (const snapshot of apexSnapshots) {
+    for (const entry of asArray(snapshot?.entries)) {
+      if (!entry?.summonerId) continue;
+      entries.push({
+        tier: snapshot?.tier || null,
+        rank: entry?.rank || null,
+        leaguePoints: Number(entry?.leaguePoints || 0),
+        wins: Number(entry?.wins || 0),
+        losses: Number(entry?.losses || 0),
+        summonerId: entry.summonerId,
+      });
+    }
+  }
+
+  return entries
+    .sort((left, right) => right.leaguePoints - left.leaguePoints || right.wins - left.wins)
+    .slice(0, sampleSize);
+}
+
+function summarizeQueuePopulation(apexSnapshots, tierDivisionSamples) {
+  const challenger = asArray(apexSnapshots.find((entry) => entry?.tier === "CHALLENGER")?.entries).length;
+  const grandmaster = asArray(apexSnapshots.find((entry) => entry?.tier === "GRANDMASTER")?.entries).length;
+  const master = asArray(apexSnapshots.find((entry) => entry?.tier === "MASTER")?.entries).length;
+  const apexTotal = challenger + grandmaster + master;
+  const sampleTotal = asArray(tierDivisionSamples).reduce(
+    (sum, sample) => sum + Number(sample?.pageSize || 0),
+    0
+  );
+  const estimatedRankedPopulationLowerBound = apexTotal + sampleTotal;
+  const apexCutoffPercentile = estimatedRankedPopulationLowerBound
+    ? Number(((apexTotal / estimatedRankedPopulationLowerBound) * 100).toFixed(2))
+    : null;
+
+  return {
+    rankedQueue: "RANKED_TFT",
+    apexPopulation: {
+      challenger,
+      grandmaster,
+      master,
+      total: apexTotal,
+    },
+    tierPageSamples: tierDivisionSamples,
+    estimatedRankedPopulationLowerBound,
+    percentileHints: {
+      apexCutoffPercentile,
+      note: "Percentile hints are lower-bound estimates from apex + sampled tier pages, not full-ladder census.",
+    },
+  };
+}
+
+function summarizeTopLadderMetaFromMatches(topMatches) {
+  const traitCounts = {};
+  const championCounts = {};
+
+  for (const snapshot of topMatches) {
+    for (const trait of asArray(snapshot?.traits)) {
+      const name = String(trait?.name || "");
+      if (!name) continue;
+      traitCounts[name] = (traitCounts[name] || 0) + 1;
+    }
+    for (const unit of asArray(snapshot?.units)) {
+      const characterId = String(unit?.characterId || "");
+      if (!characterId) continue;
+      championCounts[characterId] = (championCounts[characterId] || 0) + 1;
+    }
+  }
+
+  const topTraits = Object.entries(traitCounts)
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, 8)
+    .map(([name, count]) => ({ name, count }));
+  const topChampions = Object.entries(championCounts)
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, 12)
+    .map(([characterId, count]) => ({ characterId, count }));
+
+  return {
+    topTraits,
+    topChampions,
+    sampledTopPlayers: topMatches.length,
+  };
+}
+
+async function buildRankContextCached({ routingRegion, platformRegion }) {
+  const cacheKey = `rank-context:${routingRegion}:${platformRegion}`;
+  const hit = getFromCache(cacheKey);
+  if (hit) return hit;
+  const data = await buildRankContext({ routingRegion, platformRegion });
+  return setCache(cacheKey, data, CACHE_TTL.ladder);
+}
+
+async function buildRankContext({ routingRegion, platformRegion }) {
+  const queue = "RANKED_TFT";
+  const [challenger, grandmaster, master, diamondI, emeraldI] = await Promise.all([
+    fetchTftApexLeague(platformRegion, "challenger", queue),
+    fetchTftApexLeague(platformRegion, "grandmaster", queue),
+    fetchTftApexLeague(platformRegion, "master", queue),
+    fetchTftTierDivisionPage(platformRegion, { queue, tier: "DIAMOND", division: "I", page: 1 }),
+    fetchTftTierDivisionPage(platformRegion, { queue, tier: "EMERALD", division: "I", page: 1 }),
+  ]);
+
+  const apexSnapshots = [challenger, grandmaster, master].map((entry) => ({
+    tier: String(entry?.tier || "").toUpperCase(),
+    entries: asArray(entry?.entries),
+  }));
+
+  const tierDivisionSamples = [
+    { tier: "DIAMOND", division: "I", page: 1, pageSize: asArray(diamondI).length },
+    { tier: "EMERALD", division: "I", page: 1, pageSize: asArray(emeraldI).length },
+  ];
+
+  const topSummoners = sampleTopLadderEntries(apexSnapshots, 10);
+  const topMatches = [];
+  for (const entry of topSummoners) {
+    try {
+      const summoner = await riotRequestCached(
+        riotPlatformUrl(platformRegion, `/tft/summoner/v1/summoners/${entry.summonerId}`),
+        CACHE_TTL.ladder
+      );
+      const matchIds = await riotRequestCached(
+        riotRoutingUrl(routingRegion, `/tft/match/v1/matches/by-puuid/${summoner.puuid}/ids?start=0&count=1`),
+        CACHE_TTL.ladderMatch
+      );
+      const matchId = asArray(matchIds)[0];
+      if (!matchId) continue;
+      const match = await riotRequestCached(
+        riotRoutingUrl(routingRegion, `/tft/match/v1/matches/${matchId}`),
+        CACHE_TTL.ladderMatch
+      );
+      const participant = asArray(match?.info?.participants).find((item) => item?.puuid === summoner.puuid);
+      if (!participant) continue;
+      topMatches.push({
+        summonerId: entry.summonerId,
+        tier: entry.tier,
+        rank: entry.rank,
+        leaguePoints: entry.leaguePoints,
+        traits: summarizeTraits(participant.traits).filter((trait) => Number(trait?.style || 0) > 0),
+        units: summarizeUnits(participant.units),
+      });
+    } catch {
+      // Keep context generation best-effort; partial ladder snapshots are still useful.
+    }
+  }
+
+  return {
+    region: routingRegion,
+    platform: platformRegion,
+    snapshotAt: new Date().toISOString(),
+    queuePopulation: summarizeQueuePopulation(apexSnapshots, tierDivisionSamples),
+    ladderMeta: summarizeTopLadderMetaFromMatches(topMatches),
+  };
 }
 
 function summarizeUnits(units = []) {
@@ -1786,6 +1970,25 @@ app.get("/api/tft/duo-history", async (req, res) => {
     }
 
     const analysis = analyzeDuoTrends(matches);
+    let rankContext = null;
+    try {
+      rankContext = await buildRankContextCached({
+        routingRegion,
+        platformRegion,
+      });
+    } catch {
+      rankContext = {
+        region: routingRegion,
+        platform: platformRegion,
+        snapshotAt: new Date().toISOString(),
+        queuePopulation: null,
+        ladderMeta: {
+          topTraits: [],
+          topChampions: [],
+          sampledTopPlayers: 0,
+        },
+      };
+    }
     const duoId = stableDuoId(playerA.account.puuid, playerB.account.puuid);
     const duoRecord = ensureDuoRecord({
       duoId,
@@ -1854,6 +2057,7 @@ app.get("/api/tft/duo-history", async (req, res) => {
       deltaHours,
       matches,
       analysis,
+      rankContext,
       analysisV2,
       playbook,
       highlights,
@@ -2234,4 +2438,3 @@ app.get(/^\/(?!api(?:\/|$)).*/, async (_req, res) => {
 app.listen(port, () => {
   console.log(`brianz backend listening on http://localhost:${port}`);
 });
-
