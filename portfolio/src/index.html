@@ -166,10 +166,18 @@
         position: absolute;
         left: 14px;
         right: 14px;
+        top: 14px;
         bottom: 14px;
         z-index: 7;
-        display: block;
+        display: flex;
+        align-items: flex-end;
         pointer-events: none;
+      }
+
+      .terminal-dock.expanded .terminal {
+        height: 100%;
+        border-color: rgba(111, 194, 255, 0.62);
+        box-shadow: 0 28px 56px rgba(0, 0, 0, 0.62), 0 0 42px rgba(111, 194, 255, 0.28);
       }
 
       .terminal {
@@ -183,6 +191,9 @@
         box-shadow: 0 22px 44px rgba(0, 0, 0, 0.56), 0 0 32px rgba(111, 194, 255, 0.2);
         overflow: hidden;
         backdrop-filter: blur(3px);
+        transition: height 460ms ease, border-color 220ms ease, box-shadow 220ms ease;
+        pointer-events: auto;
+        transform-origin: bottom center;
       }
 
       .terminal-head {
@@ -218,6 +229,15 @@
         font-family: "Consolas", "Menlo", "SFMono-Regular", monospace;
         font-size: 0.8rem;
         color: var(--muted);
+      }
+
+      .api-line {
+        color: #d4e4ff;
+      }
+
+      .api-line strong {
+        color: #8ef0c8;
+        font-weight: 600;
       }
 
       .terminal-prompt::after {
@@ -443,6 +463,7 @@
         .terminal-dock {
           left: 10px;
           right: 10px;
+          top: 10px;
           bottom: 10px;
         }
 
@@ -525,7 +546,7 @@
             <span>Render Meta</span>
           </a>
 
-          <a class="star-node" data-kind="meta" data-x="74" data-y="76" data-drift="18" href="https://backend.brianz.dev/health" aria-label="Open Backend Health">
+          <a class="star-node" id="backend-link" data-kind="meta" data-x="74" data-y="76" data-drift="18" href="https://backend.brianz.dev/health" aria-label="Open Backend Health">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="32" cy="32" r="24" fill="#11253E" stroke="#6FC2FF" stroke-width="2.2"/>
@@ -579,9 +600,22 @@
 
         var tftLink = document.getElementById("tftduos-link");
         var metaLink = document.getElementById("meta-link");
+        var backendLink = document.getElementById("backend-link");
         var starfield = document.querySelector(".starfield");
+        var terminalDock = document.querySelector(".terminal-dock");
         var bootLog = document.getElementById("boot-log");
         var terminalStatus = document.getElementById("terminal-status");
+        var backendExpanded = false;
+        var backendRequestCount = 0;
+        var terminalQueueOffset = 0;
+        var subAppHosts = [
+          "tftduos.brianz.dev",
+          "site-performance.brianz.dev",
+          "localhost:4173",
+          "localhost:4174",
+          "127.0.0.1:4173",
+          "127.0.0.1:4174"
+        ];
 
         if (isLocal) {
           if (tftLink) tftLink.setAttribute("href", "http://localhost:4173");
@@ -604,6 +638,11 @@
             node.setAttribute("rel", "noopener noreferrer");
           }
         });
+
+        if (backendLink) {
+          backendLink.removeAttribute("target");
+          backendLink.removeAttribute("rel");
+        }
 
         function speakGreeting() {
           if (spokeGreeting || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
@@ -628,6 +667,24 @@
           });
         }
 
+        function pushBootLineHtml(html, className) {
+          if (!bootLog) return;
+          var line = document.createElement("div");
+          line.className = "boot-line" + (className ? " " + className : "");
+          line.innerHTML = html;
+          bootLog.appendChild(line);
+          requestAnimationFrame(function () {
+            line.classList.add("show");
+          });
+        }
+
+        function queueTerminalLine(index, delayMs, fn) {
+          window.setTimeout(function () {
+            fn();
+            if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
+          }, terminalQueueOffset + (delayMs * index));
+        }
+
         function beginStarMap() {
           if (terminalStatus) {
             terminalStatus.textContent = "terminal synced // node lattice online";
@@ -646,6 +703,85 @@
           }
         }
 
+        function appendApiManifest() {
+          if (!bootLog) return;
+          backendRequestCount += 1;
+          var backendBase = isLocal ? "http://localhost:3001" : "https://backend.brianz.dev";
+          var now = new Date();
+          var hh = String(now.getHours()).padStart(2, "0");
+          var mm = String(now.getMinutes()).padStart(2, "0");
+          var ss = String(now.getSeconds()).padStart(2, "0");
+          var stamp = hh + ":" + mm + ":" + ss;
+          var routes = [
+            { method: "GET", path: "/health", note: "Service heartbeat" },
+            { method: "GET", path: "/api/tft/duo-history", note: "Duo match ingest + normalized payload" },
+            { method: "GET", path: "/api/tft/icon-manifest", note: "Trait/champion icon index" },
+            { method: "GET", path: "/api/tft/companion-manifest", note: "Companion/banner manifest" },
+            { method: "POST", path: "/api/duo/events/batch", note: "Batch event ingest" },
+            { method: "POST", path: "/api/duo/journal", note: "Duo coaching journal ingest" },
+            { method: "GET", path: "/api/duo/scorecard", note: "Duo scorecard metrics" },
+            { method: "GET", path: "/api/duo/playbook", note: "Deterministic playbook output" },
+            { method: "GET", path: "/api/duo/highlights", note: "Highlight rollups" },
+            { method: "POST", path: "/api/coach/llm-brief", note: "GPT coaching synthesis" },
+            { method: "GET", path: "/api/site-performance/render/overview", note: "Render service overview" }
+          ];
+
+          var delay = 170;
+          var cursor = 0;
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Backend manifest request accepted [" + stamp + "] #" + backendRequestCount, true);
+          });
+          cursor += 1;
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Connected API origin: " + backendBase, false);
+          });
+          cursor += 1;
+          routes.forEach(function (route) {
+            queueTerminalLine(cursor, delay, function () {
+              pushBootLineHtml("&gt; <strong>[" + route.method + "]</strong> " + route.path + "  // " + route.note, "api-line");
+            });
+            cursor += 1;
+          });
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Press ESC to collapse terminal view", false);
+          });
+          terminalQueueOffset += (cursor + 1) * delay;
+        }
+
+        function setBackendTerminalExpanded(expanded) {
+          backendExpanded = expanded;
+          if (terminalDock) {
+            terminalDock.classList.toggle("expanded", expanded);
+          }
+          if (terminalStatus) {
+            terminalStatus.textContent = expanded
+              ? "backend api manifest mode // press esc to collapse"
+              : "terminal synced // node lattice online";
+          }
+          if (expanded) {
+            appendApiManifest();
+            if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
+          }
+        }
+
+        if (backendLink) {
+          backendLink.addEventListener("click", function (event) {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            if (!backendExpanded) {
+              setBackendTerminalExpanded(true);
+            } else {
+              appendApiManifest();
+            }
+          });
+        }
+
+        window.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && backendExpanded) {
+            setBackendTerminalExpanded(false);
+          }
+        });
+
         var bootSequence = [
           { text: "> Initiating protocol: MY BRAIN", highlight: false },
           { text: "> Calibrating semi-sentient navigator...", highlight: false },
@@ -654,20 +790,31 @@
           { text: "> Rendering neural routes and access nodes", highlight: false },
           { text: "> Handshake complete. Welcome aboard.", highlight: true }
         ];
-
-        bootSequence.forEach(function (line, index) {
-          window.setTimeout(function () {
-            pushBootLine(line.text, line.highlight);
-            if (bootLog) {
-              bootLog.scrollTop = bootLog.scrollHeight;
-            }
-          }, 260 + index * 460);
+        var referrer = String(document.referrer || "");
+        var skipBoot = subAppHosts.some(function (hostMarker) {
+          return referrer.indexOf(hostMarker) !== -1;
         });
 
-        window.setTimeout(function () {
+        if (skipBoot) {
+          bootSequence.forEach(function (line) {
+            pushBootLine(line.text, line.highlight);
+          });
           beginStarMap();
-          speakGreeting();
-        }, 260 + bootSequence.length * 460 + 460);
+        } else {
+          bootSequence.forEach(function (line, index) {
+            window.setTimeout(function () {
+              pushBootLine(line.text, line.highlight);
+              if (bootLog) {
+                bootLog.scrollTop = bootLog.scrollHeight;
+              }
+            }, 260 + index * 460);
+          });
+
+          window.setTimeout(function () {
+            beginStarMap();
+            speakGreeting();
+          }, 260 + bootSequence.length * 460 + 460);
+        }
 
         var nodeState = nodes.map(function (node, index) {
           var x = Number(node.getAttribute("data-x") || 50) / 100;
