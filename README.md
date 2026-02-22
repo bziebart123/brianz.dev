@@ -156,7 +156,10 @@ Use exactly what Render Custom Domains asks for:
 - Site Performance now exists as a frontend-only Render Meta Dashboard (`apps/site-performance/client`) and consumes shared backend routes under `/api/site-performance/*` from `apps/backend`.
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.
-- Portfolio app card for TFTDuos now uses a TFT-styled icon badge instead of the previous generic geometric mark.
+- Portfolio landing (`portfolio/src/index.html`) is now a game-menu style animated launcher scene (SVG multi-arm silhouette + floating app relic icons + lightweight WebGL depth particles) while keeping the existing blue/gold dark palette.
+- Portfolio launcher link assumptions:
+  - production: `https://tftduos.brianz.dev` and `https://site-performance.brianz.dev`
+  - local host: `http://localhost:5173` for TFTDuos and `http://localhost:4174` for Site Performance
 
 ## AI Context Files
 
