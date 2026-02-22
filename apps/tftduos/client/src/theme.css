@@ -63,6 +63,65 @@ body::after {
   --bz-text-scale: 1.45;
   --bz-content-text-scale: 1.7;
   color: var(--bz-text);
+  position: relative;
+  isolation: isolate;
+}
+
+.tft-app-shell::before,
+.tft-app-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tft-app-shell::before {
+  z-index: 1;
+  opacity: 0.22;
+  background-image:
+    radial-gradient(circle at 8% 14%, rgba(255, 255, 255, 0.42) 0 1px, transparent 2px),
+    radial-gradient(circle at 26% 34%, rgba(255, 255, 255, 0.34) 0 1px, transparent 2px),
+    radial-gradient(circle at 47% 22%, rgba(255, 255, 255, 0.3) 0 1px, transparent 2px),
+    radial-gradient(circle at 74% 16%, rgba(255, 255, 255, 0.36) 0 1px, transparent 2px),
+    radial-gradient(circle at 86% 38%, rgba(255, 255, 255, 0.32) 0 1px, transparent 2px),
+    radial-gradient(circle at 16% 62%, rgba(255, 255, 255, 0.34) 0 1px, transparent 2px),
+    radial-gradient(circle at 38% 74%, rgba(255, 255, 255, 0.3) 0 1px, transparent 2px),
+    radial-gradient(circle at 63% 78%, rgba(255, 255, 255, 0.33) 0 1px, transparent 2px),
+    radial-gradient(circle at 84% 66%, rgba(255, 255, 255, 0.28) 0 1px, transparent 2px);
+  animation: tftStarDrift 18s linear infinite;
+}
+
+.tft-app-shell::after {
+  z-index: 1;
+  opacity: 0.3;
+  background:
+    radial-gradient(540px 320px at 18% 24%, rgba(111, 194, 255, 0.12), transparent 68%),
+    radial-gradient(500px 300px at 84% 78%, rgba(224, 189, 114, 0.1), transparent 68%);
+  animation: tftNebulaPulse 9s ease-in-out infinite;
+}
+
+.tft-app-shell > * {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes tftStarDrift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-12px, 10px, 0);
+  }
+}
+
+@keyframes tftNebulaPulse {
+  0%,
+  100% {
+    opacity: 0.24;
+  }
+  50% {
+    opacity: 0.34;
+  }
 }
 
 .tft-app-shell,
@@ -448,6 +507,14 @@ body::after {
     --bz-content-text-scale: 1.12;
     display: block !important;
     position: relative;
+  }
+
+  .tft-app-shell::before {
+    opacity: 0.18;
+  }
+
+  .tft-app-shell::after {
+    opacity: 0.22;
   }
 
   .tft-main-content {

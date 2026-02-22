@@ -203,7 +203,7 @@ CI:
   - Transient manifest failures no longer clear previously loaded icon/companion manifests, preventing post-deploy icon disappearance.
   - `client/src/components/IconWithLabel.jsx` and `client/src/components/PlayerBannerCard.jsx` now perform bounded delayed image retries with a retry query param to recover from temporary CDN misses.
 - Visual shell update:
-  - `client/src/theme.css` now renders a low-opacity fixed starfield/glow background layer behind content (`body::before`/`body::after`) while keeping app UI surfaces foregrounded via `#root` stacking, so readability remains intact.
+  - `client/src/theme.css` now renders a low-opacity animated starfield/glow layer on `.tft-app-shell` (`::before`/`::after`) so background particles are visible across TFT views while all interactive content stays foregrounded/readable.
 - Coaching client-state cleanup (no user-facing behavior change):
   - `client/src/App.jsx` now passes only actively consumed `CoachingTab` props.
   - `client/src/hooks/useDuoAnalysis.js` removed unused client-side coaching journal/event state and handlers that were no longer rendered by UI.

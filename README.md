@@ -161,7 +161,7 @@ Use exactly what Render Custom Domains asks for:
 - The docked terminal now spans the full lattice container width, uses a fixed height, and keeps boot/message history scrollable inside the terminal body.
 - Portfolio scene suppresses ambient page caret/cursor artifacts in the lattice viewport while keeping terminal history selectable for copy.
 - Portfolio launcher opens HTTP(S) app destinations in new tabs so the landing scene remains open while navigating.
-- TFTDuos and Site Performance frontends now include a subtle fixed starfield/background glow layer behind app content to carry the portfolio atmosphere without reducing foreground readability.
+- TFTDuos frontend now uses a subtle animated starfield/glow layer across the app shell, and Site Performance keeps a subtle fixed starfield/glow backdrop, preserving readability while carrying portfolio atmosphere into sub-apps.
 - Portfolio launcher link assumptions:
   - production: `https://tftduos.brianz.dev` and `https://site-performance.brianz.dev`
   - local host: `http://localhost:4173` for TFTDuos and `http://localhost:4174` for Site Performance
