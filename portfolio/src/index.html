@@ -174,10 +174,6 @@
         pointer-events: none;
       }
 
-      .terminal-dock.expanded {
-        align-items: stretch;
-      }
-
       .terminal-dock.expanded .terminal {
         height: 100%;
         border-color: rgba(111, 194, 255, 0.62);
@@ -197,6 +193,7 @@
         backdrop-filter: blur(3px);
         transition: height 460ms ease, border-color 220ms ease, box-shadow 220ms ease;
         pointer-events: auto;
+        transform-origin: bottom center;
       }
 
       .terminal-head {
