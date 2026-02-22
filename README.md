@@ -154,6 +154,7 @@ Use exactly what Render Custom Domains asks for:
 - `rankContext` ladder sampling now uses Riot's TFT tier/division entries route (`/tft/league/v1/entries/{queue}/{tier}/{division}`) and a short backend cache window to avoid repeated heavy ladder fetches on every duo-history request.
 - Analysis + Coaching now render this `rankContext` as a Regional Meta Pressure context card to keep recommendations grounded in current ladder pressure.
 - Site Performance now exists as a frontend-only Render Meta Dashboard (`apps/site-performance/client`) and consumes shared backend routes under `/api/site-performance/*` from `apps/backend`.
+- Shared backend (`apps/backend`) is API-only for the whole portfolio platform (no static frontend fallback from backend root); direct non-API paths return a generic 404.
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.
 - Portfolio landing (`portfolio/src/index.html`) is now a space-navigation style animated launcher (living star-map lattice with drifting connected app nodes and upright clickable icons) while keeping the existing blue/gold dark palette.

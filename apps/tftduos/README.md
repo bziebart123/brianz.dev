@@ -197,6 +197,7 @@ CI:
   - `client/src/components/tabs/HistoryTab.jsx`
   - `.github/copilot-instructions.md`
 - Legacy root runtime files were removed; use `apps/tftduos/client` and `apps/backend` paths for dev/deploy.
+- Shared backend (`apps/backend`) now runs as API-only (no client static file serving/fallback), so backend root/non-API routes intentionally return a generic 404 while TFT and portfolio consume `/api/*`.
 - `client/src/hooks/useDuoAnalysis.js` keeps an identity-stable empty `matches` list and skips redundant manifest resets to prevent React effect loops (`Maximum update depth exceeded`) before payload data loads.
 - Icon resilience hardening:
   - `client/src/hooks/useDuoAnalysis.js` now retries `/api/tft/icon-manifest` and `/api/tft/companion-manifest` with short exponential backoff and abort support.

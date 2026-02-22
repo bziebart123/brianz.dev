@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
 import express from "express";
-import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildDuoHighlights, buildDuoScorecard, buildPersonalizedPlaybook } from "./lib/duoAnalytics.js";
@@ -10,7 +9,6 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../tftduos/.env") });
 
 const app = express();
-const clientDistPath = path.resolve(__dirname, "../tftduos/client/dist");
 const port = Number(process.env.PORT || 3001);
 const riotApiKey = process.env.RIOT_API_KEY;
 const openAiApiKey = String(process.env.OPENAI_API_KEY || "").trim();
@@ -2574,17 +2572,8 @@ app.post("/api/coach/llm-brief", async (req, res) => {
   }
 });
 
-app.use(express.static(clientDistPath));
-
-app.get(/^\/(?!api(?:\/|$)).*/, async (_req, res) => {
-  try {
-    await fs.access(path.join(clientDistPath, "index.html"));
-    return res.sendFile(path.join(clientDistPath, "index.html"));
-  } catch {
-    return res.status(503).json({
-      error: "Client build not found. Run client build before starting the server.",
-    });
-  }
+app.use((_req, res) => {
+  return res.status(404).json({ error: "Not found." });
 });
 
 app.listen(port, () => {
