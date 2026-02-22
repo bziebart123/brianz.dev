@@ -573,6 +573,17 @@ function playerCacheKey(routingRegion, puuid) {
   return `${routingRegion}:${puuid}`;
 }
 
+function riotMatchIdsEndpoint(routingRegion, puuid, query = {}) {
+  const url = new URL(
+    `https://${routingRegion}.api.riotgames.com/tft/match/v1/matches/by-puuid/${puuid}/ids`
+  );
+  for (const [key, value] of Object.entries(query || {})) {
+    if (value === null || value === undefined || value === "") continue;
+    url.searchParams.set(key, String(value));
+  }
+  return url.toString();
+}
+
 function stableDuoId(puuidA, puuidB) {
   return [String(puuidA || ""), String(puuidB || "")].sort().join("::");
 }
@@ -814,28 +825,92 @@ async function fetchPlayerData({
 
   const key = playerCacheKey(routingRegion, account.puuid);
   const playerHistory = persistedCache.players[key];
+  const previousSyncMs = Number(
+    playerHistory?.lastSuccessfulSyncAt || playerHistory?.updatedAt || 0
+  );
+  const hasKnownIds = safeCountArray(playerHistory?.matchIds).length > 0;
   const hasFreshLocalHistory =
     Boolean(playerHistory?.updatedAt) &&
     Date.now() - playerHistory.updatedAt < deltaHours * 60 * 60 * 1000 &&
-    safeCountArray(playerHistory?.matchIds).length > 0;
+    hasKnownIds;
+
+  const syncDiagnostics = {
+    usedTimeWindow: false,
+    usedPaginationFallback: false,
+    fallbackPaginationMode: null,
+    timeWindowFallbackReason: null,
+    previousSyncAt: previousSyncMs > 0 ? new Date(previousSyncMs).toISOString() : null,
+    lastSuccessfulSyncAt: null,
+    timeWindow: {
+      startTime: null,
+      requests: 0,
+      idsFound: 0,
+    },
+    pagination: {
+      requests: 0,
+      idsFound: 0,
+    },
+  };
 
   let matchIds = [];
-  if (hasFreshLocalHistory) {
-    const knownIds = safeCountArray(playerHistory.matchIds);
-    const knownSet = new Set(knownIds);
-    const deltaIds = [];
+  let usedTimeWindow = false;
+  const knownIds = safeCountArray(playerHistory?.matchIds);
+  const knownSet = new Set(knownIds);
+  const canUseTimeWindow = previousSyncMs > 0 && knownIds.length > 0;
+  if (canUseTimeWindow) {
+    try {
+      usedTimeWindow = true;
+      syncDiagnostics.usedTimeWindow = true;
+      // Riot match-v1 uses epoch seconds for time filters.
+      const startTime = Math.max(0, Math.floor(previousSyncMs / 1000) - 5);
+      syncDiagnostics.timeWindow.startTime = startTime;
+      const deltaIds = [];
 
+      for (let start = 0; start < maxHistory; start += 100) {
+        const chunkCount = Math.min(100, maxHistory - start);
+        const endpoint = riotMatchIdsEndpoint(routingRegion, account.puuid, {
+          startTime,
+          start,
+          count: chunkCount,
+        });
+        syncDiagnostics.timeWindow.requests += 1;
+        const chunk = await riotRequestCached(endpoint, CACHE_TTL.matchIds);
+        const list = safeCountArray(chunk);
+        if (!list.length) break;
+        for (const id of list) {
+          if (!knownSet.has(id)) deltaIds.push(id);
+        }
+        if (list.length < chunkCount) break;
+      }
+      syncDiagnostics.timeWindow.idsFound = deltaIds.length;
+      matchIds = uniquePreserveOrder([...deltaIds, ...knownIds]).slice(0, maxHistory);
+    } catch (error) {
+      usedTimeWindow = false;
+      syncDiagnostics.usedTimeWindow = false;
+      syncDiagnostics.timeWindowFallbackReason =
+        error?.status === 400
+          ? "time-window-query-rejected"
+          : error?.status === 404
+            ? "time-window-endpoint-unavailable"
+            : "time-window-request-failed";
+    }
+  }
+
+  if (!usedTimeWindow && hasFreshLocalHistory) {
+    syncDiagnostics.usedPaginationFallback = true;
+    syncDiagnostics.fallbackPaginationMode = "delta";
+    const deltaIds = [];
+    const ids = [];
     for (let start = 0; start < maxHistory; start += 100) {
       const chunkCount = Math.min(100, maxHistory - start);
-      const chunk = await riotRequestCached(
-        `https://${routingRegion}.api.riotgames.com/tft/match/v1/matches/by-puuid/${
-          account.puuid
-        }/ids?start=${start}&count=${chunkCount}`,
-        CACHE_TTL.matchIds
-      );
+      const endpoint = riotMatchIdsEndpoint(routingRegion, account.puuid, {
+        start,
+        count: chunkCount,
+      });
+      syncDiagnostics.pagination.requests += 1;
+      const chunk = await riotRequestCached(endpoint, CACHE_TTL.matchIds);
       const list = safeCountArray(chunk);
       if (!list.length) break;
-
       let reachedKnown = false;
       for (const id of list) {
         if (knownSet.has(id)) {
@@ -844,33 +919,41 @@ async function fetchPlayerData({
         }
         deltaIds.push(id);
       }
-
-      if (reachedKnown || list.length < chunkCount) {
-        break;
-      }
+      ids.push(...list);
+      if (reachedKnown) break;
+      if (list.length < chunkCount) break;
     }
+    syncDiagnostics.pagination.idsFound = deltaIds.length;
+    matchIds = uniquePreserveOrder([...deltaIds, ...knownIds, ...ids]).slice(0, maxHistory);
+  }
 
-    matchIds = uniquePreserveOrder([...deltaIds, ...knownIds]).slice(0, maxHistory);
-  } else {
+  if (!matchIds.length) {
+    syncDiagnostics.usedPaginationFallback = true;
+    syncDiagnostics.fallbackPaginationMode = hasKnownIds ? "full-refresh" : "first-load";
     const ids = [];
     for (let start = 0; start < maxHistory; start += 100) {
       const chunkCount = Math.min(100, maxHistory - start);
-      const chunk = await riotRequestCached(
-        `https://${routingRegion}.api.riotgames.com/tft/match/v1/matches/by-puuid/${
-          account.puuid
-        }/ids?start=${start}&count=${chunkCount}`,
-        CACHE_TTL.matchIds
-      );
+      const endpoint = riotMatchIdsEndpoint(routingRegion, account.puuid, {
+        start,
+        count: chunkCount,
+      });
+      syncDiagnostics.pagination.requests += 1;
+      const chunk = await riotRequestCached(endpoint, CACHE_TTL.matchIds);
       const list = safeCountArray(chunk);
       if (!list.length) break;
       ids.push(...list);
       if (list.length < chunkCount) break;
     }
+    syncDiagnostics.pagination.idsFound = ids.length;
     matchIds = ids;
   }
 
+  const now = Date.now();
+  syncDiagnostics.lastSuccessfulSyncAt = new Date(now).toISOString();
+
   persistedCache.players[key] = {
-    updatedAt: Date.now(),
+    updatedAt: now,
+    lastSuccessfulSyncAt: now,
     matchIds: matchIds.slice(0, maxHistory),
   };
   await savePersistedCache();
@@ -894,6 +977,7 @@ async function fetchPlayerData({
     account,
     matchIds: safeCountArray(matchIds),
     rank,
+    syncDiagnostics,
   };
 }
 
@@ -1823,6 +1907,10 @@ app.get("/api/tft/duo-history", async (req, res) => {
       console.log("[DEBUG_TFT_DUO]", {
         sharedMatches: matches.length,
         sameTeam: analysis?.kpis?.sameTeamGames ?? 0,
+        playerSync: {
+          a: playerA.syncDiagnostics,
+          b: playerB.syncDiagnostics,
+        },
       });
     }
 
@@ -1857,6 +1945,21 @@ app.get("/api/tft/duo-history", async (req, res) => {
       analysisV2,
       playbook,
       highlights,
+      ...(debugTftPayload
+        ? {
+            debug: {
+              syncDiagnostics: {
+                playerA: playerA.syncDiagnostics,
+                playerB: playerB.syncDiagnostics,
+              },
+              sharedMatchQuality: {
+                sharedMatchCount: sharedIds.length,
+                sameTeamGames: analysis?.kpis?.sameTeamGames ?? 0,
+                sameTeamRate: analysis?.kpis?.sameTeamRate ?? null,
+              },
+            },
+          }
+        : {}),
     });
   } catch (error) {
     const isRateLimit = error.status === 429;
@@ -2234,4 +2337,3 @@ app.get(/^\/(?!api(?:\/|$)).*/, async (_req, res) => {
 app.listen(port, () => {
   console.log(`brianz backend listening on http://localhost:${port}`);
 });
-

@@ -90,6 +90,7 @@ From `apps/tftduos/client`:
   - `RENDER_API_KEY=<required for Site Performance dashboard>`
   - `RENDER_API_BASE_URL=https://api.render.com/v1` (optional)
   - `RENDER_DASHBOARD_SERVICE_IDS=<optional comma-separated service IDs>`
+  - `DEBUG_TFT_PAYLOAD=1` (optional; includes per-player sync diagnostics in `/api/tft/duo-history` to verify incremental match-id pulls)
 
 ### Site Performance Frontend (Static Site)
 
@@ -142,6 +143,7 @@ Use exactly what Render Custom Domains asks for:
 - TFTDuos Analysis tab now renders a dashboard-style analytics view with a full-width team rank trend chart, team trend KPIs, patch performance, and per-player breakdowns from filtered match data.
 - TFTDuos Coaching tab now renders a dynamic coaching command center with team priorities, individualized player plans, and a stage-based action workflow driven by filtered match + event data.
 - TFTDuos backend now supports optional OpenAI-powered coaching synthesis (`/api/coach/llm-brief`) with deterministic fallback output when model access is unavailable.
+- TFTDuos backend now uses persisted per-player sync timestamps to call Riot TFT match-id time-window queries (`startTime`) before falling back to `start/count` pagination (including automatic fallback when time-window query support fails), reducing repeat API pulls while preserving first-load/backward-compatible pagination behavior.
 - The AI coaching prompt is guided for rank-climb use and now supports web-backed meta lookup (via OpenAI Responses API web search tool), plus richer per-game build fingerprints for direct "your builds vs current meta" comparison with source visibility in UI.
 - Coaching UX is now AI-first: compact KPI header, primary AI briefing section, per-player action plans below, and a full-page loading state while GPT coaching is being generated.
 - Coaching backend now layers deterministic evidence (leaks, win-conditions, 5-game plan, champion+item build conversion signals) into the LLM prompt/response to reduce generic output and improve actionability.
