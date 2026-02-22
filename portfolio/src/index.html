@@ -169,7 +169,17 @@
         bottom: 14px;
         z-index: 7;
         display: block;
-        pointer-events: none;
+        pointer-events: auto;
+      }
+
+      .terminal-dock.expanded {
+        top: 14px;
+      }
+
+      .terminal-dock.expanded .terminal {
+        height: 100%;
+        border-color: rgba(111, 194, 255, 0.62);
+        box-shadow: 0 28px 56px rgba(0, 0, 0, 0.62), 0 0 42px rgba(111, 194, 255, 0.28);
       }
 
       .terminal {
@@ -218,6 +228,15 @@
         font-family: "Consolas", "Menlo", "SFMono-Regular", monospace;
         font-size: 0.8rem;
         color: var(--muted);
+      }
+
+      .api-line {
+        color: #d4e4ff;
+      }
+
+      .api-line strong {
+        color: #8ef0c8;
+        font-weight: 600;
       }
 
       .terminal-prompt::after {
@@ -525,7 +544,7 @@
             <span>Render Meta</span>
           </a>
 
-          <a class="star-node" data-kind="meta" data-x="74" data-y="76" data-drift="18" href="https://backend.brianz.dev/health" aria-label="Open Backend Health">
+          <a class="star-node" id="backend-link" data-kind="meta" data-x="74" data-y="76" data-drift="18" href="https://backend.brianz.dev/health" aria-label="Open Backend Health">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="32" cy="32" r="24" fill="#11253E" stroke="#6FC2FF" stroke-width="2.2"/>
@@ -579,9 +598,13 @@
 
         var tftLink = document.getElementById("tftduos-link");
         var metaLink = document.getElementById("meta-link");
+        var backendLink = document.getElementById("backend-link");
         var starfield = document.querySelector(".starfield");
+        var terminalDock = document.querySelector(".terminal-dock");
         var bootLog = document.getElementById("boot-log");
         var terminalStatus = document.getElementById("terminal-status");
+        var backendExpanded = false;
+        var backendManifestPrinted = false;
 
         if (isLocal) {
           if (tftLink) tftLink.setAttribute("href", "http://localhost:4173");
@@ -604,6 +627,11 @@
             node.setAttribute("rel", "noopener noreferrer");
           }
         });
+
+        if (backendLink) {
+          backendLink.removeAttribute("target");
+          backendLink.removeAttribute("rel");
+        }
 
         function speakGreeting() {
           if (spokeGreeting || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
@@ -645,6 +673,69 @@
             requestAnimationFrame(updateNodes);
           }
         }
+
+        function appendApiManifest() {
+          if (!bootLog || backendManifestPrinted) return;
+          backendManifestPrinted = true;
+          var backendBase = isLocal ? "http://localhost:3001" : "https://backend.brianz.dev";
+          var routes = [
+            { method: "GET", path: "/health", note: "Service heartbeat" },
+            { method: "GET", path: "/api/tft/duo-history", note: "Duo match ingest + normalized payload" },
+            { method: "GET", path: "/api/tft/icon-manifest", note: "Trait/champion icon index" },
+            { method: "GET", path: "/api/tft/companion-manifest", note: "Companion/banner manifest" },
+            { method: "POST", path: "/api/duo/events/batch", note: "Batch event ingest" },
+            { method: "POST", path: "/api/duo/journal", note: "Duo coaching journal ingest" },
+            { method: "GET", path: "/api/duo/scorecard", note: "Duo scorecard metrics" },
+            { method: "GET", path: "/api/duo/playbook", note: "Deterministic playbook output" },
+            { method: "GET", path: "/api/duo/highlights", note: "Highlight rollups" },
+            { method: "POST", path: "/api/coach/llm-brief", note: "GPT coaching synthesis" },
+            { method: "GET", path: "/api/site-performance/render/overview", note: "Render service overview" }
+          ];
+
+          pushBootLine("> Backend manifest request accepted", true);
+          pushBootLine("> Connected API origin: " + backendBase, false);
+          routes.forEach(function (route) {
+            var line = document.createElement("div");
+            line.className = "boot-line api-line";
+            line.innerHTML = "&gt; <strong>[" + route.method + "]</strong> " + route.path + "  // " + route.note;
+            bootLog.appendChild(line);
+            requestAnimationFrame(function () {
+              line.classList.add("show");
+            });
+          });
+          pushBootLine("> Press ESC to collapse terminal view", false);
+          bootLog.scrollTop = bootLog.scrollHeight;
+        }
+
+        function setBackendTerminalExpanded(expanded) {
+          backendExpanded = expanded;
+          if (terminalDock) {
+            terminalDock.classList.toggle("expanded", expanded);
+          }
+          if (terminalStatus) {
+            terminalStatus.textContent = expanded
+              ? "backend api manifest mode // press esc to collapse"
+              : "terminal synced // node lattice online";
+          }
+          if (expanded) {
+            appendApiManifest();
+            if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
+          }
+        }
+
+        if (backendLink) {
+          backendLink.addEventListener("click", function (event) {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            setBackendTerminalExpanded(!backendExpanded);
+          });
+        }
+
+        window.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && backendExpanded) {
+            setBackendTerminalExpanded(false);
+          }
+        });
 
         var bootSequence = [
           { text: "> Initiating protocol: MY BRAIN", highlight: false },
