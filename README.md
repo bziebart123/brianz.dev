@@ -24,7 +24,7 @@ Create a personal portfolio site at the root domain and host multiple sub-apps o
 ## TFTDuos Deployment Model (recommended)
 
 - Frontend: Render **Static Site** (subdomain `tftduos.brianz.dev`)
-- Backend: Render **Web Service** (API only, e.g. `backend.brianz.dev` or Render URL)
+- Backend: Render **Web Service** (API only, canonical public API domain: `api.brianz.dev`)
 - Frontend calls backend via `VITE_API_BASE_URL`
 - Riot API key stays only on backend via `RIOT_API_KEY`
 
@@ -69,7 +69,7 @@ From `apps/tftduos/client`:
 - Publish Directory: `dist`
 - Domain: `tftduos.brianz.dev`
 - Env vars:
-  - `VITE_API_BASE_URL=https://<your-brianz-backend-service>.onrender.com`
+  - `VITE_API_BASE_URL=https://api.brianz.dev`
   - `VITE_RIOT_GAME_NAME_A`, `VITE_RIOT_TAG_LINE_A`, `VITE_RIOT_GAME_NAME_B`, `VITE_RIOT_TAG_LINE_B`
   - `VITE_RIOT_ROUTING_REGION`, `VITE_RIOT_PLATFORM_REGION`
 
@@ -79,7 +79,7 @@ From `apps/tftduos/client`:
 - Root Directory: `apps/backend`
 - Build Command: `npm ci`
 - Start Command: `npm start`
-- Domain: `backend.brianz.dev` (recommended) or keep Render URL
+- Domain: `api.brianz.dev` (recommended canonical API domain)
 - Env vars:
   - `RIOT_API_KEY=<your key>`
   - `ALLOWED_ORIGINS=https://tftduos.brianz.dev,https://site-performance.brianz.dev,https://brianz.dev,https://www.brianz.dev`
@@ -100,7 +100,7 @@ From `apps/tftduos/client`:
 - Publish Directory: `dist`
 - Domain: `site-performance.brianz.dev`
 - Env vars:
-  - `VITE_API_BASE_URL=https://<your-brianz-backend-service>.onrender.com`
+  - `VITE_API_BASE_URL=https://api.brianz.dev`
 
 ## Standard Render Commands
 
@@ -170,8 +170,8 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio launcher opens HTTP(S) app destinations in new tabs so the landing scene remains open while navigating.
 - TFTDuos + Site Performance frontends now share portfolio visual language tokens (thin luminous blue outlines, translucent navy cards, controlled glow/opacity) and starfield-backed atmospherics while preserving foreground readability.
 - Portfolio launcher link assumptions:
-  - production node links: `https://tftduos.brianz.dev` (TFT) and `https://backend.brianz.dev` (backend + Render Meta terminal data source)
-  - local host node links: `http://localhost:4173` (TFT) and `http://localhost:3001` (backend + Render Meta terminal data source)
+  - production node links: `https://tftduos.brianz.dev` (TFT) and `https://api.brianz.dev` (shared backend + Render Meta terminal data source)
+  - local host node links: `http://localhost:4173` (TFT) and `http://localhost:3001` (shared backend + Render Meta terminal data source)
 
 ## AI Context Files
 

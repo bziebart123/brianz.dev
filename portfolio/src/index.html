@@ -533,7 +533,7 @@
             <span>TFT Duos</span>
           </a>
 
-          <a class="star-node" id="meta-link" data-kind="meta" data-x="80" data-y="30" data-drift="24" href="https://backend.brianz.dev/api/site-performance/render/overview?hours=24" aria-label="Load Render Meta in terminal">
+          <a class="star-node" id="meta-link" data-kind="meta" data-x="80" data-y="30" data-drift="24" href="https://api.brianz.dev/api/site-performance/render/overview?hours=24" aria-label="Load Render Meta in terminal">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
@@ -546,7 +546,7 @@
             <span>Render Meta</span>
           </a>
 
-          <a class="star-node" id="backend-link" data-kind="meta" data-x="74" data-y="76" data-drift="18" href="https://backend.brianz.dev/health" aria-label="Open Backend Health">
+          <a class="star-node" id="backend-link" data-kind="meta" data-x="74" data-y="76" data-drift="18" href="https://api.brianz.dev/health" aria-label="Open Backend Health">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="32" cy="32" r="24" fill="#11253E" stroke="#6FC2FF" stroke-width="2.2"/>
@@ -624,7 +624,7 @@
           if (metaLink) metaLink.setAttribute("href", "http://localhost:3001/api/site-performance/render/overview?hours=24");
         } else {
           if (tftLink) tftLink.setAttribute("href", "https://tftduos.brianz.dev");
-          if (metaLink) metaLink.setAttribute("href", "https://backend.brianz.dev/api/site-performance/render/overview?hours=24");
+          if (metaLink) metaLink.setAttribute("href", "https://api.brianz.dev/api/site-performance/render/overview?hours=24");
         }
 
         var organism = document.getElementById("organism");
@@ -712,7 +712,7 @@
         function appendApiManifest() {
           if (!bootLog) return;
           backendRequestCount += 1;
-          var backendBase = isLocal ? "http://localhost:3001" : "https://backend.brianz.dev";
+          var backendBase = isLocal ? "http://localhost:3001" : "https://api.brianz.dev";
           var now = new Date();
           var hh = String(now.getHours()).padStart(2, "0");
           var mm = String(now.getMinutes()).padStart(2, "0");
@@ -811,7 +811,7 @@
         async function appendRenderMetaSnapshot() {
           if (!bootLog) return;
           renderMetaRequestCount += 1;
-          var backendBase = isLocal ? "http://localhost:3001" : "https://backend.brianz.dev";
+          var backendBase = isLocal ? "http://localhost:3001" : "https://api.brianz.dev";
           var url = backendBase + "/api/site-performance/render/overview?hours=24";
           var now = new Date();
           var hh = String(now.getHours()).padStart(2, "0");
