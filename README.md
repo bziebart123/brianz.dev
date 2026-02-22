@@ -156,6 +156,7 @@ Use exactly what Render Custom Domains asks for:
 - Site Performance now exists as a frontend-only Render Meta Dashboard (`apps/site-performance/client`) and consumes shared backend routes under `/api/site-performance/*` from `apps/backend`.
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.
+- Portfolio app card for TFTDuos now uses a TFT-styled icon badge instead of the previous generic geometric mark.
 
 ## AI Context Files
 
@@ -164,5 +165,4 @@ For new IDE sessions and AI tools (including GitHub Copilot), start with:
 - `.github/copilot-instructions.md` (repo-wide Copilot context/instructions)
 - `AGENTS.md` (Codex-specific project direction)
 - `apps/tftduos/README.md` (current app behavior and implementation notes)
-
 
