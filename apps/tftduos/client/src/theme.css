@@ -242,6 +242,12 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.coaching-gpt-line [data-evergreen-id="text"] {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35 !important;
+}
+
 .blame-awards-grid {
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
@@ -450,6 +456,10 @@ body {
   .analysis-player-grid,
   .coaching-player-plan-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .coaching-gpt-line [data-evergreen-id="text"] {
+    line-height: 1.3 !important;
   }
 
   .blame-awards-grid {

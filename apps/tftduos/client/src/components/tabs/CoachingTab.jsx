@@ -1,10 +1,10 @@
+import { useEffect, useState } from "react";
 import { Badge, Button, Card, Heading, Pane, Spinner, Strong, Text, Tooltip } from "evergreen-ui";
 import IconWithLabel from "../IconWithLabel";
 import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
 import { asArray, prettyName } from "../../utils/tft";
 
-const GPT_LINE_TEXT_SIZE = 500;
-const GPT_ICON_SIZE = 24;
+const MOBILE_BREAKPOINT = 1024;
 
 function pct(numerator, denominator) {
   if (!denominator) return 0;
@@ -157,6 +157,21 @@ export default function CoachingTab({
   filteredMatches,
   iconManifest,
 }) {
+  const [isMobileViewport, setIsMobileViewport] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= MOBILE_BREAKPOINT : false
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    function onResize() {
+      setIsMobileViewport(window.innerWidth <= MOBILE_BREAKPOINT);
+    }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const gptLineTextSize = isMobileViewport ? 400 : 500;
+  const gptIconSize = isMobileViewport ? 18 : 24;
   const placements = asArray(placementTrend).map((value) => Number(value || 0)).filter((value) => value > 0);
   const top2Rate = pct(placements.filter((value) => value <= 2).length, placements.length);
   const winRate = pct(placements.filter((value) => value <= 1).length, placements.length);
@@ -199,7 +214,7 @@ export default function CoachingTab({
   function renderLineWithIcons(text, key) {
     const segments = splitTextByMentions(sanitizeModelText(text), mentionCatalog);
     return (
-      <Pane key={key} display="flex" alignItems="center" gap={6} flexWrap="wrap">
+      <Pane key={key} className="coaching-gpt-line" display="flex" alignItems="center" gap={6} flexWrap="wrap">
         {segments.map((segment, idx) =>
           segment.type === "mention" ? (
             <IconWithLabel
@@ -207,12 +222,12 @@ export default function CoachingTab({
               kind={segment.mention.kind}
               token={segment.mention.token}
               label={segment.mention.label}
-              size={GPT_ICON_SIZE}
+              size={gptIconSize}
               iconManifest={segment.mention.kind === "trait" ? iconManifest : null}
               traitTier={segment.mention.traitTier}
             />
           ) : (
-            <Text key={`${key}-text-${idx}`} size={GPT_LINE_TEXT_SIZE}>
+            <Text key={`${key}-text-${idx}`} size={gptLineTextSize}>
               {segment.value}
             </Text>
           )
@@ -320,7 +335,7 @@ export default function CoachingTab({
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.teamPlan).slice(0, 4).map((line, idx) => (
                     <Pane key={`ai-team-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
+                      <Text size={gptLineTextSize}>-</Text>
                       {renderLineWithIcons(line, `ai-team-line-${idx}`)}
                     </Pane>
                   ))}
@@ -334,7 +349,7 @@ export default function CoachingTab({
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.metaDelta).slice(0, 4).map((line, idx) => (
                     <Pane key={`ai-meta-delta-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
+                      <Text size={gptLineTextSize}>-</Text>
                       {renderLineWithIcons(line, `ai-meta-delta-line-${idx}`)}
                     </Pane>
                   ))}
@@ -348,7 +363,7 @@ export default function CoachingTab({
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.topImprovementAreas).slice(0, 4).map((line, idx) => (
                     <Pane key={`ai-improve-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
+                      <Text size={gptLineTextSize}>-</Text>
                       {renderLineWithIcons(line, `ai-improve-line-${idx}`)}
                     </Pane>
                   ))}
@@ -362,7 +377,7 @@ export default function CoachingTab({
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.winConditions).slice(0, 4).map((line, idx) => (
                     <Pane key={`ai-wincon-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
+                      <Text size={gptLineTextSize}>-</Text>
                       {renderLineWithIcons(line, `ai-wincon-line-${idx}`)}
                     </Pane>
                   ))}
@@ -376,7 +391,7 @@ export default function CoachingTab({
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.fiveGamePlan).slice(0, 5).map((line, idx) => (
                     <Pane key={`ai-plan5-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
+                      <Text size={gptLineTextSize}>-</Text>
                       {renderLineWithIcons(line, `ai-plan5-line-${idx}`)}
                     </Pane>
                   ))}
@@ -392,9 +407,9 @@ export default function CoachingTab({
                     <Pane key={`ai-build-${idx}`} padding={8} border="default" borderRadius={6} background="rgba(255,255,255,0.02)">
                       <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
                         <Strong>{row.player}</Strong>
-                        <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
-                        <IconWithLabel kind="unit" token={row.champion} label={prettyName(row.champion)} size={GPT_ICON_SIZE} />
-                        {asArray(row.items).length ? <Text size={GPT_LINE_TEXT_SIZE}>| {asArray(row.items).join(", ")}</Text> : null}
+                        <Text size={gptLineTextSize}>-</Text>
+                        <IconWithLabel kind="unit" token={row.champion} label={prettyName(row.champion)} size={gptIconSize} />
+                        {asArray(row.items).length ? <Text size={gptLineTextSize}>| {asArray(row.items).join(", ")}</Text> : null}
                       </Pane>
                       <Text size={300} color="muted" display="block" marginTop={4}>
                         {Number(row.top2Rate || 0).toFixed(1)}% Top2 over {Number(row.games || 0)} games
@@ -426,11 +441,11 @@ export default function CoachingTab({
                   </Badge>
                 ) : null}
               </Pane>
-              <Text size={GPT_LINE_TEXT_SIZE} display="block" marginTop={6}>Focus: {sanitizeModelText(plan.focus || "n/a")}</Text>
+              <Text size={gptLineTextSize} display="block" marginTop={6}>Focus: {sanitizeModelText(plan.focus || "n/a")}</Text>
               <Pane marginTop={8} display="grid" gap={4}>
                 {asArray(plan.actions).slice(0, 3).map((line, actionIdx) => (
                   <Pane key={`${plan.player}-action-${actionIdx}`} display="flex" alignItems="flex-start" gap={6}>
-                    <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
+                    <Text size={gptLineTextSize}>-</Text>
                     {renderLineWithIcons(line, `${plan.player}-action-line-${actionIdx}`)}
                   </Pane>
                 ))}
