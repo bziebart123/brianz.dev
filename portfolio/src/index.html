@@ -739,6 +739,10 @@
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
+            pushBootLineHtml("&gt; run backend.manifest --origin \"" + backendBase + "\"", "api-line");
+          });
+          cursor += 1;
+          queueTerminalLine(cursor, delay, function () {
             pushBootLine("> Connected API origin: " + backendBase, false);
           });
           cursor += 1;
@@ -819,6 +823,10 @@
 
           queueTerminalLine(cursor, delay, function () {
             pushBootLine("> Render Meta snapshot request accepted [" + stamp + "] #" + renderMetaRequestCount, true);
+          });
+          cursor += 1;
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLineHtml("&gt; run render.meta --hours 24 --origin \"" + backendBase + "\"", "api-line");
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
