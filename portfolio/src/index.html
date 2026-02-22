@@ -160,29 +160,25 @@
         filter: blur(0);
       }
 
-      .boot-overlay {
+      .terminal-dock {
         position: absolute;
-        inset: 0;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
         z-index: 7;
-        display: grid;
-        place-items: center;
-        padding: 16px;
-        background: radial-gradient(circle at 50% 50%, rgba(8, 14, 30, 0.16), rgba(7, 12, 24, 0.88) 65%);
-        transition: opacity 420ms ease;
-      }
-
-      .boot-overlay.done {
-        opacity: 0;
+        display: flex;
+        justify-content: center;
         pointer-events: none;
       }
 
       .terminal {
-        width: min(720px, 100%);
+        width: min(860px, 100%);
         border: 1px solid rgba(111, 194, 255, 0.48);
         border-radius: 14px;
-        background: linear-gradient(180deg, rgba(12, 22, 42, 0.92), rgba(8, 14, 28, 0.9));
+        background: linear-gradient(180deg, rgba(12, 22, 42, 0.86), rgba(8, 14, 28, 0.82));
         box-shadow: 0 22px 44px rgba(0, 0, 0, 0.56), 0 0 32px rgba(111, 194, 255, 0.2);
         overflow: hidden;
+        backdrop-filter: blur(3px);
       }
 
       .terminal-head {
@@ -200,12 +196,27 @@
       }
 
       .terminal-body {
-        padding: 14px;
-        min-height: 186px;
+        padding: 12px 14px 8px;
+        min-height: 118px;
+        max-height: 162px;
+        overflow: auto;
         font-family: "Consolas", "Menlo", "SFMono-Regular", monospace;
-        font-size: 0.86rem;
+        font-size: 0.78rem;
         line-height: 1.48;
         color: #b5ddff;
+      }
+
+      .terminal-prompt {
+        border-top: 1px solid rgba(111, 194, 255, 0.24);
+        padding: 8px 14px 10px;
+        font-family: "Consolas", "Menlo", "SFMono-Regular", monospace;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+
+      .terminal-prompt::after {
+        content: " _";
+        animation: blinkCursor 1s steps(1, end) infinite;
       }
 
       .boot-line {
@@ -357,26 +368,6 @@
           0 0 34px rgba(224, 189, 114, 0.52);
       }
 
-      .note {
-        position: absolute;
-        left: 14px;
-        bottom: 14px;
-        z-index: 4;
-        color: var(--muted);
-        font-size: 0.76rem;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        padding: 8px 12px;
-        border: 1px solid rgba(111, 194, 255, 0.3);
-        border-radius: 999px;
-        background: rgba(13, 22, 42, 0.7);
-      }
-
-      .note::after {
-        content: " _";
-        animation: blinkCursor 1s steps(1, end) infinite;
-      }
-
       @keyframes blinkCursor {
         0%,
         49% {
@@ -443,11 +434,27 @@
           padding: 6px 10px;
         }
 
-        .note {
+        .terminal-dock {
           left: 10px;
+          right: 10px;
           bottom: 10px;
-          font-size: 0.68rem;
-          letter-spacing: 0.05em;
+        }
+
+        .terminal-head {
+          padding: 8px 10px;
+          font-size: 0.66rem;
+        }
+
+        .terminal-body {
+          font-size: 0.72rem;
+          max-height: 148px;
+          min-height: 102px;
+          padding: 9px 10px 7px;
+        }
+
+        .terminal-prompt {
+          font-size: 0.72rem;
+          padding: 7px 10px 8px;
         }
       }
 
@@ -469,13 +476,14 @@
 
     <main class="cosmos-shell">
       <section class="starfield" aria-label="Star map launcher">
-        <div class="boot-overlay" id="boot-overlay" aria-live="polite">
+        <div class="terminal-dock" aria-live="polite">
           <div class="terminal">
             <div class="terminal-head">
               <span>MY-BRIAN // Cognitive Navigation Terminal</span>
               <span>Protocol Handshake</span>
             </div>
             <div class="terminal-body" id="boot-log"></div>
+            <div class="terminal-prompt" id="terminal-status">awaiting protocol input</div>
           </div>
         </div>
 
@@ -556,7 +564,6 @@
           </a>
         </div>
 
-        <div class="note" id="terminal-status">awaiting protocol input</div>
       </section>
     </main>
 
@@ -568,7 +575,6 @@
         var tftLink = document.getElementById("tftduos-link");
         var metaLink = document.getElementById("meta-link");
         var starfield = document.querySelector(".starfield");
-        var bootOverlay = document.getElementById("boot-overlay");
         var bootLog = document.getElementById("boot-log");
         var terminalStatus = document.getElementById("terminal-status");
 
@@ -621,7 +627,6 @@
           if (terminalStatus) {
             terminalStatus.textContent = "terminal synced // node lattice online";
           }
-          if (bootOverlay) bootOverlay.classList.add("done");
           if (starfield) starfield.classList.add("ready");
 
           nodes.forEach(function (node, index) {
@@ -648,6 +653,9 @@
         bootSequence.forEach(function (line, index) {
           window.setTimeout(function () {
             pushBootLine(line.text, line.highlight);
+            if (bootLog) {
+              bootLog.scrollTop = bootLog.scrollHeight;
+            }
           }, 260 + index * 460);
         });
 

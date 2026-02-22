@@ -157,7 +157,7 @@ Use exactly what Render Custom Domains asks for:
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.
 - Portfolio landing (`portfolio/src/index.html`) is now a space-navigation style animated launcher (living star-map lattice with drifting connected app nodes and upright clickable icons) while keeping the existing blue/gold dark palette.
-- Portfolio landing now boots through a terminal-style intro ("MY-BRIAN" protocol handshake + "Mapping out Brian's mind") before revealing generated star-map nodes, with a blinking prompt-style status footer.
+- Portfolio landing now boots through a terminal-style intro ("MY-BRIAN" protocol handshake + "Mapping out Brian's mind") and keeps that terminal docked at the bottom with message history plus a blinking prompt-style status line while generated star-map nodes come online.
 - Portfolio launcher opens HTTP(S) app destinations in new tabs so the landing scene remains open while navigating.
 - Portfolio launcher link assumptions:
   - production: `https://tftduos.brianz.dev` and `https://site-performance.brianz.dev`
