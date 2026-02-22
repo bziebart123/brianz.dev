@@ -166,14 +166,16 @@
         position: absolute;
         left: 14px;
         right: 14px;
+        top: 14px;
         bottom: 14px;
         z-index: 7;
-        display: block;
+        display: flex;
+        align-items: flex-end;
         pointer-events: auto;
       }
 
       .terminal-dock.expanded {
-        top: 14px;
+        align-items: stretch;
       }
 
       .terminal-dock.expanded .terminal {
@@ -193,6 +195,7 @@
         box-shadow: 0 22px 44px rgba(0, 0, 0, 0.56), 0 0 32px rgba(111, 194, 255, 0.2);
         overflow: hidden;
         backdrop-filter: blur(3px);
+        transition: height 460ms ease, border-color 220ms ease, box-shadow 220ms ease;
       }
 
       .terminal-head {
@@ -462,6 +465,7 @@
         .terminal-dock {
           left: 10px;
           right: 10px;
+          top: 10px;
           bottom: 10px;
         }
 
@@ -605,6 +609,14 @@
         var terminalStatus = document.getElementById("terminal-status");
         var backendExpanded = false;
         var backendManifestPrinted = false;
+        var subAppHosts = [
+          "tftduos.brianz.dev",
+          "site-performance.brianz.dev",
+          "localhost:4173",
+          "localhost:4174",
+          "127.0.0.1:4173",
+          "127.0.0.1:4174"
+        ];
 
         if (isLocal) {
           if (tftLink) tftLink.setAttribute("href", "http://localhost:4173");
@@ -656,6 +668,24 @@
           });
         }
 
+        function pushBootLineHtml(html, className) {
+          if (!bootLog) return;
+          var line = document.createElement("div");
+          line.className = "boot-line" + (className ? " " + className : "");
+          line.innerHTML = html;
+          bootLog.appendChild(line);
+          requestAnimationFrame(function () {
+            line.classList.add("show");
+          });
+        }
+
+        function queueTerminalLine(index, delayMs, fn) {
+          window.setTimeout(function () {
+            fn();
+            if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
+          }, delayMs * index);
+        }
+
         function beginStarMap() {
           if (terminalStatus) {
             terminalStatus.textContent = "terminal synced // node lattice online";
@@ -692,19 +722,25 @@
             { method: "GET", path: "/api/site-performance/render/overview", note: "Render service overview" }
           ];
 
-          pushBootLine("> Backend manifest request accepted", true);
-          pushBootLine("> Connected API origin: " + backendBase, false);
-          routes.forEach(function (route) {
-            var line = document.createElement("div");
-            line.className = "boot-line api-line";
-            line.innerHTML = "&gt; <strong>[" + route.method + "]</strong> " + route.path + "  // " + route.note;
-            bootLog.appendChild(line);
-            requestAnimationFrame(function () {
-              line.classList.add("show");
-            });
+          var delay = 170;
+          var cursor = 0;
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Backend manifest request accepted", true);
           });
-          pushBootLine("> Press ESC to collapse terminal view", false);
-          bootLog.scrollTop = bootLog.scrollHeight;
+          cursor += 1;
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Connected API origin: " + backendBase, false);
+          });
+          cursor += 1;
+          routes.forEach(function (route) {
+            queueTerminalLine(cursor, delay, function () {
+              pushBootLineHtml("&gt; <strong>[" + route.method + "]</strong> " + route.path + "  // " + route.note, "api-line");
+            });
+            cursor += 1;
+          });
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Press ESC to collapse terminal view", false);
+          });
         }
 
         function setBackendTerminalExpanded(expanded) {
@@ -745,20 +781,31 @@
           { text: "> Rendering neural routes and access nodes", highlight: false },
           { text: "> Handshake complete. Welcome aboard.", highlight: true }
         ];
-
-        bootSequence.forEach(function (line, index) {
-          window.setTimeout(function () {
-            pushBootLine(line.text, line.highlight);
-            if (bootLog) {
-              bootLog.scrollTop = bootLog.scrollHeight;
-            }
-          }, 260 + index * 460);
+        var referrer = String(document.referrer || "");
+        var skipBoot = subAppHosts.some(function (hostMarker) {
+          return referrer.indexOf(hostMarker) !== -1;
         });
 
-        window.setTimeout(function () {
+        if (skipBoot) {
+          bootSequence.forEach(function (line) {
+            pushBootLine(line.text, line.highlight);
+          });
           beginStarMap();
-          speakGreeting();
-        }, 260 + bootSequence.length * 460 + 460);
+        } else {
+          bootSequence.forEach(function (line, index) {
+            window.setTimeout(function () {
+              pushBootLine(line.text, line.highlight);
+              if (bootLog) {
+                bootLog.scrollTop = bootLog.scrollHeight;
+              }
+            }, 260 + index * 460);
+          });
+
+          window.setTimeout(function () {
+            beginStarMap();
+            speakGreeting();
+          }, 260 + bootSequence.length * 460 + 460);
+        }
 
         var nodeState = nodes.map(function (node, index) {
           var x = Number(node.getAttribute("data-x") || 50) / 100;
