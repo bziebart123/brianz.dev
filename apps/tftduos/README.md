@@ -45,6 +45,7 @@ Server env vars (see `.env.example` and server code):
 - `RENDER_API_KEY` (required for Site Performance dashboard routes)
 - `RENDER_API_BASE_URL` (optional, default `https://api.render.com/v1`)
 - `RENDER_DASHBOARD_SERVICE_IDS` (optional comma-separated Render service IDs to scope Site Performance dashboard)
+- `DEBUG_TFT_PAYLOAD` (optional; when set to `1`, `/api/tft/duo-history` includes sync diagnostics payloads for incremental Riot match-id fetch validation)
 
 ## Current Product Behavior
 
@@ -144,6 +145,7 @@ Server env vars (see `.env.example` and server code):
   - Includes disclaimer, cosmic summary + copy action, cursed/blessed queue windows, generated nonsense takes, and transparent joke "method" labels
 - Timeline auto-default selection now prioritizes `30` days before shorter windows.
 - Quick event stage default for manual logging is now `4.1` to better align with late-stage clutch/rescue signal capture.
+- Shared backend now persists per-player successful sync timestamps and uses Riot TFT match-id time-window queries (`startTime`) before fallback pagination, reducing repeated ID fetch calls while keeping first-load and backward-compatible pagination paths intact.
 - Shared backend now also exposes Site Performance metrics routes:
   - `GET /api/site-performance/render/overview` (Render service/metric rollups for the Site Performance dashboard)
 
