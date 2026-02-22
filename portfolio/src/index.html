@@ -468,6 +468,14 @@
         var nodes = Array.prototype.slice.call(document.querySelectorAll(".star-node"));
         var pointer = { x: 0, y: 0 };
 
+        nodes.forEach(function (node) {
+          var href = node.getAttribute("href") || "";
+          if (href.indexOf("http://") === 0 || href.indexOf("https://") === 0) {
+            node.setAttribute("target", "_blank");
+            node.setAttribute("rel", "noopener noreferrer");
+          }
+        });
+
         var nodeState = nodes.map(function (node, index) {
           var x = Number(node.getAttribute("data-x") || 50) / 100;
           var y = Number(node.getAttribute("data-y") || 50) / 100;
