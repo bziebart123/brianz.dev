@@ -24,6 +24,39 @@ body {
     radial-gradient(700px 380px at 10% 100%, rgba(224, 189, 114, 0.18), transparent 60%),
     linear-gradient(150deg, var(--bz-bg-0), var(--bz-bg-1));
   font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.2) 0 1px, transparent 2px),
+    radial-gradient(circle at 78% 10%, rgba(255, 255, 255, 0.18) 0 1px, transparent 2px),
+    radial-gradient(circle at 60% 82%, rgba(255, 255, 255, 0.16) 0 1px, transparent 2px),
+    radial-gradient(circle at 24% 72%, rgba(255, 255, 255, 0.2) 0 1px, transparent 2px),
+    radial-gradient(circle at 90% 58%, rgba(255, 255, 255, 0.14) 0 1px, transparent 2px),
+    radial-gradient(circle at 44% 32%, rgba(255, 255, 255, 0.16) 0 1px, transparent 2px);
+  opacity: 0.28;
+}
+
+body::after {
+  background:
+    radial-gradient(500px 300px at 18% 22%, rgba(111, 194, 255, 0.09), transparent 66%),
+    radial-gradient(460px 280px at 82% 78%, rgba(224, 189, 114, 0.07), transparent 66%);
+  opacity: 0.5;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
 }
 
 .tft-app-shell {

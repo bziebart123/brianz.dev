@@ -157,10 +157,11 @@ Use exactly what Render Custom Domains asks for:
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.
 - Portfolio landing (`portfolio/src/index.html`) is now a space-navigation style animated launcher (living star-map lattice with drifting connected app nodes and upright clickable icons) while keeping the existing blue/gold dark palette.
-- Portfolio landing now boots through a terminal-style intro ("MY-BRIAN" protocol handshake + "Mapping out Brian's mind") and keeps that terminal docked at the bottom with message history plus a blinking prompt-style status line while generated star-map nodes come online.
+- Portfolio landing now boots through a terminal-style intro ("MY BRAIN" protocol handshake + "Mapping out Brian's mind") and keeps that terminal docked at the bottom with message history plus a blinking prompt-style status line while generated star-map nodes come online.
 - The docked terminal now spans the full lattice container width, uses a fixed height, and keeps boot/message history scrollable inside the terminal body.
 - Portfolio scene suppresses ambient page caret/cursor artifacts in the lattice viewport while keeping terminal history selectable for copy.
 - Portfolio launcher opens HTTP(S) app destinations in new tabs so the landing scene remains open while navigating.
+- TFTDuos and Site Performance frontends now include a subtle fixed starfield/background glow layer behind app content to carry the portfolio atmosphere without reducing foreground readability.
 - Portfolio launcher link assumptions:
   - production: `https://tftduos.brianz.dev` and `https://site-performance.brianz.dev`
   - local host: `http://localhost:4173` for TFTDuos and `http://localhost:4174` for Site Performance

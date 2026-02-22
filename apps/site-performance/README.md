@@ -31,6 +31,10 @@ The shared backend (`apps/backend`) must include:
 - `RENDER_API_BASE_URL` (optional, default: `https://api.render.com/v1`)
 - `RENDER_DASHBOARD_SERVICE_IDS` (optional comma-separated service IDs to scope dashboard)
 
+## UI notes
+
+- `apps/site-performance/client/src/theme.css` now includes a subtle fixed starfield/glow background layer (`body::before`/`body::after`) behind dashboard content to match the broader portfolio aesthetic while preserving panel readability.
+
 ## API route
 
 `GET /api/site-performance/render/overview`
