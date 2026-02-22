@@ -5,6 +5,13 @@ import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
 import { asArray, prettyName } from "../../utils/tft";
 
 const MOBILE_BREAKPOINT = 1024;
+const AI_TERMINAL_BOOT_LINES = [
+  "Initializing duo coaching terminal...",
+  "Syncing filtered duo match timeline...",
+  "Profiling pressure leaks + econ pivots...",
+  "Running model inference for ranked climb plan...",
+  "Compiling GPT coaching suggestions...",
+];
 
 function pct(numerator, denominator) {
   if (!denominator) return 0;
@@ -161,6 +168,7 @@ export default function CoachingTab({
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth <= MOBILE_BREAKPOINT : false
   );
+  const [visibleBootLines, setVisibleBootLines] = useState(1);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -214,6 +222,26 @@ export default function CoachingTab({
       }))
     : fallbackPlans;
   const mentionCatalog = buildMentionCatalog(filteredMatches, aiCoaching);
+  const isAiPending = aiCoachingLoading || (!aiCoaching && !aiCoachingError);
+
+  useEffect(() => {
+    if (!isAiPending) {
+      setVisibleBootLines(AI_TERMINAL_BOOT_LINES.length);
+      return undefined;
+    }
+
+    setVisibleBootLines(1);
+    let cursor = 1;
+    const timer = window.setInterval(() => {
+      cursor += 1;
+      setVisibleBootLines(Math.min(cursor, AI_TERMINAL_BOOT_LINES.length));
+      if (cursor >= AI_TERMINAL_BOOT_LINES.length) {
+        window.clearInterval(timer);
+      }
+    }, 520);
+
+    return () => window.clearInterval(timer);
+  }, [isAiPending]);
 
   function renderLineWithIcons(text, key) {
     const segments = splitTextByMentions(sanitizeModelText(text), mentionCatalog);
@@ -240,25 +268,30 @@ export default function CoachingTab({
     );
   }
 
-  const isAiPending = aiCoachingLoading || (!aiCoaching && !aiCoachingError);
   if (isAiPending) {
     return (
       <Pane className="coaching-tab-root" display="grid" gap={12}>
-        <Card
-          elevation={0}
-          padding={24}
-          background="rgba(255,255,255,0.03)"
-          border="default"
-          minHeight={420}
-          display="grid"
-          placeItems="center"
-        >
-          <Pane display="grid" gap={10} justifyItems="center">
-            <Spinner size={26} />
-            <Heading size={600}>Generating AI coaching...</Heading>
+        <Card className="coaching-terminal-shell" elevation={0} padding={0} background="transparent" minHeight={420}>
+          <Pane className="coaching-terminal-head" display="flex" alignItems="center" justifyContent="space-between" gap={12}>
+            <Text size={300}>ai-coach://duo-terminal</Text>
+            <Badge color="blue">STREAMING</Badge>
+          </Pane>
+          <Pane className="coaching-terminal-body" display="grid" gap={8}>
+            {AI_TERMINAL_BOOT_LINES.slice(0, visibleBootLines).map((line, idx) => (
+              <Text key={`ai-terminal-line-${idx}`} className="coaching-terminal-line" size={gptLineTextSize}>
+                {`> ${line}`}
+              </Text>
+            ))}
+            <Pane display="flex" alignItems="center" gap={10} marginTop={6}>
+              <Spinner size={20} />
+              <Heading size={600}>Generating AI coaching...</Heading>
+            </Pane>
             <Text size={400} color="muted">
               Loading the full coaching page once GPT analysis is ready.
             </Text>
+          </Pane>
+          <Pane className="coaching-terminal-prompt">
+            <Text size={300}>awaiting coaching payload</Text>
           </Pane>
         </Card>
       </Pane>
@@ -267,8 +300,8 @@ export default function CoachingTab({
 
   return (
     <Pane className="coaching-tab-root" display="grid" gap={12}>
-      <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
-        <Pane display="flex" alignItems="center" justifyContent="space-between" gap={10} flexWrap="wrap">
+      <Card className="coaching-terminal-shell" elevation={0} padding={0} background="transparent">
+        <Pane className="coaching-terminal-head" display="flex" alignItems="center" justifyContent="space-between" gap={10} flexWrap="wrap">
           <Tooltip content="AI-first coaching dashboard with compact high-signal KPIs.">
             <Heading size={600}>Duo Coaching</Heading>
           </Tooltip>
@@ -344,8 +377,8 @@ export default function CoachingTab({
         </Pane>
       </Card>
 
-      <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
-        <Pane display="flex" alignItems="center" justifyContent="space-between" gap={10} flexWrap="wrap">
+      <Card className="coaching-terminal-shell" elevation={0} padding={0} background="transparent">
+        <Pane className="coaching-terminal-head" display="flex" alignItems="center" justifyContent="space-between" gap={10} flexWrap="wrap">
           <Pane display="flex" alignItems="center" gap={8}>
             <Heading size={500}>AI Coach Brief</Heading>
             {aiCoaching?.fallback ? <Badge color="yellow">Fallback</Badge> : <Badge color="green">Live LLM</Badge>}
@@ -358,6 +391,9 @@ export default function CoachingTab({
             </Button>
           </Pane>
         </Pane>
+        <Pane className="coaching-terminal-body" display="grid" gap={8}>
+          <Text size={300} className="coaching-terminal-line">{"> boot // ai brief loaded"}</Text>
+          <Text size={300} className="coaching-terminal-line">{"> rendering suggestions with champion + trait overlays"}</Text>
         {aiCoachingError ? (
           <Pane className="tft-error-banner" marginTop={10}>
             <Strong>AI Coach Error</Strong>
@@ -475,6 +511,10 @@ export default function CoachingTab({
             No AI brief yet. Use Refresh AI.
           </Text>
         )}
+        </Pane>
+        <Pane className="coaching-terminal-prompt">
+          <Text size={300}>coach@duos:~$ briefing-ready</Text>
+        </Pane>
       </Card>
 
       <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
