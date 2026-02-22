@@ -26,6 +26,120 @@ function normalizeToken(value) {
   return String(value || "").trim().toLowerCase();
 }
 
+function toFiniteNumber(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+}
+
+function getPlayersEliminated(player) {
+  return toFiniteNumber(player?.playersEliminated ?? player?.playerEliminations ?? 0);
+}
+
+function getEliminationSeconds(player) {
+  const raw = toFiniteNumber(
+    player?.timeEliminatedSeconds
+      ?? player?.timeEliminated
+      ?? player?.eliminationTime
+      ?? player?.eliminationTimestamp
+      ?? player?.eliminatedAt
+      ?? 0
+  );
+  if (!raw) return 0;
+  return raw > 100000 ? raw / 1000 : raw;
+}
+
+function eliminationBucket(seconds) {
+  if (!seconds) return "unknown";
+  if (seconds < 1200) return "early";
+  if (seconds < 1800) return "mid";
+  return "late";
+}
+
+function buildDerivedMetrics(matches) {
+  const sameTeam = matches.filter((match) => match?.sameTeam);
+  const bucketCounts = { early: 0, mid: 0, late: 0, unknown: 0 };
+  const teamExitSeconds = [];
+  const combinedElimsWin = [];
+  const combinedElimsLoss = [];
+  const carryPressureRows = { A: [], B: [] };
+
+  for (const match of matches) {
+    const placement = teamPlacementFromMatch(match);
+    const elimA = getPlayersEliminated(match?.playerA);
+    const elimB = getPlayersEliminated(match?.playerB);
+    const combinedElims = elimA + elimB;
+    if (match?.sameTeam && placement <= 2) combinedElimsWin.push(combinedElims);
+    if (match?.sameTeam && placement >= 3) combinedElimsLoss.push(combinedElims);
+
+    const exitA = getEliminationSeconds(match?.playerA);
+    const exitB = getEliminationSeconds(match?.playerB);
+    const exits = [exitA, exitB].filter((value) => value > 0);
+    const teamExit = exits.length ? avg(exits) : 0;
+    teamExitSeconds.push(teamExit);
+    bucketCounts[eliminationBucket(teamExit)] += 1;
+
+    [
+      { key: "A", player: match?.playerA },
+      { key: "B", player: match?.playerB },
+    ].forEach(({ key, player }) => {
+      const damage = toFiniteNumber(player?.totalDamageToPlayers);
+      const elims = getPlayersEliminated(player);
+      const playerPlacement = toFiniteNumber(player?.placement || placement || 8);
+      const placementScore = clamp(((9 - playerPlacement) / 8) * 100);
+      const damageScore = clamp((damage / 180) * 100);
+      const elimScore = clamp((elims / 6) * 100);
+      const carryPressureIndex = clamp((damageScore * 0.45) + (elimScore * 0.3) + (placementScore * 0.25));
+      carryPressureRows[key].push({
+        carryPressureIndex,
+        win: match?.sameTeam && placement <= 2,
+        loss: match?.sameTeam && placement >= 3,
+      });
+    });
+  }
+
+  const dominantExitBucket = Object.entries(bucketCounts)
+    .sort((a, b) => b[1] - a[1])[0]?.[0] || "unknown";
+
+  return {
+    eliminationTiming: {
+      avgExitSeconds: avg(teamExitSeconds),
+      avgExitBucket: eliminationBucket(avg(teamExitSeconds)),
+      dominantExitBucket,
+      bucketRates: {
+        early: pct(bucketCounts.early, teamExitSeconds.length),
+        mid: pct(bucketCounts.mid, teamExitSeconds.length),
+        late: pct(bucketCounts.late, teamExitSeconds.length),
+      },
+      sample: teamExitSeconds.length,
+    },
+    playersEliminatedTrend: {
+      winAvg: avg(combinedElimsWin),
+      lossAvg: avg(combinedElimsLoss),
+      delta: avg(combinedElimsWin) - avg(combinedElimsLoss),
+      sample: {
+        wins: combinedElimsWin.length,
+        losses: combinedElimsLoss.length,
+      },
+    },
+    carryPressureIndex: {
+      playerA: {
+        avg: avg(carryPressureRows.A.map((row) => row.carryPressureIndex)),
+        winAvg: avg(carryPressureRows.A.filter((row) => row.win).map((row) => row.carryPressureIndex)),
+        lossAvg: avg(carryPressureRows.A.filter((row) => row.loss).map((row) => row.carryPressureIndex)),
+      },
+      playerB: {
+        avg: avg(carryPressureRows.B.map((row) => row.carryPressureIndex)),
+        winAvg: avg(carryPressureRows.B.filter((row) => row.win).map((row) => row.carryPressureIndex)),
+        lossAvg: avg(carryPressureRows.B.filter((row) => row.loss).map((row) => row.carryPressureIndex)),
+      },
+    },
+    sample: {
+      sameTeam: sameTeam.length,
+      matches: matches.length,
+    },
+  };
+}
+
 function topTraitName(player) {
   const top = asArray(player?.traits)
     .filter((trait) => Number(trait?.style || 0) > 0)
@@ -259,7 +373,7 @@ function buildWinConditionMiner(matches) {
   };
 }
 
-function buildLossAutopsy(matches) {
+function buildLossAutopsy(matches, derivedMetrics) {
   const ranked = [...matches]
     .sort((a, b) => teamPlacementFromMatch(b) - teamPlacementFromMatch(a) || toEpochMs(b?.gameDatetime) - toEpochMs(a?.gameDatetime))
     .slice(0, 3);
@@ -272,11 +386,19 @@ function buildLossAutopsy(matches) {
     const damageB = Number(match?.playerB?.totalDamageToPlayers || 0);
     const goldA = Number(match?.playerA?.goldLeft || 0);
     const goldB = Number(match?.playerB?.goldLeft || 0);
+    const teamExitSeconds = avg([getEliminationSeconds(match?.playerA), getEliminationSeconds(match?.playerB)].filter((v) => v > 0));
+    const exitBucket = eliminationBucket(teamExitSeconds);
+    const carryPressureA = derivedMetrics?.carryPressureIndex?.playerA?.avg || 0;
+    const carryPressureB = derivedMetrics?.carryPressureIndex?.playerB?.avg || 0;
+    const carryGap = Math.abs(carryPressureA - carryPressureB);
 
     const factors = [];
     if (placement >= 4) factors.push({ reason: "Late collapse (team bottom half finish)", weight: 35 });
+    if (exitBucket === "early") factors.push({ reason: "Early exit window (<20m). Stabilize at Stage 3 before greed.", weight: 30 });
+    if (exitBucket === "mid") factors.push({ reason: "Mid-game bleed (20-30m). Convert tempo spikes into capped Stage 4 boards.", weight: 22 });
     if ((levelA + levelB) / 2 < 8) factors.push({ reason: "Low board cap (average level below 8)", weight: 28 });
     if (damageA + damageB < 90) factors.push({ reason: "Low pressure output (combined damage under 90)", weight: 24 });
+    if (carryGap >= 12) factors.push({ reason: "Carry pressure imbalance. Reassign item priority to the lower-pressure board.", weight: 20 });
     if (goldA <= 5 || goldB <= 5) factors.push({ reason: "Resource exhaustion signal (one player near zero gold)", weight: 18 });
     if (!factors.length) factors.push({ reason: "Variance loss with no dominant structural leak", weight: 14 });
 
@@ -329,7 +451,7 @@ function buildContestedMetaPressure(matches, computed) {
   };
 }
 
-function buildTimingCoach(matches, scorecard) {
+function buildTimingCoach(matches, scorecard, derivedMetrics) {
   const sameTeam = matches.filter((match) => match?.sameTeam);
   const top2 = sameTeam.filter((match) => teamPlacementFromMatch(match) <= 2);
   const bot2 = sameTeam.filter((match) => teamPlacementFromMatch(match) >= 3);
@@ -352,6 +474,18 @@ function buildTimingCoach(matches, scorecard) {
   if (overlapStages.length) {
     guidance += ` Roll overlap detected at ${overlapStages.join(", ")}; stagger ownership to reduce dual all-ins.`;
   }
+  const exitBucket = derivedMetrics?.eliminationTiming?.avgExitBucket;
+  if (exitBucket === "early") {
+    guidance += " Most exits are early; lock one Stage 3 frontline stabilizer before both players hold econ.";
+  } else if (exitBucket === "mid") {
+    guidance += " Exits cluster mid-game; convert Stage 4 spike into one capped board and one utility board.";
+  } else if (exitBucket === "late") {
+    guidance += " Exits are mostly late; focus on final-board upgrade sequencing rather than early panic rolls.";
+  }
+  const elimDelta = Number(derivedMetrics?.playersEliminatedTrend?.delta || 0);
+  if (Math.abs(elimDelta) >= 0.8) {
+    guidance += ` In wins you average ${derivedMetrics.playersEliminatedTrend.winAvg.toFixed(1)} combined eliminations vs ${derivedMetrics.playersEliminatedTrend.lossAvg.toFixed(1)} in losses—push for one extra knockout before Stage 5.`;
+  }
 
   return {
     top2Level,
@@ -362,7 +496,7 @@ function buildTimingCoach(matches, scorecard) {
   };
 }
 
-function buildCoordinationScore(matches, contestedMetaPressure) {
+function buildCoordinationScore(matches, contestedMetaPressure, derivedMetrics) {
   const sameTeam = matches.filter((match) => match?.sameTeam);
   const splitRows = new Map();
   for (const match of sameTeam) {
@@ -395,11 +529,18 @@ function buildCoordinationScore(matches, contestedMetaPressure) {
   const pressureAdjustment = contestedMetaPressure.score >= 60
     ? "High contested meta: prioritize low-overlap frontline/backline split."
     : "Contested pressure is moderate: comfort split is acceptable.";
+  const pressureA = Number(derivedMetrics?.carryPressureIndex?.playerA?.avg || 0);
+  const pressureB = Number(derivedMetrics?.carryPressureIndex?.playerB?.avg || 0);
+  const pressureGap = Math.abs(pressureA - pressureB);
+  const pressureOwner = pressureA >= pressureB ? "A" : "B";
+  const pressureLine = pressureGap >= 8
+    ? ` Carry pressure index favors Player ${pressureOwner}; route first carry item set to Player ${pressureOwner} and rebalance support on the other board.`
+    : " Carry pressure index is balanced; maintain mirrored spike timing.";
 
   return {
     score: coordinationScore,
     bestSplit: best,
-    recommendation: `${recommendation} ${pressureAdjustment}`,
+    recommendation: `${recommendation} ${pressureAdjustment}${pressureLine}`,
     candidates: rows.slice(0, 3),
   };
 }
@@ -491,20 +632,22 @@ export function buildCoachingIntel({
   const metaTraitSet = new Set(asArray(computed?.metaTraits).slice(0, 6).map((trait) => normalizeToken(trait?.name)));
 
   const tilt = buildTiltAndStreak(sorted, scorecard);
+  const derivedMetrics = buildDerivedMetrics(sorted);
   const fingerprints = {
     playerA: buildPlayerFingerprint(sorted, "A", metaTraitSet),
     playerB: buildPlayerFingerprint(sorted, "B", metaTraitSet),
     duo: buildDuoFingerprint(sorted),
   };
   const winConditions = buildWinConditionMiner(sorted);
-  const lossAutopsy = buildLossAutopsy(sorted);
+  const lossAutopsy = buildLossAutopsy(sorted, derivedMetrics);
   const contestedMetaPressure = buildContestedMetaPressure(sorted, computed);
-  const timingCoach = buildTimingCoach(sorted, scorecard);
-  const coordination = buildCoordinationScore(sorted, contestedMetaPressure);
+  const timingCoach = buildTimingCoach(sorted, scorecard, derivedMetrics);
+  const coordination = buildCoordinationScore(sorted, contestedMetaPressure, derivedMetrics);
   const wild = buildWildCorrelations(sorted, kpis);
 
   return {
     tilt,
+    derivedMetrics,
     fingerprints,
     winConditions,
     lossAutopsy,
@@ -514,4 +657,3 @@ export function buildCoachingIntel({
     wild,
   };
 }
-
