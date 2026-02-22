@@ -195,6 +195,7 @@ export default function HistoryTab({
                   unit?.characterId ? (
                     <Pane
                       key={`a-unit-${match.id}-${unit.characterId}-${idx}`}
+                      className="history-unit-slot"
                       display="grid"
                       justifyItems="center"
                       gap={2}
@@ -212,7 +213,13 @@ export default function HistoryTab({
                       </Text>
                     </Pane>
                   ) : (
-                    <Pane key={`a-empty-${match.id}-${idx}`} display="grid" justifyItems="center" data-testid="a-board-slot">
+                    <Pane
+                      key={`a-empty-${match.id}-${idx}`}
+                      className="history-unit-slot"
+                      display="grid"
+                      justifyItems="center"
+                      data-testid="a-board-slot"
+                    >
                       <Pane
                         width={UNIT_SLOT_SIZE}
                         height={UNIT_SLOT_SIZE}
@@ -258,6 +265,7 @@ export default function HistoryTab({
                   unit?.characterId ? (
                     <Pane
                       key={`b-unit-${match.id}-${unit.characterId}-${idx}`}
+                      className="history-unit-slot"
                       display="grid"
                       justifyItems="center"
                       gap={2}
@@ -275,7 +283,13 @@ export default function HistoryTab({
                       </Text>
                     </Pane>
                   ) : (
-                    <Pane key={`b-empty-${match.id}-${idx}`} display="grid" justifyItems="center" data-testid="b-board-slot">
+                    <Pane
+                      key={`b-empty-${match.id}-${idx}`}
+                      className="history-unit-slot"
+                      display="grid"
+                      justifyItems="center"
+                      data-testid="b-board-slot"
+                    >
                       <Pane
                         width={UNIT_SLOT_SIZE}
                         height={UNIT_SLOT_SIZE}
