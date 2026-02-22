@@ -1,6 +1,20 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, Heading, Pane, Text } from "evergreen-ui";
 import { companionArtCandidates, iconCandidates } from "../utils/tft";
+
+const MAX_BANNER_RETRIES = 2;
+
+function withRetryKey(url, retryKey) {
+  if (!retryKey || !url) return url;
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.set("retry", String(retryKey));
+    return parsed.toString();
+  } catch {
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}retry=${retryKey}`;
+  }
+}
 
 export default function PlayerBannerCard({
   displayName,
@@ -22,15 +36,43 @@ export default function PlayerBannerCard({
   const urls = useMemo(() => [...companionUrls, ...unitFallbackUrls], [companionUrls, unitFallbackUrls]);
   const [index, setIndex] = useState(0);
   const [showFallback, setShowFallback] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const retryTimerRef = useRef(null);
 
   useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
     setIndex(0);
+    setRetryCount(0);
     setShowFallback(false);
   }, [companion, fallbackUnitToken]);
 
   function handleError() {
     if (index + 1 < urls.length) {
       setIndex((value) => value + 1);
+      return;
+    }
+    if (retryCount < MAX_BANNER_RETRIES && urls.length) {
+      const nextRetry = retryCount + 1;
+      setShowFallback(true);
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+      }
+      retryTimerRef.current = setTimeout(() => {
+        setRetryCount(nextRetry);
+        setIndex(0);
+        setShowFallback(false);
+      }, 650 * nextRetry);
       return;
     }
     setShowFallback(true);
@@ -49,7 +91,7 @@ export default function PlayerBannerCard({
       >
         {!showFallback && urls[index] ? (
           <img
-            src={urls[index]}
+            src={withRetryKey(urls[index], retryCount)}
             alt=""
             onError={handleError}
             style={{
@@ -82,4 +124,3 @@ export default function PlayerBannerCard({
     </Card>
   );
 }
-
