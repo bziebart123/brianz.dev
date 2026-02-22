@@ -98,6 +98,7 @@ Server env vars (see `.env.example` and server code):
   - player cards now explicitly allow shrink (`min-width: 0`) inside the history grid.
   - long player names now wrap instead of forcing horizontal overflow.
   - champion board rows now render as a 2-row mobile grid (5 slots per row) to keep full board visibility inside the card without right-edge overflow.
+  - champion star strips under unit icons now use stronger dedicated typography so 1/2/3-star markers remain legible.
 - Mobile filter drawer now uses an opaque background layer (no see-through app content), with Sidebar relying on CSS-driven backgrounds instead of an inline transparent background override.
 - Coaching page now waits for AI briefing before rendering the full content area and shows a full-page GPT loading state during generation.
 - AI coaching now includes a deterministic findings engine (server-side) that computes:

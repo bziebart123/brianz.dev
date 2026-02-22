@@ -208,7 +208,7 @@ export default function HistoryTab({
                         size={UNIT_SLOT_SIZE}
                         iconManifest={iconManifest}
                       />
-                      <Text size={300} style={{ color: "#ffd97a", fontWeight: 700, lineHeight: 1 }}>
+                      <Text className="history-unit-stars" size={300}>
                         {starsForTier(unit.tier)}
                       </Text>
                     </Pane>
@@ -278,7 +278,7 @@ export default function HistoryTab({
                         size={UNIT_SLOT_SIZE}
                         iconManifest={iconManifest}
                       />
-                      <Text size={300} style={{ color: "#ffd97a", fontWeight: 700, lineHeight: 1 }}>
+                      <Text className="history-unit-stars" size={300}>
                         {starsForTier(unit.tier)}
                       </Text>
                     </Pane>

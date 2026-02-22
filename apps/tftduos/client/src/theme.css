@@ -133,6 +133,15 @@ body {
   word-break: break-word;
 }
 
+.history-unit-stars {
+  color: #ffd97a !important;
+  font-weight: 800 !important;
+  font-size: 14px !important;
+  letter-spacing: 0.3px;
+  line-height: 1 !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+}
+
 .tft-sidebar-overlay {
   display: none;
 }
@@ -573,6 +582,10 @@ body {
     font-size: 10px !important;
     min-height: 22px !important;
     padding: 1px 6px !important;
+  }
+
+  .history-unit-stars {
+    font-size: 13px !important;
   }
 
   .tft-main-content .history-unit-row {
