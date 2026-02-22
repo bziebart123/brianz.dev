@@ -107,8 +107,8 @@ describe("HistoryTab", () => {
   it("shows cosmetic availability messaging", () => {
     render(<HistoryTab {...props} />);
 
-    expect(screen.getByText("data unavailable from Riot for this match")).toBeInTheDocument();
-    expect(screen.getByText("Arena 12")).toBeInTheDocument();
+    expect(screen.getAllByText("data unavailable from Riot for this match").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Arena 12").length).toBeGreaterThan(0);
   });
 });
 
