@@ -115,6 +115,8 @@
         justify-content: space-between;
         gap: 12px;
         pointer-events: none;
+        opacity: 0;
+        transition: opacity 360ms ease;
       }
 
       .chip {
@@ -144,6 +146,82 @@
         position: relative;
         width: 100%;
         height: min(84vh, 860px);
+        opacity: 0;
+        filter: blur(4px);
+        transition: opacity 460ms ease, filter 460ms ease;
+      }
+
+      .starfield.ready .map-hud {
+        opacity: 1;
+      }
+
+      .starfield.ready .organism {
+        opacity: 1;
+        filter: blur(0);
+      }
+
+      .boot-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 7;
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        background: radial-gradient(circle at 50% 50%, rgba(8, 14, 30, 0.16), rgba(7, 12, 24, 0.88) 65%);
+        transition: opacity 420ms ease;
+      }
+
+      .boot-overlay.done {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .terminal {
+        width: min(720px, 100%);
+        border: 1px solid rgba(111, 194, 255, 0.48);
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(12, 22, 42, 0.92), rgba(8, 14, 28, 0.9));
+        box-shadow: 0 22px 44px rgba(0, 0, 0, 0.56), 0 0 32px rgba(111, 194, 255, 0.2);
+        overflow: hidden;
+      }
+
+      .terminal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 14px;
+        border-bottom: 1px solid rgba(111, 194, 255, 0.24);
+        background: rgba(18, 33, 62, 0.65);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+
+      .terminal-body {
+        padding: 14px;
+        min-height: 186px;
+        font-family: "Consolas", "Menlo", "SFMono-Regular", monospace;
+        font-size: 0.86rem;
+        line-height: 1.48;
+        color: #b5ddff;
+      }
+
+      .boot-line {
+        opacity: 0;
+        transform: translateY(5px);
+        transition: opacity 220ms ease, transform 220ms ease;
+      }
+
+      .boot-line.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .boot-line strong {
+        color: var(--accent-2);
+        font-weight: 600;
       }
 
       .core {
@@ -203,6 +281,14 @@
         text-decoration: none;
         color: var(--text);
         z-index: 5;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 340ms ease;
+      }
+
+      .star-node.is-visible {
+        opacity: 1;
+        pointer-events: auto;
       }
 
       .node-icon {
@@ -286,6 +372,22 @@
         background: rgba(13, 22, 42, 0.7);
       }
 
+      .note::after {
+        content: " _";
+        animation: blinkCursor 1s steps(1, end) infinite;
+      }
+
+      @keyframes blinkCursor {
+        0%,
+        49% {
+          opacity: 1;
+        }
+        50%,
+        100% {
+          opacity: 0;
+        }
+      }
+
       @media (max-width: 900px) {
         .cosmos-shell {
           padding: 10px;
@@ -367,6 +469,16 @@
 
     <main class="cosmos-shell">
       <section class="starfield" aria-label="Star map launcher">
+        <div class="boot-overlay" id="boot-overlay" aria-live="polite">
+          <div class="terminal">
+            <div class="terminal-head">
+              <span>MY-BRIAN // Cognitive Navigation Terminal</span>
+              <span>Protocol Handshake</span>
+            </div>
+            <div class="terminal-body" id="boot-log"></div>
+          </div>
+        </div>
+
         <div class="map-hud">
           <div class="chip"><span class="chip-dot" aria-hidden="true"></span> brianz.dev lattice</div>
           <div class="chip">touch or move to navigate</div>
@@ -444,7 +556,7 @@
           </a>
         </div>
 
-        <div class="note">living star menu organism</div>
+        <div class="note" id="terminal-status">awaiting protocol input</div>
       </section>
     </main>
 
@@ -455,6 +567,10 @@
 
         var tftLink = document.getElementById("tftduos-link");
         var metaLink = document.getElementById("meta-link");
+        var starfield = document.querySelector(".starfield");
+        var bootOverlay = document.getElementById("boot-overlay");
+        var bootLog = document.getElementById("boot-log");
+        var terminalStatus = document.getElementById("terminal-status");
 
         if (isLocal) {
           if (tftLink) tftLink.setAttribute("href", "http://localhost:4173");
@@ -467,6 +583,8 @@
         var organism = document.getElementById("organism");
         var nodes = Array.prototype.slice.call(document.querySelectorAll(".star-node"));
         var pointer = { x: 0, y: 0 };
+        var nodeAnimationStarted = false;
+        var spokeGreeting = false;
 
         nodes.forEach(function (node) {
           var href = node.getAttribute("href") || "";
@@ -475,6 +593,68 @@
             node.setAttribute("rel", "noopener noreferrer");
           }
         });
+
+        function speakGreeting() {
+          if (spokeGreeting || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
+          spokeGreeting = true;
+          var utterance = new SpeechSynthesisUtterance("Protocol M Y Brian engaged. Mapping out Brian's mind.");
+          utterance.rate = 0.95;
+          utterance.pitch = 0.86;
+          utterance.volume = 0.78;
+          window.speechSynthesis.speak(utterance);
+        }
+
+        window.addEventListener("pointerdown", speakGreeting, { once: true });
+
+        function pushBootLine(text, isHighlight) {
+          if (!bootLog) return;
+          var line = document.createElement("div");
+          line.className = "boot-line";
+          line.innerHTML = isHighlight ? "<strong>" + text + "</strong>" : text;
+          bootLog.appendChild(line);
+          requestAnimationFrame(function () {
+            line.classList.add("show");
+          });
+        }
+
+        function beginStarMap() {
+          if (terminalStatus) {
+            terminalStatus.textContent = "terminal synced // node lattice online";
+          }
+          if (bootOverlay) bootOverlay.classList.add("done");
+          if (starfield) starfield.classList.add("ready");
+
+          nodes.forEach(function (node, index) {
+            window.setTimeout(function () {
+              node.classList.add("is-visible");
+            }, index * 150);
+          });
+
+          if (!nodeAnimationStarted) {
+            nodeAnimationStarted = true;
+            requestAnimationFrame(updateNodes);
+          }
+        }
+
+        var bootSequence = [
+          { text: "> Initiating protocol: MY-BRIAN", highlight: false },
+          { text: "> Calibrating semi-sentient navigator...", highlight: false },
+          { text: "> Mapping out Brian's mind", highlight: true },
+          { text: "> Compiling project constellations", highlight: false },
+          { text: "> Rendering neural routes and access nodes", highlight: false },
+          { text: "> Handshake complete. Welcome aboard.", highlight: true }
+        ];
+
+        bootSequence.forEach(function (line, index) {
+          window.setTimeout(function () {
+            pushBootLine(line.text, line.highlight);
+          }, 260 + index * 460);
+        });
+
+        window.setTimeout(function () {
+          beginStarMap();
+          speakGreeting();
+        }, 260 + bootSequence.length * 460 + 460);
 
         var nodeState = nodes.map(function (node, index) {
           var x = Number(node.getAttribute("data-x") || 50) / 100;
@@ -586,8 +766,6 @@
           drawLinks(t);
           requestAnimationFrame(updateNodes);
         }
-
-        requestAnimationFrame(updateNodes);
 
         var depthCanvas = document.getElementById("depth-layer");
         if (!depthCanvas) return;
