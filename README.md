@@ -161,6 +161,7 @@ Use exactly what Render Custom Domains asks for:
 - The docked terminal now spans the full lattice container width, uses a fixed height, and keeps boot/message history scrollable inside the terminal body.
 - Clicking the `Backend` node now toggles an expanded full-height terminal mode and prints the connected backend API manifest (health, TFT, duo, coach, and site-performance routes); `Esc` collapses back to docked mode.
 - Backend manifest output now streams line-by-line (terminal typing cadence), and terminal expansion/collapse is animated from the docked bottom edge (no top-hop before expansion).
+- Every `Backend` click now appends a fresh manifest request block at the bottom of terminal history (timestamped), replaying line-by-line like a new backend call.
 - When landing on portfolio from known app/subdomain hosts (`tftduos`, `site-performance`, and local app ports), boot handshake animation is skipped for immediate map access.
 - Portfolio scene suppresses ambient page caret/cursor artifacts in the lattice viewport while keeping terminal history selectable for copy.
 - Portfolio launcher opens HTTP(S) app destinations in new tabs so the landing scene remains open while navigating.
