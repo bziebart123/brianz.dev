@@ -19,10 +19,43 @@ const EMPTY_MATCHES = [];
 const EMPTY_ICON_MANIFEST = { traits: {}, augments: {} };
 const EMPTY_COMPANION_MANIFEST = { byItemId: {}, byContentId: {} };
 const AI_COACH_CACHE_KEY_PREFIX = "tftduos-ai-coach-v1";
+const MANIFEST_FETCH_ATTEMPTS = 4;
+const MANIFEST_FETCH_MAX_DELAY_MS = 2400;
 
 function apiUrl(path) {
   if (!API_BASE_URL) return path;
   return `${API_BASE_URL}${path}`;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchJsonWithRetry(path, { attempts = MANIFEST_FETCH_ATTEMPTS, signal } = {}) {
+  let lastError = null;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    if (signal?.aborted) {
+      const abortError = new Error("Request aborted.");
+      abortError.name = "AbortError";
+      throw abortError;
+    }
+    try {
+      const response = await fetch(apiUrl(path), { signal });
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+      if (signal?.aborted || error?.name === "AbortError") {
+        throw error;
+      }
+      if (attempt >= attempts - 1) break;
+      const delayMs = Math.min(MANIFEST_FETCH_MAX_DELAY_MS, 300 * (2 ** attempt));
+      await wait(delayMs);
+    }
+  }
+  throw lastError || new Error("Request failed.");
 }
 
 function aiCoachCacheKey({ duoId, timelineDays, setFilter, patchFilter }) {
@@ -201,27 +234,29 @@ export default function useDuoAnalysis() {
       return;
     }
 
-    let active = true;
+    const controller = new AbortController();
     async function loadCompanionManifest() {
       try {
         const params = new URLSearchParams();
         if (itemIds.length) params.set("itemIds", itemIds.join(","));
         if (contentIds.length) params.set("contentIds", contentIds.join(","));
-        const response = await fetch(apiUrl(`/api/tft/companion-manifest?${params.toString()}`));
-        const data = await response.json();
-        if (!response.ok || !active) return;
+        const data = await fetchJsonWithRetry(`/api/tft/companion-manifest?${params.toString()}`, {
+          signal: controller.signal,
+        });
+        if (controller.signal.aborted) return;
         setCompanionManifest({
           byItemId: data?.byItemId || {},
           byContentId: data?.byContentId || {},
         });
       } catch {
-        if (active) setCompanionManifest(EMPTY_COMPANION_MANIFEST);
+        if (controller.signal.aborted) return;
+        // Keep prior manifest on transient failures so images can still render.
       }
     }
 
     loadCompanionManifest();
     return () => {
-      active = false;
+      controller.abort();
     };
   }, [matches]);
 
@@ -451,12 +486,13 @@ export default function useDuoAnalysis() {
       return;
     }
 
-    let active = true;
+    const controller = new AbortController();
     async function loadIconManifest() {
       try {
-        const response = await fetch(apiUrl(`/api/tft/icon-manifest?sets=${encodeURIComponent(sets.join(","))}`));
-        const data = await response.json();
-        if (!response.ok || !active) return;
+        const data = await fetchJsonWithRetry(`/api/tft/icon-manifest?sets=${encodeURIComponent(sets.join(","))}`, {
+          signal: controller.signal,
+        });
+        if (controller.signal.aborted) return;
 
         const merged = { traits: {}, augments: {} };
         Object.values(data?.sets || {}).forEach((setEntry) => {
@@ -465,13 +501,14 @@ export default function useDuoAnalysis() {
         });
         setIconManifest(merged);
       } catch {
-        if (active) setIconManifest(EMPTY_ICON_MANIFEST);
+        if (controller.signal.aborted) return;
+        // Keep prior manifest on transient failures so icons do not disappear.
       }
     }
 
     loadIconManifest();
     return () => {
-      active = false;
+      controller.abort();
     };
   }, [matches]);
 

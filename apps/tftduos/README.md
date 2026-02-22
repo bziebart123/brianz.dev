@@ -171,6 +171,10 @@ CI:
   - `.github/copilot-instructions.md`
 - Legacy root runtime files were removed; use `apps/tftduos/client` and `apps/backend` paths for dev/deploy.
 - `client/src/hooks/useDuoAnalysis.js` keeps an identity-stable empty `matches` list and skips redundant manifest resets to prevent React effect loops (`Maximum update depth exceeded`) before payload data loads.
+- Icon resilience hardening:
+  - `client/src/hooks/useDuoAnalysis.js` now retries `/api/tft/icon-manifest` and `/api/tft/companion-manifest` with short exponential backoff and abort support.
+  - Transient manifest failures no longer clear previously loaded icon/companion manifests, preventing post-deploy icon disappearance.
+  - `client/src/components/IconWithLabel.jsx` and `client/src/components/PlayerBannerCard.jsx` now perform bounded delayed image retries with a retry query param to recover from temporary CDN misses.
 - Coaching client-state cleanup (no user-facing behavior change):
   - `client/src/App.jsx` now passes only actively consumed `CoachingTab` props.
   - `client/src/hooks/useDuoAnalysis.js` removed unused client-side coaching journal/event state and handlers that were no longer rendered by UI.

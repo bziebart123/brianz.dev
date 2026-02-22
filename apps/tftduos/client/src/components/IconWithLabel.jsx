@@ -1,6 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pane, Text, Tooltip } from "evergreen-ui";
 import { iconCandidates } from "../utils/tft";
+const MAX_ICON_RETRIES = 2;
+
+function withRetryKey(url, retryKey) {
+  if (!retryKey || !url) return url;
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.set("retry", String(retryKey));
+    return parsed.toString();
+  } catch {
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}retry=${retryKey}`;
+  }
+}
 
 function normalizeTraitTier(value) {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -26,15 +39,43 @@ export default function IconWithLabel({ kind, token, label, count, size = 24, ic
   const urls = useMemo(() => iconCandidates(kind, token, iconManifest), [kind, token, iconManifest]);
   const [index, setIndex] = useState(0);
   const [showFallback, setShowFallback] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const retryTimerRef = useRef(null);
 
   useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
     setIndex(0);
+    setRetryCount(0);
     setShowFallback(false);
   }, [token, kind]);
 
   function handleError() {
     if (index + 1 < urls.length) {
       setIndex((value) => value + 1);
+      return;
+    }
+    if (retryCount < MAX_ICON_RETRIES && urls.length) {
+      const nextRetry = retryCount + 1;
+      setShowFallback(true);
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+      }
+      retryTimerRef.current = setTimeout(() => {
+        setRetryCount(nextRetry);
+        setIndex(0);
+        setShowFallback(false);
+      }, 500 * nextRetry);
       return;
     }
     setShowFallback(true);
@@ -62,7 +103,7 @@ export default function IconWithLabel({ kind, token, label, count, size = 24, ic
         >
           {!showFallback && urls[index] ? (
             <img
-              src={urls[index]}
+              src={withRetryKey(urls[index], retryCount)}
               alt=""
               width={imageSize}
               height={imageSize}
