@@ -30,6 +30,12 @@ const baseMatch = {
       { characterId: "TFT16_Ahri", tier: 2 },
       { characterId: "TFT16_Shen", tier: 1 },
     ],
+    cosmetics: {
+      version: 1,
+      available: false,
+      source: "tft-match-v1",
+      fields: {},
+    },
   },
   playerB: {
     placement: 2,
@@ -38,6 +44,12 @@ const baseMatch = {
     totalDamageToPlayers: 55,
     traits: [{ name: "TFT16_Sorcerer", style: 2 }],
     units: [{ characterId: "TFT16_Taric", tier: 3 }],
+    cosmetics: {
+      version: 1,
+      available: true,
+      source: "tft-match-v1+companion",
+      fields: { arenaId: 12 },
+    },
   },
   lobby: [
     { partnerGroupId: 1, placement: 1 },
@@ -89,6 +101,14 @@ describe("HistoryTab", () => {
     expect(screen.getAllByText("**").length).toBeGreaterThan(0);
     expect(screen.getAllByText("*").length).toBeGreaterThan(0);
     expect(screen.getAllByText("***").length).toBeGreaterThan(0);
+  });
+
+
+  it("shows cosmetic availability messaging", () => {
+    render(<HistoryTab {...props} />);
+
+    expect(screen.getAllByText("data unavailable from Riot for this match").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Arena 12").length).toBeGreaterThan(0);
   });
 });
 
