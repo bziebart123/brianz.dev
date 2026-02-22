@@ -477,14 +477,61 @@ function summarizeCompanion(companion) {
   };
 }
 
-function summarizeArena(participant) {
-  // TFT match-v1 payload currently does not expose arena-specific fields.
-  // We return a stable placeholder shape so downstream consumers can rely on it.
+function mergeCosmeticFields(...sources) {
+  const merged = {};
+  for (const source of sources) {
+    if (!source || typeof source !== "object") continue;
+    for (const [key, value] of Object.entries(source)) {
+      if (value === null || value === undefined || value === "") continue;
+      merged[key] = value;
+    }
+  }
+  return merged;
+}
+
+function summarizeArena(cosmetics) {
+  const arenaId = cosmetics?.fields?.arenaId ?? null;
+  const skinId = cosmetics?.fields?.arenaSkinId ?? null;
+  if (arenaId !== null || skinId !== null) {
+    return {
+      arenaId,
+      skinId,
+      available: true,
+      source: cosmetics.source,
+    };
+  }
+
+  // Preserve existing fallback shape for clients that read the legacy `arena` object directly.
   return {
     arenaId: null,
     skinId: null,
     available: false,
-    source: "tft-match-v1",
+    source: cosmetics?.source || "tft-match-v1",
+  };
+}
+
+function summarizeCosmetics(participant) {
+  const riotMatchFields = mergeCosmeticFields({
+    arenaId: participant?.arena_id,
+    arenaSkinId: participant?.arena_skin_id,
+    boomId: participant?.boom_id,
+    tacticianItemId: participant?.companion?.item_ID,
+    tacticianSkinId: participant?.companion?.skin_ID,
+  });
+  const legacyFallbackFields = mergeCosmeticFields({
+    tacticianItemId: participant?.companion?.itemId,
+    tacticianSkinId: participant?.companion?.skinId,
+    arenaId: participant?.arenaId,
+    arenaSkinId: participant?.arenaSkinId,
+  });
+  const enrichedFields = mergeCosmeticFields(riotMatchFields, legacyFallbackFields);
+  const available = Object.keys(enrichedFields).length > 0;
+
+  return {
+    version: 1,
+    available,
+    source: available ? "tft-match-v1+companion" : "tft-match-v1",
+    fields: available ? enrichedFields : {},
   };
 }
 
@@ -898,6 +945,7 @@ async function fetchPlayerData({
 }
 
 function summarizeParticipant(participant) {
+  const cosmetics = summarizeCosmetics(participant);
   return {
     puuid: participant.puuid,
     riotIdGameName: participant.riotIdGameName ?? null,
@@ -915,7 +963,8 @@ function summarizeParticipant(participant) {
     hasAugmentsField: hasField(participant, "augments"),
     augments: participant.augments ?? [],
     companion: summarizeCompanion(participant.companion),
-    arena: summarizeArena(participant),
+    cosmetics,
+    arena: summarizeArena(cosmetics),
     traits: summarizeTraits(participant.traits),
     units: summarizeUnits(participant.units),
   };
@@ -2234,4 +2283,3 @@ app.get(/^\/(?!api(?:\/|$)).*/, async (_req, res) => {
 app.listen(port, () => {
   console.log(`brianz backend listening on http://localhost:${port}`);
 });
-

@@ -53,6 +53,8 @@ Server env vars (see `.env.example` and server code):
 - Match cards show:
   - Team chip + LP estimate chip
   - Set/Patch/Date
+  - Per-player cosmetics status sourced from payload `player.cosmetics` (versioned envelope with `available/source/fields`)
+  - A muted fallback message (`data unavailable from Riot for this match`) when Riot does not provide cosmetics for a game
   - Both player boards as exactly 10 slots
   - Empty placeholders for unused board slots
   - Champion star strips (filled stars only)
@@ -143,6 +145,13 @@ Server env vars (see `.env.example` and server code):
 - Quick event stage default for manual logging is now `4.1` to better align with late-stage clutch/rescue signal capture.
 - Shared backend now also exposes Site Performance metrics routes:
   - `GET /api/site-performance/render/overview` (Render service/metric rollups for the Site Performance dashboard)
+
+- Match payload participants now include `cosmetics`:
+  - `version` (currently `1`)
+  - `available` boolean for progressive rendering
+  - `source` for debugging provenance
+  - `fields` object containing normalized optional IDs (for example `arenaId`, `arenaSkinId`, tactician IDs) when present
+  - Legacy `arena` fallback shape is still emitted for backward compatibility
 
 ## Testing
 

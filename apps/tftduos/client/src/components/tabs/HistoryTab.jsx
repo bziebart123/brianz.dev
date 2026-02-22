@@ -27,6 +27,17 @@ function starsForTier(tierValue) {
 const UNIT_SLOT_SIZE = 48;
 const CHIP_TEXT_STYLE = { color: "#f7fbff", fontWeight: 700, lineHeight: 1 };
 
+function cosmeticLabel(player) {
+  const cosmetics = player?.cosmetics;
+  if (!cosmetics?.available) return "data unavailable from Riot for this match";
+  const arenaId = cosmetics?.fields?.arenaId;
+  const arenaSkinId = cosmetics?.fields?.arenaSkinId;
+  if (arenaId && arenaSkinId) return `Arena ${arenaId} · Skin ${arenaSkinId}`;
+  if (arenaId) return `Arena ${arenaId}`;
+  if (arenaSkinId) return `Skin ${arenaSkinId}`;
+  return "Cosmetic metadata available";
+}
+
 export default function HistoryTab({
   payload,
   latestMatchForBanner,
@@ -175,6 +186,9 @@ export default function HistoryTab({
                   <Badge className="history-stat-badge" color="neutral">Dmg {match.playerA?.totalDamageToPlayers ?? "?"}</Badge>
                 </Pane>
               </Pane>
+              <Text size={300} color={match.playerA?.cosmetics?.available ? "default" : "muted"} marginBottom={6}>
+                {cosmeticLabel(match.playerA)}
+              </Text>
               <Pane display="flex" flexWrap="wrap" gap={8} marginTop={8}>
                 {asArray(match.playerA?.traits)
                   .filter((x) => x.style > 0)
@@ -245,6 +259,9 @@ export default function HistoryTab({
                   <Badge className="history-stat-badge" color="neutral">Dmg {match.playerB?.totalDamageToPlayers ?? "?"}</Badge>
                 </Pane>
               </Pane>
+              <Text size={300} color={match.playerB?.cosmetics?.available ? "default" : "muted"} marginBottom={6}>
+                {cosmeticLabel(match.playerB)}
+              </Text>
               <Pane display="flex" flexWrap="wrap" gap={8} marginTop={8}>
                 {asArray(match.playerB?.traits)
                   .filter((x) => x.style > 0)
@@ -309,6 +326,5 @@ export default function HistoryTab({
     </Pane>
   );
 }
-
 
 
