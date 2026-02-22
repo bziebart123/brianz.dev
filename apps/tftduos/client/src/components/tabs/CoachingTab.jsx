@@ -3,6 +3,9 @@ import IconWithLabel from "../IconWithLabel";
 import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
 import { asArray, prettyName } from "../../utils/tft";
 
+const GPT_LINE_TEXT_SIZE = 500;
+const GPT_ICON_SIZE = 24;
+
 function pct(numerator, denominator) {
   if (!denominator) return 0;
   return (numerator / denominator) * 100;
@@ -30,6 +33,10 @@ function normalizeMentionLabel(value) {
     .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function sanitizeModelText(value) {
+  return String(value || "").replace(/\btft\d+_[a-z0-9_]+\b/gi, (token) => prettyName(token));
 }
 
 function isWordChar(char) {
@@ -190,7 +197,7 @@ export default function CoachingTab({
   const mentionCatalog = buildMentionCatalog(filteredMatches, aiCoaching);
 
   function renderLineWithIcons(text, key) {
-    const segments = splitTextByMentions(text, mentionCatalog);
+    const segments = splitTextByMentions(sanitizeModelText(text), mentionCatalog);
     return (
       <Pane key={key} display="flex" alignItems="center" gap={6} flexWrap="wrap">
         {segments.map((segment, idx) =>
@@ -200,12 +207,12 @@ export default function CoachingTab({
               kind={segment.mention.kind}
               token={segment.mention.token}
               label={segment.mention.label}
-              size={20}
+              size={GPT_ICON_SIZE}
               iconManifest={segment.mention.kind === "trait" ? iconManifest : null}
               traitTier={segment.mention.traitTier}
             />
           ) : (
-            <Text key={`${key}-text-${idx}`} size={400}>
+            <Text key={`${key}-text-${idx}`} size={GPT_LINE_TEXT_SIZE}>
               {segment.value}
             </Text>
           )
@@ -296,7 +303,7 @@ export default function CoachingTab({
         {aiCoaching?.brief ? (
           <Pane marginTop={10} display="grid" gap={8}>
             <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
-              <Strong>{aiCoaching.brief.headline || "AI Coaching Brief"}</Strong>
+              <Strong>{sanitizeModelText(aiCoaching.brief.headline || "AI Coaching Brief")}</Strong>
               <Pane marginTop={6}>
                 {renderLineWithIcons(aiCoaching.brief.summary || "No summary returned.", "ai-summary")}
               </Pane>
@@ -313,7 +320,7 @@ export default function CoachingTab({
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.teamPlan).slice(0, 4).map((line, idx) => (
                     <Pane key={`ai-team-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={400}>-</Text>
+                      <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
                       {renderLineWithIcons(line, `ai-team-line-${idx}`)}
                     </Pane>
                   ))}
@@ -327,7 +334,7 @@ export default function CoachingTab({
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.metaDelta).slice(0, 4).map((line, idx) => (
                     <Pane key={`ai-meta-delta-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={400}>-</Text>
+                      <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
                       {renderLineWithIcons(line, `ai-meta-delta-line-${idx}`)}
                     </Pane>
                   ))}
@@ -341,7 +348,7 @@ export default function CoachingTab({
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.topImprovementAreas).slice(0, 4).map((line, idx) => (
                     <Pane key={`ai-improve-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={400}>-</Text>
+                      <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
                       {renderLineWithIcons(line, `ai-improve-line-${idx}`)}
                     </Pane>
                   ))}
@@ -355,7 +362,7 @@ export default function CoachingTab({
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.winConditions).slice(0, 4).map((line, idx) => (
                     <Pane key={`ai-wincon-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={400}>-</Text>
+                      <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
                       {renderLineWithIcons(line, `ai-wincon-line-${idx}`)}
                     </Pane>
                   ))}
@@ -369,7 +376,7 @@ export default function CoachingTab({
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.fiveGamePlan).slice(0, 5).map((line, idx) => (
                     <Pane key={`ai-plan5-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={400}>-</Text>
+                      <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
                       {renderLineWithIcons(line, `ai-plan5-line-${idx}`)}
                     </Pane>
                   ))}
@@ -385,13 +392,13 @@ export default function CoachingTab({
                     <Pane key={`ai-build-${idx}`} padding={8} border="default" borderRadius={6} background="rgba(255,255,255,0.02)">
                       <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
                         <Strong>{row.player}</Strong>
-                        <Text size={400}>-</Text>
-                        <IconWithLabel kind="unit" token={row.champion} label={prettyName(row.champion)} size={20} />
-                        {asArray(row.items).length ? <Text size={400}>| {asArray(row.items).join(", ")}</Text> : null}
+                        <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
+                        <IconWithLabel kind="unit" token={row.champion} label={prettyName(row.champion)} size={GPT_ICON_SIZE} />
+                        {asArray(row.items).length ? <Text size={GPT_LINE_TEXT_SIZE}>| {asArray(row.items).join(", ")}</Text> : null}
                       </Pane>
                       <Text size={300} color="muted" display="block" marginTop={4}>
                         {Number(row.top2Rate || 0).toFixed(1)}% Top2 over {Number(row.games || 0)} games
-                        {row.note ? ` | ${row.note}` : ""}
+                        {row.note ? ` | ${sanitizeModelText(row.note)}` : ""}
                       </Text>
                     </Pane>
                   ))}
@@ -419,11 +426,11 @@ export default function CoachingTab({
                   </Badge>
                 ) : null}
               </Pane>
-              <Text size={400} display="block" marginTop={6}>Focus: {plan.focus || "n/a"}</Text>
+              <Text size={GPT_LINE_TEXT_SIZE} display="block" marginTop={6}>Focus: {sanitizeModelText(plan.focus || "n/a")}</Text>
               <Pane marginTop={8} display="grid" gap={4}>
                 {asArray(plan.actions).slice(0, 3).map((line, actionIdx) => (
                   <Pane key={`${plan.player}-action-${actionIdx}`} display="flex" alignItems="flex-start" gap={6}>
-                    <Text size={400}>-</Text>
+                    <Text size={GPT_LINE_TEXT_SIZE}>-</Text>
                     {renderLineWithIcons(line, `${plan.player}-action-line-${actionIdx}`)}
                   </Pane>
                 ))}
