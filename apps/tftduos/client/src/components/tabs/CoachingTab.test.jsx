@@ -1,5 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+
+vi.mock("../IconWithLabel", () => ({
+  default: ({ kind, token }) => <span data-testid="icon-chip" data-kind={kind} data-token={token} />,
+}));
+
 import CoachingTab from "./CoachingTab";
 
 const baseProps = {
@@ -19,14 +24,14 @@ const baseProps = {
     fallback: true,
     brief: {
       headline: "AI brief",
-      summary: "Summary",
-      teamPlan: ["Plan A"],
+      summary: "Play Ahri with Ionia.",
+      teamPlan: ["Plan Ahri and Ionia around Stage 4."],
       playerPlans: [{ player: "Seb", focus: "Tempo", actions: ["Action"] }],
       metaDelta: ["Delta A"],
       topImprovementAreas: ["Improve A"],
       winConditions: ["WinCon A"],
       fiveGamePlan: ["Step 1"],
-      championBuilds: [{ player: "Seb", champion: "tft16_garen", items: ["item_a"], games: 3, top2Rate: 66.7, note: "Strong" }],
+      championBuilds: [{ player: "Seb", champion: "tft16_ahri", items: ["item_a"], games: 3, top2Rate: 66.7, note: "Strong" }],
       confidence: "medium",
       sources: ["local"],
     },
@@ -34,6 +39,19 @@ const baseProps = {
   aiCoachingLoading: false,
   aiCoachingError: "",
   loadAiCoaching: vi.fn(),
+  filteredMatches: [
+    {
+      playerA: {
+        traits: [{ name: "TFT16_Ionia", style: 3 }],
+        units: [{ characterId: "TFT16_Ahri" }],
+      },
+      playerB: {
+        traits: [],
+        units: [],
+      },
+    },
+  ],
+  iconManifest: { traits: {}, augments: {} },
 };
 
 describe("CoachingTab", () => {
@@ -48,6 +66,13 @@ describe("CoachingTab", () => {
     expect(screen.getByText("Win Conditions")).toBeInTheDocument();
     expect(screen.getByText("Next 5 Games Plan")).toBeInTheDocument();
     expect(screen.getByText("Champion Build Signals")).toBeInTheDocument();
+  });
+
+  it("replaces champion and trait mentions with icon chips", () => {
+    render(<CoachingTab {...baseProps} />);
+    const chips = screen.getAllByTestId("icon-chip");
+    expect(chips.length).toBeGreaterThan(0);
+    expect(screen.queryByText("Play Ahri with Ionia.")).not.toBeInTheDocument();
   });
 
   it("shows full-page loading state while AI brief is pending", () => {

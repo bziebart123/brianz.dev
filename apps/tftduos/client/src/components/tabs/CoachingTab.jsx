@@ -1,6 +1,7 @@
 import { Badge, Button, Card, Heading, Pane, Spinner, Strong, Text, Tooltip } from "evergreen-ui";
+import IconWithLabel from "../IconWithLabel";
 import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
-import { asArray } from "../../utils/tft";
+import { asArray, prettyName } from "../../utils/tft";
 
 function pct(numerator, denominator) {
   if (!denominator) return 0;
@@ -23,6 +24,113 @@ function formatGeneratedTime(value) {
   return new Date(ms).toLocaleString();
 }
 
+function normalizeMentionLabel(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isWordChar(char) {
+  return /[a-z0-9]/i.test(char);
+}
+
+function isBoundary(text, start, length) {
+  const before = start <= 0 ? "" : text[start - 1];
+  const after = start + length >= text.length ? "" : text[start + length];
+  return (!before || !isWordChar(before)) && (!after || !isWordChar(after));
+}
+
+function buildMentionCatalog(filteredMatches, aiCoaching) {
+  const traitStyleByToken = new Map();
+  const seenMentions = new Set();
+  const mentions = [];
+
+  const addMention = ({ kind, token, alias, traitTier = null }) => {
+    const normalizedAlias = normalizeMentionLabel(alias);
+    if (!normalizedAlias || normalizedAlias.length < 3) return;
+    const key = `${kind}:${token}:${normalizedAlias}`;
+    if (seenMentions.has(key)) return;
+    seenMentions.add(key);
+    mentions.push({
+      kind,
+      token,
+      alias: normalizedAlias,
+      label: prettyName(token),
+      traitTier,
+    });
+  };
+
+  for (const match of asArray(filteredMatches)) {
+    const players = [match?.playerA, match?.playerB];
+    for (const player of players) {
+      for (const trait of asArray(player?.traits).filter((entry) => Number(entry?.style || 0) > 0)) {
+        const token = String(trait?.name || "");
+        if (!token) continue;
+        const tier = Number(trait?.style || 0);
+        traitStyleByToken.set(token, Math.max(Number(traitStyleByToken.get(token) || 0), tier));
+      }
+
+      for (const unit of asArray(player?.units)) {
+        const token = String(unit?.characterId || "");
+        if (!token) continue;
+        addMention({ kind: "unit", token, alias: prettyName(token) });
+        addMention({ kind: "unit", token, alias: token });
+      }
+    }
+  }
+
+  for (const [token, tier] of traitStyleByToken.entries()) {
+    addMention({ kind: "trait", token, alias: prettyName(token), traitTier: tier });
+    addMention({ kind: "trait", token, alias: token, traitTier: tier });
+  }
+
+  for (const build of asArray(aiCoaching?.brief?.championBuilds)) {
+    const token = String(build?.champion || "");
+    if (!token) continue;
+    addMention({ kind: "unit", token, alias: prettyName(token) });
+    addMention({ kind: "unit", token, alias: token });
+  }
+
+  return mentions.sort((left, right) => right.alias.length - left.alias.length);
+}
+
+function splitTextByMentions(text, mentions) {
+  const source = String(text || "");
+  if (!source || !mentions.length) return [{ type: "text", value: source }];
+
+  const lowerSource = source.toLowerCase();
+  const output = [];
+  let cursor = 0;
+
+  while (cursor < source.length) {
+    let best = null;
+    for (const mention of mentions) {
+      const index = lowerSource.indexOf(mention.alias, cursor);
+      if (index < 0) continue;
+      if (!isBoundary(lowerSource, index, mention.alias.length)) continue;
+      if (!best || index < best.index || (index === best.index && mention.alias.length > best.mention.alias.length)) {
+        best = { index, mention };
+      }
+    }
+
+    if (!best) {
+      output.push({ type: "text", value: source.slice(cursor) });
+      break;
+    }
+
+    if (best.index > cursor) {
+      output.push({ type: "text", value: source.slice(cursor, best.index) });
+    }
+
+    output.push({ type: "mention", mention: best.mention });
+    cursor = best.index + best.mention.alias.length;
+  }
+
+  return output.filter((segment) => (segment.type === "text" ? segment.value.length > 0 : true));
+}
+
 export default function CoachingTab({
   duoRisk,
   decisionGrade,
@@ -39,6 +147,8 @@ export default function CoachingTab({
   aiCoachingLoading,
   aiCoachingError,
   loadAiCoaching,
+  filteredMatches,
+  iconManifest,
 }) {
   const placements = asArray(placementTrend).map((value) => Number(value || 0)).filter((value) => value > 0);
   const top2Rate = pct(placements.filter((value) => value <= 2).length, placements.length);
@@ -77,6 +187,32 @@ export default function CoachingTab({
         pressure: null,
       }))
     : fallbackPlans;
+  const mentionCatalog = buildMentionCatalog(filteredMatches, aiCoaching);
+
+  function renderLineWithIcons(text, key) {
+    const segments = splitTextByMentions(text, mentionCatalog);
+    return (
+      <Pane key={key} display="flex" alignItems="center" gap={6} flexWrap="wrap">
+        {segments.map((segment, idx) =>
+          segment.type === "mention" ? (
+            <IconWithLabel
+              key={`${key}-mention-${idx}-${segment.mention.kind}-${segment.mention.token}`}
+              kind={segment.mention.kind}
+              token={segment.mention.token}
+              label={segment.mention.label}
+              size={20}
+              iconManifest={segment.mention.kind === "trait" ? iconManifest : null}
+              traitTier={segment.mention.traitTier}
+            />
+          ) : (
+            <Text key={`${key}-text-${idx}`} size={400}>
+              {segment.value}
+            </Text>
+          )
+        )}
+      </Pane>
+    );
+  }
 
   const isAiPending = aiCoachingLoading || (!aiCoaching && !aiCoachingError);
   if (isAiPending) {
@@ -161,9 +297,9 @@ export default function CoachingTab({
           <Pane marginTop={10} display="grid" gap={8}>
             <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
               <Strong>{aiCoaching.brief.headline || "AI Coaching Brief"}</Strong>
-              <Text size={400} display="block" marginTop={6}>
-                {aiCoaching.brief.summary || "No summary returned."}
-              </Text>
+              <Pane marginTop={6}>
+                {renderLineWithIcons(aiCoaching.brief.summary || "No summary returned.", "ai-summary")}
+              </Pane>
               <Text size={300} color="muted" display="block" marginTop={6}>
                 Confidence: {aiCoaching.brief.confidence || "unknown"}
                 {aiCoaching?.reason ? ` | ${aiCoaching.reason}` : ""}
@@ -176,7 +312,10 @@ export default function CoachingTab({
                 <Text size={400} color="muted">Team Actions</Text>
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.teamPlan).slice(0, 4).map((line, idx) => (
-                    <Text key={`ai-team-${idx}`} size={400}>- {line}</Text>
+                    <Pane key={`ai-team-${idx}`} display="flex" alignItems="flex-start" gap={6}>
+                      <Text size={400}>-</Text>
+                      {renderLineWithIcons(line, `ai-team-line-${idx}`)}
+                    </Pane>
                   ))}
                 </Pane>
               </Pane>
@@ -187,7 +326,10 @@ export default function CoachingTab({
                 <Text size={400} color="muted">Meta vs Your Builds</Text>
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.metaDelta).slice(0, 4).map((line, idx) => (
-                    <Text key={`ai-meta-delta-${idx}`} size={400}>- {line}</Text>
+                    <Pane key={`ai-meta-delta-${idx}`} display="flex" alignItems="flex-start" gap={6}>
+                      <Text size={400}>-</Text>
+                      {renderLineWithIcons(line, `ai-meta-delta-line-${idx}`)}
+                    </Pane>
                   ))}
                 </Pane>
               </Pane>
@@ -198,7 +340,10 @@ export default function CoachingTab({
                 <Text size={400} color="muted">Top Improvement Areas</Text>
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.topImprovementAreas).slice(0, 4).map((line, idx) => (
-                    <Text key={`ai-improve-${idx}`} size={400}>- {line}</Text>
+                    <Pane key={`ai-improve-${idx}`} display="flex" alignItems="flex-start" gap={6}>
+                      <Text size={400}>-</Text>
+                      {renderLineWithIcons(line, `ai-improve-line-${idx}`)}
+                    </Pane>
                   ))}
                 </Pane>
               </Pane>
@@ -209,7 +354,10 @@ export default function CoachingTab({
                 <Text size={400} color="muted">Win Conditions</Text>
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.winConditions).slice(0, 4).map((line, idx) => (
-                    <Text key={`ai-wincon-${idx}`} size={400}>- {line}</Text>
+                    <Pane key={`ai-wincon-${idx}`} display="flex" alignItems="flex-start" gap={6}>
+                      <Text size={400}>-</Text>
+                      {renderLineWithIcons(line, `ai-wincon-line-${idx}`)}
+                    </Pane>
                   ))}
                 </Pane>
               </Pane>
@@ -220,7 +368,10 @@ export default function CoachingTab({
                 <Text size={400} color="muted">Next 5 Games Plan</Text>
                 <Pane marginTop={6} display="grid" gap={4}>
                   {asArray(aiCoaching.brief.fiveGamePlan).slice(0, 5).map((line, idx) => (
-                    <Text key={`ai-plan5-${idx}`} size={400}>- {line}</Text>
+                    <Pane key={`ai-plan5-${idx}`} display="flex" alignItems="flex-start" gap={6}>
+                      <Text size={400}>-</Text>
+                      {renderLineWithIcons(line, `ai-plan5-line-${idx}`)}
+                    </Pane>
                   ))}
                 </Pane>
               </Pane>
@@ -232,10 +383,12 @@ export default function CoachingTab({
                 <Pane marginTop={8} display="grid" gap={6}>
                   {asArray(aiCoaching.brief.championBuilds).slice(0, 6).map((row, idx) => (
                     <Pane key={`ai-build-${idx}`} padding={8} border="default" borderRadius={6} background="rgba(255,255,255,0.02)">
-                      <Text size={400}>
-                        <Strong>{row.player}</Strong> - {row.champion}
-                        {asArray(row.items).length ? ` | ${asArray(row.items).join(", ")}` : ""}
-                      </Text>
+                      <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
+                        <Strong>{row.player}</Strong>
+                        <Text size={400}>-</Text>
+                        <IconWithLabel kind="unit" token={row.champion} label={prettyName(row.champion)} size={20} />
+                        {asArray(row.items).length ? <Text size={400}>| {asArray(row.items).join(", ")}</Text> : null}
+                      </Pane>
                       <Text size={300} color="muted" display="block" marginTop={4}>
                         {Number(row.top2Rate || 0).toFixed(1)}% Top2 over {Number(row.games || 0)} games
                         {row.note ? ` | ${row.note}` : ""}
@@ -269,7 +422,10 @@ export default function CoachingTab({
               <Text size={400} display="block" marginTop={6}>Focus: {plan.focus || "n/a"}</Text>
               <Pane marginTop={8} display="grid" gap={4}>
                 {asArray(plan.actions).slice(0, 3).map((line, actionIdx) => (
-                  <Text key={`${plan.player}-action-${actionIdx}`} size={400}>- {line}</Text>
+                  <Pane key={`${plan.player}-action-${actionIdx}`} display="flex" alignItems="flex-start" gap={6}>
+                    <Text size={400}>-</Text>
+                    {renderLineWithIcons(line, `${plan.player}-action-line-${actionIdx}`)}
+                  </Pane>
                 ))}
               </Pane>
             </Pane>
