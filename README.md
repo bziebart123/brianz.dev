@@ -162,6 +162,7 @@ Use exactly what Render Custom Domains asks for:
 - Clicking the `Backend` node now toggles an expanded full-height terminal mode and prints the connected backend API manifest (health, TFT, duo, coach, and site-performance routes); `Esc` collapses back to docked mode.
 - Backend manifest output now streams line-by-line (terminal typing cadence), and terminal expansion/collapse is animated from the docked bottom edge (no top-hop before expansion).
 - Every `Backend` click now appends a fresh manifest request block at the bottom of terminal history (timestamped), replaying line-by-line like a new backend call.
+- Portfolio `Contact` node now opens the same terminal in an expanded contact-relay mode, prompts for subject/message, then launches a prefilled `mailto:` compose flow (with a LinkedIn fallback route if the visitor opts out of email).
 - When landing on portfolio from known app/subdomain hosts (`tftduos`, `site-performance`, and local app ports), boot handshake animation is skipped for immediate map access.
 - Portfolio scene suppresses ambient page caret/cursor artifacts in the lattice viewport while keeping terminal history selectable for copy.
 - Portfolio launcher opens HTTP(S) app destinations in new tabs so the landing scene remains open while navigating.
@@ -169,6 +170,7 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio launcher link assumptions:
   - production: `https://tftduos.brianz.dev` and `https://site-performance.brianz.dev`
   - local host: `http://localhost:4173` for TFTDuos and `http://localhost:4174` for Site Performance
+  - contact fallback: `https://www.linkedin.com/in/brian-ziebart/`
 
 ## AI Context Files
 
@@ -177,4 +179,3 @@ For new IDE sessions and AI tools (including GitHub Copilot), start with:
 - `.github/copilot-instructions.md` (repo-wide Copilot context/instructions)
 - `AGENTS.md` (Codex-specific project direction)
 - `apps/tftduos/README.md` (current app behavior and implementation notes)
-

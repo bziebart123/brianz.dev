@@ -240,6 +240,11 @@
         font-weight: 600;
       }
 
+      .terminal-link {
+        color: #8ef0c8;
+        text-decoration: underline;
+      }
+
       .terminal-prompt::after {
         content: " _";
         animation: blinkCursor 1s steps(1, end) infinite;
@@ -579,7 +584,7 @@
             <span>Home</span>
           </a>
 
-          <a class="star-node" data-kind="meta" data-x="50" data-y="86" data-drift="16" href="mailto:brian@brianz.dev" aria-label="Send email">
+          <a class="star-node" id="contact-link" data-kind="meta" data-x="50" data-y="86" data-drift="16" href="#" aria-label="Open contact relay">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="10" y="14" width="44" height="36" rx="8" fill="#13223A" stroke="#8EF0C8" stroke-width="2.2"/>
@@ -601,13 +606,17 @@
         var tftLink = document.getElementById("tftduos-link");
         var metaLink = document.getElementById("meta-link");
         var backendLink = document.getElementById("backend-link");
+        var contactLink = document.getElementById("contact-link");
         var starfield = document.querySelector(".starfield");
         var terminalDock = document.querySelector(".terminal-dock");
         var bootLog = document.getElementById("boot-log");
         var terminalStatus = document.getElementById("terminal-status");
         var backendExpanded = false;
+        var contactExpanded = false;
         var backendRequestCount = 0;
+        var contactRequestCount = 0;
         var terminalQueueOffset = 0;
+        var linkedinUrl = "https://www.linkedin.com/in/brian-ziebart/";
         var subAppHosts = [
           "tftduos.brianz.dev",
           "site-performance.brianz.dev",
@@ -750,6 +759,7 @@
 
         function setBackendTerminalExpanded(expanded) {
           backendExpanded = expanded;
+          contactExpanded = false;
           if (terminalDock) {
             terminalDock.classList.toggle("expanded", expanded);
           }
@@ -764,6 +774,83 @@
           }
         }
 
+        function setContactTerminalExpanded(expanded) {
+          contactExpanded = expanded;
+          backendExpanded = false;
+          if (terminalDock) {
+            terminalDock.classList.toggle("expanded", expanded);
+          }
+          if (terminalStatus) {
+            terminalStatus.textContent = expanded
+              ? "contact relay mode // press esc to collapse"
+              : "terminal synced // node lattice online";
+          }
+        }
+
+        function beginContactRelay() {
+          contactRequestCount += 1;
+          var delay = 170;
+          var cursor = 0;
+          var now = new Date();
+          var hh = String(now.getHours()).padStart(2, "0");
+          var mm = String(now.getMinutes()).padStart(2, "0");
+          var ss = String(now.getSeconds()).padStart(2, "0");
+          var stamp = hh + ":" + mm + ":" + ss;
+
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Contact relay engaged [" + stamp + "] #" + contactRequestCount, true);
+          });
+          cursor += 1;
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Step 1/2: capture email subject", false);
+          });
+          cursor += 1;
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Step 2/2: capture message payload", false);
+          });
+          cursor += 1;
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLineHtml("&gt; Alternate route available: <a class=\"terminal-link\" href=\"" + linkedinUrl + "\" target=\"_blank\" rel=\"noopener noreferrer\">LinkedIn</a>", "api-line");
+          });
+          cursor += 1;
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Prompting operator now...", false);
+          });
+
+          terminalQueueOffset += (cursor + 1) * delay;
+
+          window.setTimeout(function () {
+            var wantsEmail = window.confirm("Send Brian an email? Press OK for email compose, or Cancel to open LinkedIn.");
+            if (!wantsEmail) {
+              pushBootLine("> Operator selected LinkedIn route", true);
+              window.open(linkedinUrl, "_blank", "noopener,noreferrer");
+              if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
+              return;
+            }
+
+            var subject = window.prompt("Contact subject:", "Portfolio inquiry");
+            if (subject === null) {
+              pushBootLine("> Contact relay cancelled before subject capture", false);
+              if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
+              return;
+            }
+
+            var message = window.prompt("Message:", "Hey Brian, I'd like to chat about...");
+            if (message === null) {
+              pushBootLine("> Contact relay cancelled before payload capture", false);
+              if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
+              return;
+            }
+
+            var normalizedSubject = subject.trim() || "Portfolio inquiry";
+            var normalizedMessage = message.trim() || "Hello Brian,";
+            var mailtoHref = "mailto:brian@brianz.dev?subject=" + encodeURIComponent(normalizedSubject) + "&body=" + encodeURIComponent(normalizedMessage);
+            pushBootLine("> Launching local mail client compose window", true);
+            window.location.href = mailtoHref;
+            if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
+          }, 220 + (cursor + 1) * delay);
+        }
+
         if (backendLink) {
           backendLink.addEventListener("click", function (event) {
             if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -776,9 +863,21 @@
           });
         }
 
+        if (contactLink) {
+          contactLink.addEventListener("click", function (event) {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            setContactTerminalExpanded(true);
+            beginContactRelay();
+          });
+        }
+
         window.addEventListener("keydown", function (event) {
           if (event.key === "Escape" && backendExpanded) {
             setBackendTerminalExpanded(false);
+          }
+          if (event.key === "Escape" && contactExpanded) {
+            setContactTerminalExpanded(false);
           }
         });
 
