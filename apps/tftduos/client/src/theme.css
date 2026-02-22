@@ -442,6 +442,8 @@ body {
     z-index: 60;
     transform: translateX(-108%);
     transition: transform 180ms ease;
+    background: linear-gradient(180deg, #0d1528 0%, #0a1222 100%) !important;
+    box-shadow: 16px 0 28px rgba(2, 8, 18, 0.72), inset -1px 0 0 rgba(73, 101, 159, 0.32);
   }
 
   .tft-app-shell.sidebar-open .tft-sidebar {

@@ -50,7 +50,6 @@ export default function Sidebar({
       width={340}
       padding={24}
       borderRight="default"
-      background="rgba(255,255,255,0.02)"
       position="sticky"
       top={0}
       alignSelf="flex-start"

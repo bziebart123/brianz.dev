@@ -98,6 +98,7 @@ Server env vars (see `.env.example` and server code):
   - player cards now explicitly allow shrink (`min-width: 0`) inside the history grid.
   - long player names now wrap instead of forcing horizontal overflow.
   - unit rows are constrained to card width and horizontal-scroll inside the row, preventing content from pushing off the right viewport edge.
+- Mobile filter drawer now uses an opaque background layer (no see-through app content), with Sidebar relying on CSS-driven backgrounds instead of an inline transparent background override.
 - Coaching page now waits for AI briefing before rendering the full content area and shows a full-page GPT loading state during generation.
 - AI coaching now includes a deterministic findings engine (server-side) that computes:
   - top improvement areas
