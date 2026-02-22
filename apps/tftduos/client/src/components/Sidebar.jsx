@@ -69,9 +69,9 @@ export default function Sidebar({
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                minWidth: 36,
+                width: 36,
                 height: 36,
-                padding: "0 10px",
+                padding: 0,
                 margin: 0,
                 boxSizing: "border-box",
                 flexShrink: 0,
@@ -83,9 +83,21 @@ export default function Sidebar({
                 lineHeight: 1,
               }}
             >
-              <span style={{ fontSize: 14, lineHeight: 1, fontWeight: 700 }} aria-hidden="true">
-                Home
-              </span>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3 10.5L12 3L21 10.5V20C21 20.55 20.55 21 20 21H14V14H10V21H4C3.45 21 3 20.55 3 20V10.5Z"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </a>
             <Heading size={700} className="tft-sidebar-title">Duo TFT Coach</Heading>
           </Pane>

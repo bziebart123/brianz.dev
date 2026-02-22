@@ -509,8 +509,9 @@ body {
   }
 
   .tft-sidebar-home-btn {
-    padding: 0 10px !important;
-    min-width: 62px !important;
+    width: 36px !important;
+    min-width: 36px !important;
+    padding: 0 !important;
     justify-content: center !important;
   }
 
