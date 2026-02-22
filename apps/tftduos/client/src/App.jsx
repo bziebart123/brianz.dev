@@ -118,6 +118,8 @@ export default function App() {
               aiCoachingLoading={state.aiCoachingLoading}
               aiCoachingError={state.aiCoachingError}
               loadAiCoaching={state.loadAiCoaching}
+              filteredMatches={state.filteredMatches}
+              iconManifest={state.iconManifest}
             />
           ) : null}
 
