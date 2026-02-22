@@ -166,6 +166,7 @@ Use exactly what Render Custom Domains asks for:
 - Every `Backend` click now appends a fresh manifest request block at the bottom of terminal history (timestamped), replaying line-by-line like a new backend call.
 - `Render Meta` launcher node is now terminal-native (no separate dashboard navigation from the portfolio node): it queries `/api/site-performance/render/overview` from the shared backend and streams service/summary output line-by-line into the same terminal stack.
 - Backend and Render Meta terminal streams now prepend command-style execution lines (`run backend.manifest ...`, `run render.meta ...`) to reinforce terminal-call semantics.
+- Portfolio `Contact` node now opens the same terminal in an expanded contact-relay mode, prompts for subject/message, then launches a prefilled `mailto:` compose flow (with a LinkedIn fallback route if the visitor opts out of email).
 - When landing on portfolio from known app/subdomain hosts (`tftduos`, `site-performance`, and local app ports), boot handshake animation is skipped for immediate map access.
 - Portfolio scene suppresses ambient page caret/cursor artifacts in the lattice viewport while keeping terminal history selectable for copy.
 - Portfolio launcher opens HTTP(S) app destinations in new tabs so the landing scene remains open while navigating.
@@ -173,6 +174,7 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio launcher link assumptions:
   - production node links: `https://tftduos.brianz.dev` (TFT) and `https://api.brianz.dev` (shared backend + Render Meta terminal data source)
   - local host node links: `http://localhost:4173` (TFT) and `http://localhost:3001` (shared backend + Render Meta terminal data source)
+  - contact fallback: `https://www.linkedin.com/in/brian-ziebart/`
 
 ## AI Context Files
 
@@ -181,4 +183,3 @@ For new IDE sessions and AI tools (including GitHub Copilot), start with:
 - `.github/copilot-instructions.md` (repo-wide Copilot context/instructions)
 - `AGENTS.md` (Codex-specific project direction)
 - `apps/tftduos/README.md` (current app behavior and implementation notes)
-
