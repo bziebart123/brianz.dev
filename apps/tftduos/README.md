@@ -92,6 +92,7 @@ Server env vars (see `.env.example` and server code):
   - `Individual Action Plans` section directly below AI output (one card per player, AI-driven when available)
   - Less auxiliary box density to keep coaching readable and execution-focused
 - Coaching text now replaces recognized champion/trait mentions with inline TFT icons (summary/actions/meta/win conditions/5-game plan/player actions and champion build rows), using mention matching against the current filtered match trait+unit pool.
+- GPT-generated coaching lines now render with larger body text/icon sizes for readability, and displayed model text sanitizes `TFT##_*` tokens (for example `TFT16_Ahri`) into clean names (for example `Ahri`).
 - Coaching page now waits for AI briefing before rendering the full content area and shows a full-page GPT loading state during generation.
 - AI coaching now includes a deterministic findings engine (server-side) that computes:
   - top improvement areas
