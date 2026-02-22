@@ -35,6 +35,7 @@
           radial-gradient(700px 560px at 8% 108%, rgba(224, 189, 114, 0.17), transparent 58%),
           linear-gradient(155deg, var(--bg-0), var(--bg-1));
         overflow: hidden;
+        caret-color: transparent;
       }
 
       #depth-layer,
@@ -88,6 +89,7 @@
         border: 1px solid rgba(48, 69, 112, 0.72);
         border-radius: 24px;
         overflow: hidden;
+        user-select: none;
         background:
           radial-gradient(circle at 52% 49%, rgba(111, 194, 255, 0.13), transparent 44%),
           radial-gradient(circle at 48% 53%, rgba(224, 189, 114, 0.1), transparent 32%),
@@ -202,6 +204,8 @@
         flex: 1 1 auto;
         min-height: 0;
         overflow: auto;
+        user-select: text;
+        caret-color: transparent;
         font-family: "Consolas", "Menlo", "SFMono-Regular", monospace;
         font-size: 0.78rem;
         line-height: 1.48;
