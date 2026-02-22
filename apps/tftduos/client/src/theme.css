@@ -145,6 +145,18 @@ body {
   display: none;
 }
 
+.tft-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .tft-app-shell [data-evergreen-id="text"][color="muted"],
 .tft-app-shell [data-evergreen-id="paragraph"][color="muted"] {
   color: #d7e3ff !important;
@@ -406,14 +418,34 @@ body {
   }
 
   .tft-mobile-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border: 1px solid rgba(93, 122, 183, 0.52);
     border-radius: 10px;
     background: rgba(24, 35, 58, 0.96);
     color: #f7fbff;
     font-weight: 700;
-    font-size: 15px;
+    width: 46px;
+    height: 44px;
     min-height: 44px;
-    padding: 0 14px;
+    padding: 0;
+    position: relative;
+  }
+
+  .tft-mobile-filter-icon {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 18px;
+  }
+
+  .tft-mobile-filter-icon span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    border-radius: 2px;
+    background: #f7fbff;
   }
 
   .tft-sidebar-overlay {

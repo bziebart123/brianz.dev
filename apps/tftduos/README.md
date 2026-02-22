@@ -59,7 +59,7 @@ Server env vars (see `.env.example` and server code):
 - Trait icons are tier-colored with distinct bronze/silver/gold/prismatic styles.
 - UI text/icons are scaled up for readability.
 - Left sidebar keeps the Refresh Data action anchored at the viewport bottom while upper sidebar content scrolls independently.
-- Mobile layout uses a filter drawer (left sidebar becomes a slide-in panel with overlay and close action) opened from a top `Menu` button.
+- Mobile layout uses a filter drawer (left sidebar becomes a slide-in panel with overlay and close action) opened from a top hamburger icon button.
 - On mobile breakpoints, History banner/KPI/player grids stack into a single column for readable vertical flow.
 - Mobile drawer controls use plain ASCII glyphs (`<`, `X`) to avoid missing-symbol fallback (`?`) on constrained font stacks.
 - Sidebar now includes a `Release` panel showing `major.minor` version and recent release notes sourced from recent git commit subjects.
