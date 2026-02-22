@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
+import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildDuoHighlights, buildDuoScorecard, buildPersonalizedPlaybook } from "./lib/duoAnalytics.js";
