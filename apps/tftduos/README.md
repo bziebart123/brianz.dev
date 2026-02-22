@@ -61,7 +61,7 @@ Server env vars (see `.env.example` and server code):
 - Left sidebar keeps the Refresh Data action anchored at the viewport bottom while upper sidebar content scrolls independently.
 - Mobile layout uses a filter drawer (left sidebar becomes a slide-in panel with overlay and close action) opened from a top hamburger icon button.
 - On mobile breakpoints, History banner/KPI/player grids stack into a single column for readable vertical flow.
-- Mobile drawer controls use plain text/ascii-safe controls (`Home`, `X`) to avoid missing-symbol fallback (`?`) on constrained font stacks.
+- Mobile drawer controls use icon/text controls (home icon + `X`) for compact header layout on small screens.
 - Sidebar now includes a `Release` panel showing `major.minor` version and recent release notes sourced from recent git commit subjects.
 - Global shell `zoom` scaling was removed; text sizing now comes from `TEXT_SCALE` in `client/src/config/constants.js` (currently `1.45`), applied to typography/UI text surfaces (headings, tabs, buttons, selects, badges) while layout dimensions stay stable.
 - Main content (`History`, `Analysis`, `Coaching`) now has an additional dedicated text scale (`--bz-content-text-scale` in `client/src/theme.css`) so right-panel readability can be increased without changing sidebar or layout geometry.
