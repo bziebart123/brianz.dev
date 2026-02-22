@@ -136,6 +136,10 @@ Server env vars (see `.env.example` and server code):
   - Contested meta pressure score with pivot guidance
   - Timing coach (level timing proxies + overlap-stage hints)
   - Duo coordination score + pre-game role split recommendation
+  - Derived metrics used across autopsy/timing/coordination + AI payload compaction:
+    - `eliminationTiming.avgExitBucket`: average of per-match duo elimination timestamps bucketed as `early` (<1200s), `mid` (1200-1799s), `late` (>=1800s).
+    - `playersEliminatedTrend.delta`: `(wins combined playersEliminated avg) - (losses combined playersEliminated avg)` where wins are team placement <= 2.
+    - `carryPressureIndex.player{A|B}.avg`: per-match `clamp((damage/180*100)*0.45 + (playersEliminated/6*100)*0.30 + ((9-placement)/8*100)*0.25)` averaged by player.
 - New optional `Wild Correlations` view:
   - Toggle in sidebar (`Enable Wild Correlations`) controls nav visibility and acts as serious-mode failsafe
   - Includes disclaimer, cosmic summary + copy action, cursed/blessed queue windows, generated nonsense takes, and transparent joke "method" labels

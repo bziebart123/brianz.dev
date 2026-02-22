@@ -147,6 +147,49 @@ function compactMatchForAi(match) {
   };
 }
 
+function compactCoachingIntelForAi(coachingIntel) {
+  const intel = coachingIntel || {};
+  return {
+    derivedMetrics: {
+      eliminationTiming: {
+        avgExitBucket: String(intel?.derivedMetrics?.eliminationTiming?.avgExitBucket || "unknown"),
+        avgExitSeconds: Number(intel?.derivedMetrics?.eliminationTiming?.avgExitSeconds || 0),
+        bucketRates: {
+          early: Number(intel?.derivedMetrics?.eliminationTiming?.bucketRates?.early || 0),
+          mid: Number(intel?.derivedMetrics?.eliminationTiming?.bucketRates?.mid || 0),
+          late: Number(intel?.derivedMetrics?.eliminationTiming?.bucketRates?.late || 0),
+        },
+      },
+      playersEliminatedTrend: {
+        winAvg: Number(intel?.derivedMetrics?.playersEliminatedTrend?.winAvg || 0),
+        lossAvg: Number(intel?.derivedMetrics?.playersEliminatedTrend?.lossAvg || 0),
+        delta: Number(intel?.derivedMetrics?.playersEliminatedTrend?.delta || 0),
+      },
+      carryPressureIndex: {
+        playerAAvg: Number(intel?.derivedMetrics?.carryPressureIndex?.playerA?.avg || 0),
+        playerBAvg: Number(intel?.derivedMetrics?.carryPressureIndex?.playerB?.avg || 0),
+      },
+    },
+    tilt: {
+      inTiltWindow: Boolean(intel?.tilt?.inTiltWindow),
+      tiltScore: Number(intel?.tilt?.tiltScore || 0),
+      resetRule: String(intel?.tilt?.resetRule || ""),
+    },
+    timingCoach: {
+      levelDelta: Number(intel?.timingCoach?.levelDelta || 0),
+      overlapStages: asArray(intel?.timingCoach?.overlapStages).slice(0, 4),
+      guidance: String(intel?.timingCoach?.guidance || ""),
+    },
+    coordination: {
+      score: Number(intel?.coordination?.score || 0),
+      recommendation: String(intel?.coordination?.recommendation || ""),
+      bestSplit: intel?.coordination?.bestSplit || null,
+    },
+    lossAutopsy: asArray(intel?.lossAutopsy).slice(0, 2),
+    winConditions: asArray(intel?.winConditions?.conditions).slice(0, 2),
+  };
+}
+
 export default function useDuoAnalysis() {
   const [activeTab, setActiveTab] = useState("history");
 
@@ -633,7 +676,7 @@ export default function useDuoAnalysis() {
         eventSample: Number(scorecard?.sampleSize?.eventCount || 0),
       },
       scorecard,
-      coachingIntel,
+      coachingIntel: compactCoachingIntelForAi(coachingIntel),
       metaSnapshot: {
         lobbyTraits: asArray(computed?.metaTraits).slice(0, 8),
         lobbyUnits: asArray(computed?.metaUnits).slice(0, 10),
