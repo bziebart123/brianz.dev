@@ -146,6 +146,7 @@ Use exactly what Render Custom Domains asks for:
 - TFTDuos backend now uses persisted per-player sync timestamps to call Riot TFT match-id time-window queries (`startTime`) before falling back to `start/count` pagination (including automatic fallback when time-window query support fails), reducing repeat API pulls while preserving first-load/backward-compatible pagination behavior.
 - The AI coaching prompt is guided for rank-climb use and now supports web-backed meta lookup (via OpenAI Responses API web search tool), plus richer per-game build fingerprints for direct "your builds vs current meta" comparison with source visibility in UI.
 - Coaching UX is now AI-first: compact KPI header, primary AI briefing section, per-player action plans below, and a full-page loading state while GPT coaching is being generated.
+- Coaching view is now terminal-themed to match portfolio terminal behavior, including staged AI boot log lines during loading and a prompt-style footer around the AI brief module.
 - Coaching backend now layers deterministic evidence (leaks, win-conditions, 5-game plan, champion+item build conversion signals) into the LLM prompt/response to reduce generic output and improve actionability.
 - Coaching UI now uses high-contrast custom error/warning banners and compact AI payload requests to improve readability and reduce large-timeline AI network failures.
 - Coaching AI responses are cached client-side by duo/filter and reused until a newer shared match is detected, reducing repeated OpenAI calls when no new duo games were played.
