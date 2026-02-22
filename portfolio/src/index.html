@@ -166,13 +166,15 @@
         right: 14px;
         bottom: 14px;
         z-index: 7;
-        display: flex;
-        justify-content: center;
+        display: block;
         pointer-events: none;
       }
 
       .terminal {
-        width: min(860px, 100%);
+        width: 100%;
+        height: 228px;
+        display: flex;
+        flex-direction: column;
         border: 1px solid rgba(111, 194, 255, 0.48);
         border-radius: 14px;
         background: linear-gradient(180deg, rgba(12, 22, 42, 0.86), rgba(8, 14, 28, 0.82));
@@ -197,8 +199,8 @@
 
       .terminal-body {
         padding: 12px 14px 8px;
-        min-height: 118px;
-        max-height: 162px;
+        flex: 1 1 auto;
+        min-height: 0;
         overflow: auto;
         font-family: "Consolas", "Menlo", "SFMono-Regular", monospace;
         font-size: 0.78rem;
@@ -447,8 +449,7 @@
 
         .terminal-body {
           font-size: 0.72rem;
-          max-height: 148px;
-          min-height: 102px;
+          min-height: 0;
           padding: 9px 10px 7px;
         }
 
