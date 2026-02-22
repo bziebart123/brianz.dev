@@ -67,8 +67,19 @@ export default function App() {
       <Pane className="tft-main-content" flex={1} padding={30}>
         {isMobile ? (
           <Pane className="tft-mobile-topbar">
-            <button type="button" className="tft-mobile-filter-btn" onClick={() => setSidebarOpen(true)}>
-              Filters
+            <button
+              type="button"
+              className="tft-mobile-filter-btn"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open filters"
+              title="Open filters"
+            >
+              <span className="tft-mobile-filter-icon" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+              <span className="tft-sr-only">Filters</span>
             </button>
             <Text size={500}>Duo TFT Coach</Text>
           </Pane>

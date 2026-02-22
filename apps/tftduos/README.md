@@ -59,7 +59,7 @@ Server env vars (see `.env.example` and server code):
 - Trait icons are tier-colored with distinct bronze/silver/gold/prismatic styles.
 - UI text/icons are scaled up for readability.
 - Left sidebar keeps the Refresh Data action anchored at the viewport bottom while upper sidebar content scrolls independently.
-- Mobile layout uses a filter drawer (left sidebar becomes a slide-in panel with overlay and close action) opened from a top `Menu` button.
+- Mobile layout uses a filter drawer (left sidebar becomes a slide-in panel with overlay and close action) opened from a top hamburger icon button.
 - On mobile breakpoints, History banner/KPI/player grids stack into a single column for readable vertical flow.
 - Mobile drawer controls use plain ASCII glyphs (`<`, `X`) to avoid missing-symbol fallback (`?`) on constrained font stacks.
 - Sidebar now includes a `Release` panel showing `major.minor` version and recent release notes sourced from recent git commit subjects.
@@ -93,6 +93,12 @@ Server env vars (see `.env.example` and server code):
   - Less auxiliary box density to keep coaching readable and execution-focused
 - Coaching text now replaces recognized champion/trait mentions with inline TFT icons (summary/actions/meta/win conditions/5-game plan/player actions and champion build rows), using mention matching against the current filtered match trait+unit pool.
 - GPT-generated coaching lines now render with larger body text/icon sizes for readability, and displayed model text sanitizes `TFT##_*` tokens (for example `TFT16_Ahri`) into clean names (for example `Ahri`).
+- Coaching GPT text/icon sizing now responds to viewport width (keeps larger desktop readability while scaling down on mobile), and long generated lines are forced to wrap to prevent card overflow on narrow screens.
+- History mobile overflow hardening:
+  - player cards now explicitly allow shrink (`min-width: 0`) inside the history grid.
+  - long player names now wrap instead of forcing horizontal overflow.
+  - champion board rows now render as a 2-row mobile grid (5 slots per row) to keep full board visibility inside the card without right-edge overflow.
+- Mobile filter drawer now uses an opaque background layer (no see-through app content), with Sidebar relying on CSS-driven backgrounds instead of an inline transparent background override.
 - Coaching page now waits for AI briefing before rendering the full content area and shows a full-page GPT loading state during generation.
 - AI coaching now includes a deterministic findings engine (server-side) that computes:
   - top improvement areas

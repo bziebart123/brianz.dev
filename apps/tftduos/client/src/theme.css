@@ -112,9 +112,25 @@ body {
 
 .tft-main-content .history-unit-row {
   flex-wrap: nowrap !important;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: hidden;
   overflow-y: hidden;
   padding-bottom: 2px;
+}
+
+.history-player-grid {
+  min-width: 0;
+}
+
+.history-player-card {
+  min-width: 0;
+}
+
+.history-player-name {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .tft-sidebar-overlay {
@@ -127,6 +143,18 @@ body {
 
 .tft-sidebar-close {
   display: none;
+}
+
+.tft-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .tft-app-shell [data-evergreen-id="text"][color="muted"],
@@ -240,6 +268,12 @@ body {
 
 .coaching-player-plan-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.coaching-gpt-line [data-evergreen-id="text"] {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35 !important;
 }
 
 .blame-awards-grid {
@@ -384,14 +418,34 @@ body {
   }
 
   .tft-mobile-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border: 1px solid rgba(93, 122, 183, 0.52);
     border-radius: 10px;
     background: rgba(24, 35, 58, 0.96);
     color: #f7fbff;
     font-weight: 700;
-    font-size: 15px;
+    width: 46px;
+    height: 44px;
     min-height: 44px;
-    padding: 0 14px;
+    padding: 0;
+    position: relative;
+  }
+
+  .tft-mobile-filter-icon {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 18px;
+  }
+
+  .tft-mobile-filter-icon span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    border-radius: 2px;
+    background: #f7fbff;
   }
 
   .tft-sidebar-overlay {
@@ -420,6 +474,8 @@ body {
     z-index: 60;
     transform: translateX(-108%);
     transition: transform 180ms ease;
+    background: linear-gradient(180deg, #0d1528 0%, #0a1222 100%) !important;
+    box-shadow: 16px 0 28px rgba(2, 8, 18, 0.72), inset -1px 0 0 rgba(73, 101, 159, 0.32);
   }
 
   .tft-app-shell.sidebar-open .tft-sidebar {
@@ -444,12 +500,17 @@ body {
   .history-kpi-grid,
   .history-player-grid {
     grid-template-columns: 1fr !important;
+    min-width: 0;
   }
 
   .analysis-graphs-grid,
   .analysis-player-grid,
   .coaching-player-plan-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .coaching-gpt-line [data-evergreen-id="text"] {
+    line-height: 1.3 !important;
   }
 
   .blame-awards-grid {
@@ -488,13 +549,18 @@ body {
   }
 
   .tft-main-content .history-unit-row {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    justify-items: center;
   }
 
-  .tft-main-content .history-unit-row::-webkit-scrollbar {
-    display: none;
+  .tft-main-content .history-unit-slot {
+    min-width: 0;
   }
 
   .release-notes-card {
