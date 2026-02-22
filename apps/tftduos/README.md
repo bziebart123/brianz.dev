@@ -61,7 +61,7 @@ Server env vars (see `.env.example` and server code):
 - Left sidebar keeps the Refresh Data action anchored at the viewport bottom while upper sidebar content scrolls independently.
 - Mobile layout uses a filter drawer (left sidebar becomes a slide-in panel with overlay and close action) opened from a top hamburger icon button.
 - On mobile breakpoints, History banner/KPI/player grids stack into a single column for readable vertical flow.
-- Mobile drawer controls use plain ASCII glyphs (`<`, `X`) to avoid missing-symbol fallback (`?`) on constrained font stacks.
+- Mobile drawer controls use plain text/ascii-safe controls (`Home`, `X`) to avoid missing-symbol fallback (`?`) on constrained font stacks.
 - Sidebar now includes a `Release` panel showing `major.minor` version and recent release notes sourced from recent git commit subjects.
 - Global shell `zoom` scaling was removed; text sizing now comes from `TEXT_SCALE` in `client/src/config/constants.js` (currently `1.45`), applied to typography/UI text surfaces (headings, tabs, buttons, selects, badges) while layout dimensions stay stable.
 - Main content (`History`, `Analysis`, `Coaching`) now has an additional dedicated text scale (`--bz-content-text-scale` in `client/src/theme.css`) so right-panel readability can be increased without changing sidebar or layout geometry.
@@ -98,6 +98,7 @@ Server env vars (see `.env.example` and server code):
   - player cards now explicitly allow shrink (`min-width: 0`) inside the history grid.
   - long player names now wrap instead of forcing horizontal overflow.
   - champion board rows now render as a 2-row mobile grid (5 slots per row) to keep full board visibility inside the card without right-edge overflow.
+  - champion star strips under unit icons now use stronger dedicated typography so 1/2/3-star markers remain legible.
 - Mobile filter drawer now uses an opaque background layer (no see-through app content), with Sidebar relying on CSS-driven backgrounds instead of an inline transparent background override.
 - Coaching page now waits for AI briefing before rendering the full content area and shows a full-page GPT loading state during generation.
 - AI coaching now includes a deterministic findings engine (server-side) that computes:

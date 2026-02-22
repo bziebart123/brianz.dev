@@ -58,19 +58,20 @@ export default function Sidebar({
       flexDirection="column"
     >
       <Pane className="tft-sidebar-scroll" flex={1} minHeight={0}>
-        <Pane display="flex" alignItems="center" gap={10} justifyContent="space-between">
+        <Pane className="tft-sidebar-header" display="flex" alignItems="center" gap={10} justifyContent="space-between">
           <Pane display="flex" alignItems="center" gap={10}>
             <a
               href={portfolioUrl}
-              className="back-link"
-              title="Back to Portfolio"
+              className="back-link tft-sidebar-home-btn"
+              title="Home"
+              aria-label="Home"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: 36,
+                minWidth: 36,
                 height: 36,
-                padding: 0,
+                padding: "0 10px",
                 margin: 0,
                 boxSizing: "border-box",
                 flexShrink: 0,
@@ -82,11 +83,11 @@ export default function Sidebar({
                 lineHeight: 1,
               }}
             >
-              <span style={{ fontSize: 20, lineHeight: 1, fontWeight: 700 }} aria-hidden="true">
-                {"<"}
+              <span style={{ fontSize: 14, lineHeight: 1, fontWeight: 700 }} aria-hidden="true">
+                Home
               </span>
             </a>
-            <Heading size={700}>Duo TFT Coach</Heading>
+            <Heading size={700} className="tft-sidebar-title">Duo TFT Coach</Heading>
           </Pane>
 
           {isMobile ? (
