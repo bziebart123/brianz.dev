@@ -210,6 +210,33 @@
         color: var(--muted);
       }
 
+      .terminal-head-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .terminal-close {
+        border: 1px solid rgba(111, 194, 255, 0.44);
+        border-radius: 999px;
+        background: rgba(9, 17, 33, 0.78);
+        color: #d4e4ff;
+        font-family: inherit;
+        font-size: 0.64rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        line-height: 1;
+        padding: 5px 9px;
+        cursor: pointer;
+      }
+
+      .terminal-close:hover,
+      .terminal-close:focus-visible {
+        border-color: rgba(142, 240, 200, 0.72);
+        color: #8ef0c8;
+        outline: none;
+      }
+
       .terminal-body {
         padding: 12px 14px 8px;
         flex: 1 1 auto;
@@ -511,7 +538,10 @@
           <div class="terminal">
             <div class="terminal-head">
               <span>MY BRAIN // Cognitive Navigation Terminal</span>
-              <span>Protocol Handshake</span>
+              <div class="terminal-head-actions">
+                <span>Protocol Handshake</span>
+                <button type="button" class="terminal-close" id="terminal-close-btn" aria-label="Collapse terminal panel">Close</button>
+              </div>
             </div>
             <div class="terminal-body" id="boot-log"></div>
             <div class="terminal-prompt" id="terminal-status">awaiting protocol input</div>
@@ -611,6 +641,7 @@
         var terminalDock = document.querySelector(".terminal-dock");
         var bootLog = document.getElementById("boot-log");
         var terminalStatus = document.getElementById("terminal-status");
+        var terminalCloseBtn = document.getElementById("terminal-close-btn");
         var terminalExpanded = false;
         var backendRequestCount = 0;
         var renderMetaRequestCount = 0;
@@ -762,7 +793,7 @@
             cursor += 1;
           });
           queueTerminalLine(cursor, delay, function () {
-            pushBootLine("> Press ESC to collapse terminal view", false);
+            pushBootLine("> Press ESC or tap Close to collapse terminal view", false);
           });
           terminalQueueOffset += (cursor + 1) * delay;
         }
@@ -774,7 +805,7 @@
           }
           if (terminalStatus) {
             terminalStatus.textContent = expanded
-              ? "terminal data mode // press esc to collapse"
+              ? "terminal data mode // esc or close to collapse"
               : "terminal synced // node lattice online";
           }
         }
@@ -786,7 +817,7 @@
           }
           if (terminalStatus) {
             terminalStatus.textContent = expanded
-              ? "contact relay mode // press esc to collapse"
+              ? "contact relay mode // esc or close to collapse"
               : "terminal synced // node lattice online";
           }
         }
@@ -998,7 +1029,7 @@
           }
 
           queueTerminalLine(cursor, delay, function () {
-            pushBootLine("> Press ESC to collapse terminal view", false);
+            pushBootLine("> Press ESC or tap Close to collapse terminal view", false);
           });
           terminalQueueOffset += (cursor + 1) * delay;
         }
@@ -1030,6 +1061,13 @@
             setTerminalExpanded(false);
           }
         });
+
+        if (terminalCloseBtn) {
+          terminalCloseBtn.addEventListener("click", function () {
+            if (!terminalExpanded) return;
+            setTerminalExpanded(false);
+          });
+        }
 
         var bootSequence = [
           { text: "> Initiating protocol: MY BRAIN", highlight: false },
