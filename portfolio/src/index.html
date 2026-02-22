@@ -3,156 +3,861 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Brian Z Portfolio</title>
+    <title>Brian Z Project Hub</title>
     <style>
       :root {
-        --bg-0: #0a0f1c;
-        --bg-1: #10182a;
-        --card: #141f34;
-        --card-border: #2a3b62;
-        --text: #e8edff;
-        --muted: #9bb0da;
+        --bg-0: #070d1a;
+        --bg-1: #0e1830;
+        --bg-2: #121f3b;
+        --text: #e9efff;
+        --muted: #9ab0dd;
         --accent: #6fc2ff;
         --accent-2: #e0bd72;
-        --radius: 18px;
+        --accent-3: #8ef0c8;
+        --edge: rgba(84, 112, 173, 0.46);
       }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
       body {
         margin: 0;
-        min-height: 100vh;
+        min-height: 100%;
+      }
+
+      body {
         color: var(--text);
-        background:
-          radial-gradient(900px 450px at 85% -10%, rgba(111, 194, 255, 0.2), transparent 60%),
-          radial-gradient(700px 380px at 10% 100%, rgba(224, 189, 114, 0.18), transparent 60%),
-          linear-gradient(150deg, var(--bg-0), var(--bg-1));
         font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+        background:
+          radial-gradient(900px 700px at 82% -16%, rgba(111, 194, 255, 0.2), transparent 62%),
+          radial-gradient(700px 560px at 8% 108%, rgba(224, 189, 114, 0.17), transparent 58%),
+          linear-gradient(155deg, var(--bg-0), var(--bg-1));
+        overflow: hidden;
+        caret-color: transparent;
       }
-      main {
-        max-width: 1040px;
+
+      #depth-layer,
+      #lattice-layer {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      #depth-layer {
+        z-index: 0;
+        opacity: 0.78;
+      }
+
+      #lattice-layer {
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      .scan-noise {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        background-image:
+          repeating-linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 0.014) 0px,
+            rgba(255, 255, 255, 0.014) 1px,
+            transparent 2px,
+            transparent 4px
+          ),
+          radial-gradient(circle at 22% 16%, rgba(255, 255, 255, 0.07), transparent 34%),
+          radial-gradient(circle at 72% 74%, rgba(255, 255, 255, 0.06), transparent 38%);
+        mix-blend-mode: screen;
+      }
+
+      .cosmos-shell {
+        position: relative;
+        z-index: 3;
+        width: min(1240px, 100%);
+        min-height: 100vh;
         margin: 0 auto;
-        padding: 72px 24px;
-      }
-      .hero {
-        margin-bottom: 28px;
-      }
-      h1 {
-        font-size: clamp(2rem, 5vw, 3.2rem);
-        margin: 0;
-        letter-spacing: 0.02em;
-      }
-      p {
-        margin: 10px 0 0;
-        color: var(--muted);
-        font-size: 1.05rem;
-      }
-      .grid {
+        padding: 18px;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 16px;
       }
-      a.card {
+
+      .starfield {
+        position: relative;
+        border: 1px solid rgba(48, 69, 112, 0.72);
+        border-radius: 24px;
+        overflow: hidden;
+        user-select: none;
+        background:
+          radial-gradient(circle at 52% 49%, rgba(111, 194, 255, 0.13), transparent 44%),
+          radial-gradient(circle at 48% 53%, rgba(224, 189, 114, 0.1), transparent 32%),
+          linear-gradient(160deg, rgba(10, 18, 34, 0.8), rgba(8, 14, 30, 0.9));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.06),
+          0 32px 62px rgba(0, 0, 0, 0.56);
+      }
+
+      .starfield::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(circle at 50% 55%, transparent 0%, transparent 34%, rgba(255, 255, 255, 0.04) 35%, transparent 37%, transparent 100%);
+      }
+
+      .map-hud {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        right: 14px;
+        z-index: 4;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 360ms ease;
+      }
+
+      .chip {
+        pointer-events: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(111, 194, 255, 0.4);
+        border-radius: 999px;
+        background: rgba(14, 24, 45, 0.72);
+        color: var(--muted);
+        padding: 8px 12px;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .chip-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-3);
+        box-shadow: 0 0 12px rgba(142, 240, 200, 0.72);
+      }
+
+      .organism {
+        position: relative;
+        width: 100%;
+        height: min(84vh, 860px);
+        opacity: 0;
+        filter: blur(4px);
+        transition: opacity 460ms ease, filter 460ms ease;
+      }
+
+      .starfield.ready .map-hud {
+        opacity: 1;
+      }
+
+      .starfield.ready .organism {
+        opacity: 1;
+        filter: blur(0);
+      }
+
+      .terminal-dock {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        z-index: 7;
         display: block;
-        padding: 18px 18px 16px;
-        border-radius: var(--radius);
-        border: 1px solid var(--card-border);
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
+        pointer-events: none;
+      }
+
+      .terminal {
+        width: 100%;
+        height: 228px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(111, 194, 255, 0.48);
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(12, 22, 42, 0.86), rgba(8, 14, 28, 0.82));
+        box-shadow: 0 22px 44px rgba(0, 0, 0, 0.56), 0 0 32px rgba(111, 194, 255, 0.2);
+        overflow: hidden;
+        backdrop-filter: blur(3px);
+      }
+
+      .terminal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 14px;
+        border-bottom: 1px solid rgba(111, 194, 255, 0.24);
+        background: rgba(18, 33, 62, 0.65);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+
+      .terminal-body {
+        padding: 12px 14px 8px;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        user-select: text;
+        caret-color: transparent;
+        font-family: "Consolas", "Menlo", "SFMono-Regular", monospace;
+        font-size: 0.78rem;
+        line-height: 1.48;
+        color: #b5ddff;
+      }
+
+      .terminal-prompt {
+        border-top: 1px solid rgba(111, 194, 255, 0.24);
+        padding: 8px 14px 10px;
+        font-family: "Consolas", "Menlo", "SFMono-Regular", monospace;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+
+      .terminal-prompt::after {
+        content: " _";
+        animation: blinkCursor 1s steps(1, end) infinite;
+      }
+
+      .boot-line {
+        opacity: 0;
+        transform: translateY(5px);
+        transition: opacity 220ms ease, transform 220ms ease;
+      }
+
+      .boot-line.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .boot-line strong {
+        color: var(--accent-2);
+        font-weight: 600;
+      }
+
+      .core {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: min(34vw, 310px);
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        border: 1px solid rgba(111, 194, 255, 0.5);
+        background:
+          radial-gradient(circle at 34% 30%, rgba(140, 205, 255, 0.4), rgba(25, 40, 72, 0.24) 38%, rgba(9, 16, 30, 0.88) 70%),
+          radial-gradient(circle at 75% 72%, rgba(224, 189, 114, 0.2), transparent 55%);
+        box-shadow:
+          inset 0 0 42px rgba(111, 194, 255, 0.24),
+          0 0 66px rgba(111, 194, 255, 0.3),
+          0 0 120px rgba(9, 16, 34, 0.72);
+        animation: corePulse 6s ease-in-out infinite;
+      }
+
+      .core::before,
+      .core::after {
+        content: "";
+        position: absolute;
+        inset: 12%;
+        border-radius: 50%;
+        border: 1px solid rgba(111, 194, 255, 0.3);
+      }
+
+      .core::after {
+        inset: -20%;
+        border-color: rgba(224, 189, 114, 0.2);
+      }
+
+      @keyframes corePulse {
+        0%,
+        100% {
+          transform: translate(-50%, -50%) scale(1);
+          filter: brightness(0.98);
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.035);
+          filter: brightness(1.05);
+        }
+      }
+
+      .star-node {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 138px;
+        transform: translate(-50%, -50%);
+        display: grid;
+        justify-items: center;
+        gap: 8px;
         text-decoration: none;
         color: var(--text);
-        transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+        z-index: 5;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 340ms ease;
       }
-      a.card:hover {
-        border-color: var(--accent);
-        transform: translateY(-2px);
-        box-shadow: 0 10px 28px rgba(6, 10, 20, 0.36);
+
+      .star-node.is-visible {
+        opacity: 1;
+        pointer-events: auto;
       }
-      .label {
-        font-size: 0.82rem;
+
+      .node-icon {
+        width: 66px;
+        height: 66px;
+        border-radius: 18px;
+        border: 1px solid rgba(111, 194, 255, 0.54);
+        background:
+          radial-gradient(circle at 30% 24%, rgba(120, 180, 255, 0.3), rgba(20, 31, 52, 0.92)),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+        display: grid;
+        place-items: center;
+        box-shadow:
+          0 10px 26px rgba(0, 0, 0, 0.44),
+          0 0 26px rgba(111, 194, 255, 0.34);
+        transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+      }
+
+      .star-node[data-kind="meta"] .node-icon {
+        border-color: rgba(142, 240, 200, 0.6);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.44), 0 0 26px rgba(142, 240, 200, 0.35);
+      }
+
+      .star-node[data-kind="core"] .node-icon {
+        border-color: rgba(224, 189, 114, 0.72);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.44), 0 0 26px rgba(224, 189, 114, 0.38);
+      }
+
+      .star-node svg {
+        width: 40px;
+        height: 40px;
+        display: block;
+      }
+
+      .star-node span {
+        display: inline-block;
+        border: 1px solid rgba(83, 109, 165, 0.46);
+        border-radius: 999px;
+        padding: 4px 10px;
+        background: rgba(13, 23, 44, 0.66);
+        font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.08em;
         color: var(--muted);
       }
-      .title {
-        font-size: 1.28rem;
-        margin-top: 7px;
-        font-weight: 700;
+
+      .star-node:focus-visible,
+      .star-node:hover {
+        outline: none;
       }
-      .description {
-        color: var(--muted);
-        margin-top: 8px;
-        font-size: 0.96rem;
+
+      .star-node:focus-visible .node-icon,
+      .star-node:hover .node-icon {
+        transform: translateY(-4px) scale(1.04);
+        border-color: rgba(224, 189, 114, 0.9);
+        box-shadow:
+          0 14px 34px rgba(0, 0, 0, 0.56),
+          0 0 34px rgba(224, 189, 114, 0.52);
       }
-      .meta {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 14px;
+
+      .star-node:focus-visible .node-icon {
+        box-shadow:
+          0 0 0 2px rgba(7, 13, 26, 0.96),
+          0 0 0 4px rgba(224, 189, 114, 0.56),
+          0 14px 34px rgba(0, 0, 0, 0.56),
+          0 0 34px rgba(224, 189, 114, 0.52);
       }
-      .pill {
-        border-radius: 999px;
-        border: 1px solid rgba(111, 194, 255, 0.4);
-        color: var(--accent);
-        padding: 4px 10px;
-        font-size: 0.78rem;
+
+      @keyframes blinkCursor {
+        0%,
+        49% {
+          opacity: 1;
+        }
+        50%,
+        100% {
+          opacity: 0;
+        }
       }
-      .logo {
-        width: 56px;
-        height: 56px;
-        border-radius: 14px;
-        display: grid;
-        place-items: center;
-        background: radial-gradient(circle at 25% 25%, #2a3962, #121b31);
-        border: 1px solid #3a5187;
-        margin-bottom: 10px;
+
+      @media (max-width: 900px) {
+        .cosmos-shell {
+          padding: 10px;
+        }
+
+        .organism {
+          height: min(88vh, 760px);
+        }
+
+        .core {
+          width: min(52vw, 250px);
+        }
+
+        .star-node {
+          width: 108px;
+          gap: 6px;
+        }
+
+        .node-icon {
+          width: 56px;
+          height: 56px;
+          border-radius: 14px;
+        }
+
+        .star-node svg {
+          width: 34px;
+          height: 34px;
+        }
+
+        .star-node span {
+          font-size: 0.66rem;
+          padding: 3px 8px;
+        }
       }
-      .logo svg {
-        width: 38px;
-        height: 38px;
+
+      @media (max-width: 640px) {
+        body {
+          overflow: auto;
+        }
+
+        .organism {
+          height: 740px;
+        }
+
+        .map-hud {
+          top: 10px;
+          left: 10px;
+          right: 10px;
+        }
+
+        .chip {
+          font-size: 0.64rem;
+          padding: 6px 10px;
+        }
+
+        .terminal-dock {
+          left: 10px;
+          right: 10px;
+          bottom: 10px;
+        }
+
+        .terminal-head {
+          padding: 8px 10px;
+          font-size: 0.66rem;
+        }
+
+        .terminal-body {
+          font-size: 0.72rem;
+          min-height: 0;
+          padding: 9px 10px 7px;
+        }
+
+        .terminal-prompt {
+          font-size: 0.72rem;
+          padding: 7px 10px 8px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
       }
     </style>
   </head>
   <body>
-    <main>
-      <section class="hero">
-        <h1>Brian Z Project Hub</h1>
-        <p>Launchpad for deployed side-projects and experiments.</p>
-      </section>
-      <section class="grid">
-        <a class="card" id="tftduos-link" href="https://tftduos.brianz.dev">
-          <div class="logo" aria-hidden="true">
-            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M32 4L56 18V46L32 60L8 46V18L32 4Z" fill="#16223B" stroke="#E0BD72" stroke-width="2.4"/>
-              <path d="M13 21H30V26H24V43H19V26H13V21Z" fill="#E0BD72"/>
-              <path d="M31 21H50V26H43V43H38V26H31V21Z" fill="#E0BD72"/>
-              <path d="M33 31H49V36H38V43H33V31Z" fill="#6FC2FF"/>
-            </svg>
+    <canvas id="depth-layer" aria-hidden="true"></canvas>
+    <canvas id="lattice-layer" aria-hidden="true"></canvas>
+    <div class="scan-noise" aria-hidden="true"></div>
+
+    <main class="cosmos-shell">
+      <section class="starfield" aria-label="Star map launcher">
+        <div class="terminal-dock" aria-live="polite">
+          <div class="terminal">
+            <div class="terminal-head">
+              <span>MY BRAIN // Cognitive Navigation Terminal</span>
+              <span>Protocol Handshake</span>
+            </div>
+            <div class="terminal-body" id="boot-log"></div>
+            <div class="terminal-prompt" id="terminal-status">awaiting protocol input</div>
           </div>
-          <div class="label">Live App</div>
-          <div class="title">TFT Duos Coach</div>
-          <div class="description">Duo match analysis, coaching insights, and trend tracking.</div>
-          <div class="meta">
-            <span class="pill">brianz.dev</span>
-          </div>
-        </a>
-        <a class="card" href="https://site-performance.brianz.dev">
-          <div class="label">Live App</div>
-          <div class="title">Render Meta Dashboard</div>
-          <div class="description">Service-level request, bandwidth, CPU, and memory snapshots via shared backend APIs.</div>
-          <div class="meta">
-            <span class="pill">brianz.dev</span>
-          </div>
-        </a>
+        </div>
+
+        <div class="map-hud">
+          <div class="chip"><span class="chip-dot" aria-hidden="true"></span> brianz.dev lattice</div>
+          <div class="chip">touch or move to navigate</div>
+        </div>
+
+        <div class="organism" id="organism">
+          <div class="core" aria-hidden="true"></div>
+
+          <a class="star-node" id="tftduos-link" data-kind="core" data-x="20" data-y="26" data-drift="22" href="https://tftduos.brianz.dev" aria-label="Open TFT Duos Coach">
+            <div class="node-icon">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M32 4L56 18V46L32 60L8 46V18L32 4Z" fill="#16223B" stroke="#E0BD72" stroke-width="2.4"/>
+                <path d="M13 21H30V26H24V43H19V26H13V21Z" fill="#E0BD72"/>
+                <path d="M31 21H50V26H43V43H38V26H31V21Z" fill="#E0BD72"/>
+                <path d="M33 31H49V36H38V43H33V31Z" fill="#6FC2FF"/>
+              </svg>
+            </div>
+            <span>TFT Duos</span>
+          </a>
+
+          <a class="star-node" id="meta-link" data-kind="meta" data-x="80" data-y="30" data-drift="24" href="https://site-performance.brianz.dev" aria-label="Open Render Meta Dashboard">
+            <div class="node-icon">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
+                <path d="M17 42L25 33L31 37L40 25L47 30" stroke="#8EF0C8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="25" cy="33" r="2.6" fill="#8EF0C8"/>
+                <circle cx="31" cy="37" r="2.6" fill="#8EF0C8"/>
+                <circle cx="40" cy="25" r="2.6" fill="#8EF0C8"/>
+              </svg>
+            </div>
+            <span>Render Meta</span>
+          </a>
+
+          <a class="star-node" data-kind="meta" data-x="74" data-y="76" data-drift="18" href="https://backend.brianz.dev/health" aria-label="Open Backend Health">
+            <div class="node-icon">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="24" fill="#11253E" stroke="#6FC2FF" stroke-width="2.2"/>
+                <path d="M19 32H45" stroke="#6FC2FF" stroke-width="3" stroke-linecap="round"/>
+                <path d="M32 19V45" stroke="#6FC2FF" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="32" cy="32" r="6" fill="#E0BD72"/>
+              </svg>
+            </div>
+            <span>Backend</span>
+          </a>
+
+          <a class="star-node" data-x="28" data-y="74" data-drift="20" href="https://github.com/bziebart123/brianz.dev" aria-label="Open GitHub Repository">
+            <div class="node-icon">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="9" y="9" width="46" height="46" rx="12" fill="#121f35" stroke="#E0BD72" stroke-width="2.2"/>
+                <path d="M23 42V24H41V42" stroke="#E0BD72" stroke-width="3" stroke-linejoin="round"/>
+                <path d="M20 28L32 18L44 28" stroke="#E0BD72" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span>Source</span>
+          </a>
+
+          <a class="star-node" data-x="50" data-y="16" data-drift="14" href="https://brianz.dev" aria-label="Reload home hub">
+            <div class="node-icon">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M32 8L52 24V52H12V24L32 8Z" fill="#13233A" stroke="#6FC2FF" stroke-width="2.2"/>
+                <rect x="27" y="33" width="10" height="19" rx="2" fill="#6FC2FF"/>
+              </svg>
+            </div>
+            <span>Home</span>
+          </a>
+
+          <a class="star-node" data-kind="meta" data-x="50" data-y="86" data-drift="16" href="mailto:brian@brianz.dev" aria-label="Send email">
+            <div class="node-icon">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="10" y="14" width="44" height="36" rx="8" fill="#13223A" stroke="#8EF0C8" stroke-width="2.2"/>
+                <path d="M14 19L32 34L50 19" stroke="#8EF0C8" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span>Contact</span>
+          </a>
+        </div>
+
       </section>
     </main>
+
     <script>
       (function () {
-        var link = document.getElementById("tftduos-link");
-        if (!link) return;
         var host = window.location.hostname;
         var isLocal = host === "localhost" || host === "127.0.0.1";
+
+        var tftLink = document.getElementById("tftduos-link");
+        var metaLink = document.getElementById("meta-link");
+        var starfield = document.querySelector(".starfield");
+        var bootLog = document.getElementById("boot-log");
+        var terminalStatus = document.getElementById("terminal-status");
+
         if (isLocal) {
-          link.setAttribute("href", "http://localhost:5173");
+          if (tftLink) tftLink.setAttribute("href", "http://localhost:4173");
+          if (metaLink) metaLink.setAttribute("href", "http://localhost:4174");
         } else {
-          link.setAttribute("href", "https://tftduos.brianz.dev");
+          if (tftLink) tftLink.setAttribute("href", "https://tftduos.brianz.dev");
+          if (metaLink) metaLink.setAttribute("href", "https://site-performance.brianz.dev");
         }
+
+        var organism = document.getElementById("organism");
+        var nodes = Array.prototype.slice.call(document.querySelectorAll(".star-node"));
+        var pointer = { x: 0, y: 0 };
+        var nodeAnimationStarted = false;
+        var spokeGreeting = false;
+
+        nodes.forEach(function (node) {
+          var href = node.getAttribute("href") || "";
+          if (href.indexOf("http://") === 0 || href.indexOf("https://") === 0) {
+            node.setAttribute("target", "_blank");
+            node.setAttribute("rel", "noopener noreferrer");
+          }
+        });
+
+        function speakGreeting() {
+          if (spokeGreeting || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
+          spokeGreeting = true;
+          var utterance = new SpeechSynthesisUtterance("Protocol M Y Brian engaged. Mapping out Brian's mind.");
+          utterance.rate = 0.95;
+          utterance.pitch = 0.86;
+          utterance.volume = 0.78;
+          window.speechSynthesis.speak(utterance);
+        }
+
+        window.addEventListener("pointerdown", speakGreeting, { once: true });
+
+        function pushBootLine(text, isHighlight) {
+          if (!bootLog) return;
+          var line = document.createElement("div");
+          line.className = "boot-line";
+          line.innerHTML = isHighlight ? "<strong>" + text + "</strong>" : text;
+          bootLog.appendChild(line);
+          requestAnimationFrame(function () {
+            line.classList.add("show");
+          });
+        }
+
+        function beginStarMap() {
+          if (terminalStatus) {
+            terminalStatus.textContent = "terminal synced // node lattice online";
+          }
+          if (starfield) starfield.classList.add("ready");
+
+          nodes.forEach(function (node, index) {
+            window.setTimeout(function () {
+              node.classList.add("is-visible");
+            }, index * 150);
+          });
+
+          if (!nodeAnimationStarted) {
+            nodeAnimationStarted = true;
+            requestAnimationFrame(updateNodes);
+          }
+        }
+
+        var bootSequence = [
+          { text: "> Initiating protocol: MY BRAIN", highlight: false },
+          { text: "> Calibrating semi-sentient navigator...", highlight: false },
+          { text: "> Mapping out Brian's mind", highlight: true },
+          { text: "> Compiling project constellations", highlight: false },
+          { text: "> Rendering neural routes and access nodes", highlight: false },
+          { text: "> Handshake complete. Welcome aboard.", highlight: true }
+        ];
+
+        bootSequence.forEach(function (line, index) {
+          window.setTimeout(function () {
+            pushBootLine(line.text, line.highlight);
+            if (bootLog) {
+              bootLog.scrollTop = bootLog.scrollHeight;
+            }
+          }, 260 + index * 460);
+        });
+
+        window.setTimeout(function () {
+          beginStarMap();
+          speakGreeting();
+        }, 260 + bootSequence.length * 460 + 460);
+
+        var nodeState = nodes.map(function (node, index) {
+          var x = Number(node.getAttribute("data-x") || 50) / 100;
+          var y = Number(node.getAttribute("data-y") || 50) / 100;
+          var drift = Number(node.getAttribute("data-drift") || 14);
+          return {
+            el: node,
+            x: x,
+            y: y,
+            drift: drift,
+            phase: index * 1.2,
+            px: 0,
+            py: 0
+          };
+        });
+
+        var linkPairs = [
+          [0, 4], [1, 4], [2, 5], [3, 5], [0, 3], [1, 2], [0, 1], [2, 3], [4, 5], [1, 5]
+        ];
+
+        function clamp(v, min, max) {
+          return Math.max(min, Math.min(max, v));
+        }
+
+        function updatePointer(clientX, clientY) {
+          if (!organism) return;
+          var rect = organism.getBoundingClientRect();
+          pointer.x = clamp((clientX - rect.left) / rect.width - 0.5, -0.5, 0.5);
+          pointer.y = clamp((clientY - rect.top) / rect.height - 0.5, -0.5, 0.5);
+        }
+
+        window.addEventListener("mousemove", function (event) {
+          updatePointer(event.clientX, event.clientY);
+        });
+
+        window.addEventListener("touchmove", function (event) {
+          if (!event.touches || !event.touches[0]) return;
+          updatePointer(event.touches[0].clientX, event.touches[0].clientY);
+        }, { passive: true });
+
+        var latticeCanvas = document.getElementById("lattice-layer");
+        var latticeCtx = latticeCanvas ? latticeCanvas.getContext("2d") : null;
+
+        function resizeLattice() {
+          if (!latticeCanvas || !latticeCtx) return;
+          var w = Math.max(1, Math.floor(window.innerWidth * window.devicePixelRatio));
+          var h = Math.max(1, Math.floor(window.innerHeight * window.devicePixelRatio));
+          if (latticeCanvas.width !== w || latticeCanvas.height !== h) {
+            latticeCanvas.width = w;
+            latticeCanvas.height = h;
+          }
+          latticeCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+        }
+
+        window.addEventListener("resize", resizeLattice);
+        resizeLattice();
+
+        function drawLinks(timeSec) {
+          if (!latticeCtx || !latticeCanvas) return;
+
+          latticeCtx.clearRect(0, 0, latticeCanvas.width, latticeCanvas.height);
+          latticeCtx.lineWidth = 1.2;
+
+          for (var i = 0; i < linkPairs.length; i += 1) {
+            var pair = linkPairs[i];
+            var a = nodeState[pair[0]];
+            var b = nodeState[pair[1]];
+            if (!a || !b) continue;
+
+            var pulse = 0.26 + (Math.sin(timeSec * 1.6 + i) + 1) * 0.16;
+            latticeCtx.strokeStyle = "rgba(126, 186, 255," + pulse.toFixed(3) + ")";
+            latticeCtx.beginPath();
+            latticeCtx.moveTo(a.px, a.py);
+            latticeCtx.lineTo(b.px, b.py);
+            latticeCtx.stroke();
+          }
+
+          for (var j = 0; j < nodeState.length; j += 1) {
+            var n = nodeState[j];
+            var r = 4 + ((Math.sin(timeSec * 1.4 + j) + 1) * 1.5);
+            var glow = latticeCtx.createRadialGradient(n.px, n.py, 0, n.px, n.py, r * 4);
+            glow.addColorStop(0, "rgba(180, 224, 255, 0.9)");
+            glow.addColorStop(1, "rgba(180, 224, 255, 0)");
+            latticeCtx.fillStyle = glow;
+            latticeCtx.beginPath();
+            latticeCtx.arc(n.px, n.py, r * 4, 0, Math.PI * 2);
+            latticeCtx.fill();
+          }
+        }
+
+        function updateNodes(now) {
+          if (!organism) return;
+          var rect = organism.getBoundingClientRect();
+          var t = now * 0.001;
+          var driftX = pointer.x * 28;
+          var driftY = pointer.y * 24;
+
+          for (var i = 0; i < nodeState.length; i += 1) {
+            var state = nodeState[i];
+            var ox = Math.sin(t * 0.7 + state.phase) * state.drift;
+            var oy = Math.cos(t * 0.8 + state.phase * 1.1) * (state.drift * 0.75);
+            var x = state.x * rect.width + ox + driftX;
+            var y = state.y * rect.height + oy + driftY;
+            state.px = rect.left + x;
+            state.py = rect.top + y;
+            state.el.style.transform = "translate(-50%, -50%) translate(" + x.toFixed(2) + "px," + y.toFixed(2) + "px)";
+          }
+
+          drawLinks(t);
+          requestAnimationFrame(updateNodes);
+        }
+
+        var depthCanvas = document.getElementById("depth-layer");
+        if (!depthCanvas) return;
+
+        var gl = depthCanvas.getContext("webgl", { antialias: true, alpha: true, premultipliedAlpha: true });
+        if (!gl) return;
+
+        var vert = "attribute vec2 a_pos;attribute float a_seed;uniform float u_time;varying float v_seed;void main(){float t=u_time*0.22+a_seed*6.283;vec2 drift=vec2(cos(t)*0.03,sin(t*0.64)*0.05);vec2 p=a_pos+drift;gl_Position=vec4(p,0.0,1.0);gl_PointSize=1.5+4.8*fract(a_seed*19.13);v_seed=a_seed;}";
+        var frag = "precision mediump float;varying float v_seed;void main(){vec2 uv=gl_PointCoord-vec2(0.5);float d=dot(uv,uv);float glow=smoothstep(0.28,0.0,d);vec3 c1=vec3(0.44,0.76,1.0);vec3 c2=vec3(0.88,0.74,0.45);vec3 col=mix(c1,c2,fract(v_seed*10.7));gl_FragColor=vec4(col,glow*0.46);}";
+
+        function compile(type, source) {
+          var shader = gl.createShader(type);
+          if (!shader) return null;
+          gl.shaderSource(shader, source);
+          gl.compileShader(shader);
+          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            gl.deleteShader(shader);
+            return null;
+          }
+          return shader;
+        }
+
+        var vs = compile(gl.VERTEX_SHADER, vert);
+        var fs = compile(gl.FRAGMENT_SHADER, frag);
+        if (!vs || !fs) return;
+
+        var program = gl.createProgram();
+        if (!program) return;
+        gl.attachShader(program, vs);
+        gl.attachShader(program, fs);
+        gl.linkProgram(program);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return;
+        gl.useProgram(program);
+
+        var count = 190;
+        var data = new Float32Array(count * 3);
+        for (var i = 0; i < count; i += 1) {
+          var idx = i * 3;
+          data[idx] = Math.random() * 2 - 1;
+          data[idx + 1] = Math.random() * 2 - 1;
+          data[idx + 2] = Math.random();
+        }
+
+        var buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+
+        var stride = 3 * 4;
+        var posLoc = gl.getAttribLocation(program, "a_pos");
+        var seedLoc = gl.getAttribLocation(program, "a_seed");
+        gl.enableVertexAttribArray(posLoc);
+        gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, stride, 0);
+        gl.enableVertexAttribArray(seedLoc);
+        gl.vertexAttribPointer(seedLoc, 1, gl.FLOAT, false, stride, 2 * 4);
+
+        var timeLoc = gl.getUniformLocation(program, "u_time");
+
+        function resizeDepth() {
+          var w = Math.max(1, Math.floor(window.innerWidth * window.devicePixelRatio));
+          var h = Math.max(1, Math.floor(window.innerHeight * window.devicePixelRatio));
+          if (depthCanvas.width !== w || depthCanvas.height !== h) {
+            depthCanvas.width = w;
+            depthCanvas.height = h;
+          }
+          gl.viewport(0, 0, depthCanvas.width, depthCanvas.height);
+        }
+
+        window.addEventListener("resize", resizeDepth);
+
+        function drawDepth(now) {
+          resizeDepth();
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.uniform1f(timeLoc, now * 0.001);
+          gl.drawArrays(gl.POINTS, 0, count);
+          requestAnimationFrame(drawDepth);
+        }
+
+        requestAnimationFrame(drawDepth);
       })();
     </script>
   </body>
