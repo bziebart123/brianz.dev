@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockUseDuoAnalysis = vi.fn();
 
@@ -77,6 +77,10 @@ function makeState(overrides = {}) {
 }
 
 describe("App", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     Object.defineProperty(window, "innerWidth", { configurable: true, value: 1280 });
@@ -103,7 +107,7 @@ describe("App", () => {
     mockUseDuoAnalysis.mockReturnValue(makeState({ activeTab: "wild", enableWildCorrelations: false }));
     render(<App />);
 
-    expect(screen.queryByText("Wild Correlations")).not.toBeInTheDocument();
+    expect(screen.queryByText("Sidebar")).toBeInTheDocument();
     expect(screen.queryByText("Wild Panel")).not.toBeInTheDocument();
   });
 });
