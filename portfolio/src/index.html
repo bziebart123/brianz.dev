@@ -222,11 +222,16 @@
         background: rgba(9, 17, 33, 0.78);
         color: #d4e4ff;
         font-family: inherit;
-        font-size: 0.64rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 0.95rem;
+        letter-spacing: 0;
+        text-transform: none;
         line-height: 1;
-        padding: 5px 9px;
+        width: 30px;
+        height: 24px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
       }
 
@@ -568,7 +573,7 @@
               <span>MY BRAIN // Cognitive Navigation Terminal</span>
               <div class="terminal-head-actions">
                 <span>Protocol Handshake</span>
-                <button type="button" class="terminal-close" id="terminal-close-btn" aria-label="Collapse terminal panel">Close</button>
+                <button type="button" class="terminal-close" id="terminal-close-btn" aria-label="Expand terminal panel">^</button>
               </div>
             </div>
             <div class="terminal-body" id="boot-log"></div>
@@ -763,6 +768,14 @@
           terminalStatus.textContent = text;
         }
 
+        function syncTerminalToggleControl() {
+          if (!terminalCloseBtn) return;
+          var isExpanded = !!terminalExpanded;
+          terminalCloseBtn.textContent = isExpanded ? "v" : "^";
+          terminalCloseBtn.setAttribute("aria-label", isExpanded ? "Collapse terminal panel" : "Expand terminal panel");
+          terminalCloseBtn.setAttribute("title", isExpanded ? "Collapse terminal panel" : "Expand terminal panel");
+        }
+
         function applyTerminalModeStatus() {
           if (terminalMode === "data") {
             setTerminalStatusText("terminal data mode // esc or close to collapse", false);
@@ -856,6 +869,7 @@
           }
           terminalMode = expanded ? "data" : "sync";
           applyTerminalModeStatus();
+          syncTerminalToggleControl();
         }
 
         function setContactTerminalExpanded(expanded) {
@@ -865,6 +879,7 @@
           }
           terminalMode = expanded ? "contact" : "sync";
           applyTerminalModeStatus();
+          syncTerminalToggleControl();
         }
 
         function beginContactRelay() {
@@ -1084,10 +1099,15 @@
 
         if (terminalCloseBtn) {
           terminalCloseBtn.addEventListener("click", function () {
-            if (!terminalExpanded) return;
-            setTerminalExpanded(false);
+            if (terminalExpanded) {
+              setTerminalExpanded(false);
+              return;
+            }
+            setTerminalExpanded(true);
           });
         }
+
+        syncTerminalToggleControl();
 
         var bootSequence = [
           { text: "> Initiating protocol: MY BRAIN", highlight: false },
