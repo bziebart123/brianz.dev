@@ -187,6 +187,7 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio brain centerpiece now runs on an ambient auto-rotation loop (no cursor tracking), and each brain load starts from a tiny scale before a rapid zoom-in to full size for a "target acquired" feel.
 - Portfolio brain centerpiece now completes a smooth full 360-degree yaw cycle with center-locked single-axis spin (no tilt/roll drift) to keep the model visually anchored.
 - Portfolio intro staging now uses a vertically centered half-height brain viewport, and the decorative background ring/glow circle has been removed for a cleaner hero scene.
+- Portfolio entry transition now sinks the brain down behind the terminal (instead of zoom/fade out), keeps lattice links sourced from that docked brain position, and arranges primary navigation nodes in a centered top row once the map is active.
 - TFTDuos + Site Performance frontends now share portfolio visual language tokens (thin luminous blue outlines, translucent navy cards, controlled glow/opacity) and starfield-backed atmospherics while preserving foreground readability.
 - Starfield parity pass: TFTDuos and Site Performance now use denser/brighter star specks plus stronger background drift/twinkle motion so non-portfolio apps better match the portfolio launcher's ambient movement profile.
 - Site Performance frontend has been refactored into a dedicated 40K Companion terminal app that mirrors the portfolio terminal styling and uses command-driven quick-reference responses for tabletop reminders.

@@ -378,20 +378,16 @@
         outline: none;
       }
 
-      .starfield.intro-zooming .brain-core {
-        transition: transform 980ms cubic-bezier(0.12, 0.72, 0.2, 1), opacity 520ms ease, filter 520ms ease;
-        transform: translate(-50%, -50%) scale(1.95) rotateX(var(--brain-tilt-x, 0deg)) rotateY(var(--brain-tilt-y, 0deg));
-      }
-
-      .starfield.intro-faded .brain-core {
-        opacity: 0;
-        filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0)) blur(8px);
+      .starfield.intro-sinking .brain-core {
+        transition: transform 620ms cubic-bezier(0.2, 0.84, 0.22, 1), opacity 460ms ease, filter 460ms ease, top 620ms cubic-bezier(0.2, 0.84, 0.22, 1);
+        transform: translate(-50%, -50%) scale(0.84) rotateX(var(--brain-tilt-x, 0deg)) rotateY(var(--brain-tilt-y, 0deg));
+        opacity: 0.72;
       }
 
       .starfield.map-active .brain-core {
-        opacity: 0;
+        opacity: 0.62;
         pointer-events: none;
-        filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0)) blur(8px);
+        filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 26px rgba(111, 194, 255, 0.2));
       }
 
       .brain-viewport {
@@ -913,6 +909,7 @@
         var contactLink = document.getElementById("contact-link");
         var starfield = document.querySelector(".starfield");
         var terminalDock = document.querySelector(".terminal-dock");
+        var terminalPanel = document.querySelector(".terminal");
         var mapHud = document.querySelector(".map-hud");
         var bootLog = document.getElementById("boot-log");
         var terminalStatus = document.getElementById("terminal-status");
@@ -1412,19 +1409,19 @@
         function triggerBrainEntry(shouldSkipBoot, bootSequence) {
           if (introTransitionActive || mapActivated) return;
           introTransitionActive = true;
-          if (starfield) starfield.classList.add("intro-zooming");
-          window.setTimeout(function () {
-            if (starfield) starfield.classList.add("intro-faded");
-          }, 90);
+          if (starfield) {
+            starfield.classList.add("intro-sinking");
+          }
+          updateNodeLayout();
           window.setTimeout(function () {
             if (starfield) {
               starfield.classList.remove("intro-locked");
-              starfield.classList.remove("intro-zooming");
-              starfield.classList.remove("intro-faded");
+              starfield.classList.remove("intro-sinking");
               starfield.classList.add("map-active");
             }
+            introTransitionActive = false;
             runBootSequenceAfterEntry(shouldSkipBoot, bootSequence);
-          }, 1240);
+          }, 700);
         }
 
         function appendApiManifest() {
@@ -1794,20 +1791,45 @@
           var usableTop = safeTop;
           var usableHeight = Math.max(1, rect.height - safeTop - safeBottom);
 
-          for (var i = 0; i < nodeState.length; i += 1) {
-            var state = nodeState[i];
-            var x = state.x * rect.width;
-            var y = usableTop + (state.y * usableHeight);
-            state.lx = x;
-            state.ly = y;
-            state.px = rect.left + x;
-            state.py = rect.top + y;
-            state.el.style.transform = "translate(-50%, -50%) translate(" + x.toFixed(2) + "px," + y.toFixed(2) + "px)";
+          var inMapMode = !!(mapActivated || (starfield && starfield.classList.contains("map-active")));
+          if (inMapMode) {
+            var rowY = usableTop + Math.min(58, Math.max(36, usableHeight * 0.12));
+            var rowCount = Math.max(1, nodeState.length);
+            var rowSpacing = Math.min(178, Math.max(104, rect.width / (rowCount + 1)));
+            var rowStart = (rect.width * 0.5) - (((rowCount - 1) * rowSpacing) * 0.5);
+
+            for (var i = 0; i < nodeState.length; i += 1) {
+              var rowState = nodeState[i];
+              var rowX = rowStart + (i * rowSpacing);
+              rowState.lx = rowX;
+              rowState.ly = rowY;
+              rowState.px = rect.left + rowX;
+              rowState.py = rect.top + rowY;
+              rowState.el.style.transform = "translate(-50%, -50%) translate(" + rowX.toFixed(2) + "px," + rowY.toFixed(2) + "px)";
+            }
+          } else {
+            for (var j = 0; j < nodeState.length; j += 1) {
+              var state = nodeState[j];
+              var x = state.x * rect.width;
+              var y = usableTop + (state.y * usableHeight);
+              state.lx = x;
+              state.ly = y;
+              state.px = rect.left + x;
+              state.py = rect.top + y;
+              state.el.style.transform = "translate(-50%, -50%) translate(" + x.toFixed(2) + "px," + y.toFixed(2) + "px)";
+            }
           }
 
           if (brainCore) {
-            var centeredY = usableTop + (usableHeight * 0.5);
-            brainCore.style.top = centeredY.toFixed(2) + "px";
+            var sinking = !!(starfield && starfield.classList.contains("intro-sinking"));
+            if (inMapMode || sinking) {
+              var panelHeight = terminalPanel ? terminalPanel.getBoundingClientRect().height : 210;
+              var dockedY = rect.height - (panelHeight * 0.34);
+              brainCore.style.top = dockedY.toFixed(2) + "px";
+            } else {
+              var centeredY = usableTop + (usableHeight * 0.5);
+              brainCore.style.top = centeredY.toFixed(2) + "px";
+            }
           }
 
           if (brainCore) {
@@ -1941,6 +1963,9 @@
         function updateLattice(now) {
           var timeSec = now * 0.001;
           updateBrainTilt(timeSec);
+          if (mapActivated || introTransitionActive) {
+            updateNodeLayout();
+          }
           if (mapActivated) {
             updateOpsSubNodeLayout();
             drawLinks(timeSec);
