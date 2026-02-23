@@ -33,7 +33,7 @@ The shared backend (`apps/backend`) must include:
 
 ## UI notes
 
-- `apps/site-performance/client/src/theme.css` now includes a subtle fixed starfield/glow background layer (`body::before`/`body::after`) behind dashboard content to match the broader portfolio aesthetic while preserving panel readability.
+- `apps/site-performance/client/src/theme.css` now includes a denser animated starfield/glow background layer (`body::before`/`body::after`) behind dashboard content (brighter specks + drift motion) to better match the broader portfolio aesthetic while preserving panel readability.
 - Site Performance dashboard panels/controls now share the same portfolio-style visual system (thin luminous blue outlines, translucent navy surfaces, soft blue glow, and higher-contrast glass cards).
 
 ## API route

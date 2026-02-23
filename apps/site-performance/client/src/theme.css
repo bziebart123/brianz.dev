@@ -39,7 +39,7 @@ body::after {
 }
 
 body::before {
-  opacity: 0.36;
+  opacity: 0.62;
   background-image:
     linear-gradient(rgba(132, 194, 255, 0.9), rgba(132, 194, 255, 0.9)),
     linear-gradient(rgba(132, 194, 255, 0.86), rgba(132, 194, 255, 0.86)),
@@ -50,10 +50,22 @@ body::before {
     linear-gradient(rgba(132, 194, 255, 0.84), rgba(132, 194, 255, 0.84)),
     linear-gradient(rgba(132, 194, 255, 0.8), rgba(132, 194, 255, 0.8)),
     linear-gradient(rgba(224, 189, 114, 0.62), rgba(224, 189, 114, 0.62)),
-    linear-gradient(rgba(132, 194, 255, 0.86), rgba(132, 194, 255, 0.86));
-  background-size: 3px 3px, 2px 2px, 2px 2px, 3px 3px, 2px 2px, 2px 2px, 3px 3px, 2px 2px, 2px 2px, 3px 3px;
-  background-position: 4% 10%, 12% 72%, 29% 30%, 40% 84%, 53% 18%, 64% 68%, 74% 36%, 82% 12%, 90% 60%, 96% 88%;
+    linear-gradient(rgba(132, 194, 255, 0.86), rgba(132, 194, 255, 0.86)),
+    linear-gradient(rgba(132, 194, 255, 0.88), rgba(132, 194, 255, 0.88)),
+    linear-gradient(rgba(224, 189, 114, 0.72), rgba(224, 189, 114, 0.72)),
+    linear-gradient(rgba(132, 194, 255, 0.84), rgba(132, 194, 255, 0.84)),
+    linear-gradient(rgba(132, 194, 255, 0.82), rgba(132, 194, 255, 0.82)),
+    linear-gradient(rgba(224, 189, 114, 0.68), rgba(224, 189, 114, 0.68)),
+    linear-gradient(rgba(132, 194, 255, 0.9), rgba(132, 194, 255, 0.9)),
+    linear-gradient(rgba(132, 194, 255, 0.84), rgba(132, 194, 255, 0.84));
+  background-size:
+    3px 3px, 2px 2px, 2px 2px, 3px 3px, 2px 2px, 2px 2px, 3px 3px, 2px 2px, 2px 2px, 3px 3px,
+    2px 2px, 2px 2px, 3px 3px, 2px 2px, 2px 2px, 2px 2px, 3px 3px, 2px 2px;
+  background-position:
+    4% 10%, 12% 72%, 29% 30%, 40% 84%, 53% 18%, 64% 68%, 74% 36%, 82% 12%, 90% 60%, 96% 88%,
+    7% 44%, 18% 22%, 25% 90%, 34% 14%, 46% 58%, 58% 8%, 69% 82%, 78% 48%;
   background-repeat: no-repeat;
+  animation: sitePerfStarDrift 20s linear infinite;
 }
 
 body::after {
@@ -61,6 +73,15 @@ body::after {
   background:
     radial-gradient(580px 360px at 16% 18%, rgba(111, 194, 255, 0.1), transparent 68%),
     radial-gradient(460px 320px at 82% 78%, rgba(142, 240, 200, 0.08), transparent 68%);
+}
+
+@keyframes sitePerfStarDrift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-14px, 11px, 0);
+  }
 }
 
 #root {
