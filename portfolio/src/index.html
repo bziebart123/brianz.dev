@@ -768,7 +768,7 @@
             <span>TFT Duos</span>
           </a>
 
-          <a class="star-node star-node--primary" id="meta-link" data-kind="meta" data-x="78" data-y="34" href="https://api.brianz.dev/api/site-performance/render/overview?hours=24" aria-label="Load Render Meta in terminal">
+          <a class="star-node star-node--primary" id="meta-link" data-kind="meta" data-x="78" data-y="34" href="https://api.brianz.dev/api/site-performance/render/overview?hours=24" aria-label="Load Render Stats in terminal">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
@@ -778,10 +778,10 @@
                 <circle cx="40" cy="25" r="2.6" fill="#8EF0C8"/>
               </svg>
             </div>
-            <span>Render Meta</span>
+            <span>Render Stats</span>
           </a>
 
-          <a class="star-node star-node--primary" id="backend-link" data-kind="meta" data-x="82" data-y="56" href="https://api.brianz.dev/health" aria-label="Open Backend Health">
+          <a class="star-node star-node--primary" id="backend-link" data-kind="meta" data-x="82" data-y="56" href="https://api.brianz.dev/health" aria-label="Open API Health">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="32" cy="32" r="24" fill="#11253E" stroke="#6FC2FF" stroke-width="2.2"/>
@@ -790,7 +790,7 @@
                 <circle cx="32" cy="32" r="6" fill="#E0BD72"/>
               </svg>
             </div>
-            <span>Backend</span>
+            <span>API</span>
           </a>
 
           <a class="star-node star-node--primary" data-x="38" data-y="74" href="https://github.com/bziebart123/brianz.dev" aria-label="Open GitHub Repository">
@@ -1325,7 +1325,7 @@
           var delay = 170;
           var cursor = 0;
           queueTerminalLine(cursor, delay, function () {
-            pushBootLine("> Backend manifest request accepted [" + stamp + "] #" + backendRequestCount, true);
+            pushBootLine("> API manifest request accepted [" + stamp + "] #" + backendRequestCount, true);
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
@@ -1457,7 +1457,7 @@
           var cursor = 0;
 
           queueTerminalLine(cursor, delay, function () {
-            pushBootLine("> Render Meta snapshot request accepted [" + stamp + "] #" + renderMetaRequestCount, true);
+            pushBootLine("> Render stats snapshot request accepted [" + stamp + "] #" + renderMetaRequestCount, true);
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
@@ -1538,12 +1538,12 @@
             }
 
             queueTerminalLine(cursor, delay, function () {
-              pushBootLine("> Render Meta snapshot stream complete", true);
+              pushBootLine("> Render stats snapshot stream complete", true);
             });
             cursor += 1;
           } catch (error) {
             queueTerminalLine(cursor, delay, function () {
-              pushBootLine("> Render Meta stream error: " + String(error && error.message ? error.message : error), true);
+              pushBootLine("> Render stats stream error: " + String(error && error.message ? error.message : error), true);
             });
             cursor += 1;
           }
