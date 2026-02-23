@@ -222,11 +222,16 @@
         background: rgba(9, 17, 33, 0.78);
         color: #d4e4ff;
         font-family: inherit;
-        font-size: 0.64rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 0.95rem;
+        letter-spacing: 0;
+        text-transform: none;
         line-height: 1;
-        padding: 5px 9px;
+        width: 30px;
+        height: 24px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
       }
 
@@ -275,6 +280,25 @@
       .terminal-prompt::after {
         content: " _";
         animation: blinkCursor 1s steps(1, end) infinite;
+      }
+
+      .terminal-inline-loader {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 2px;
+        color: #8ef0c8;
+      }
+
+      .terminal-inline-loader-dots {
+        display: inline-block;
+        width: 0;
+        overflow: hidden;
+        vertical-align: bottom;
+        animation: terminalThinkingDots 1.2s steps(4, end) infinite;
+      }
+
+      .terminal-inline-loader-dots::before {
+        content: "...";
       }
 
       .boot-line {
@@ -437,6 +461,15 @@
         }
       }
 
+      @keyframes terminalThinkingDots {
+        0% {
+          width: 0;
+        }
+        100% {
+          width: 1.2em;
+        }
+      }
+
       @media (max-width: 900px) {
         .cosmos-shell {
           padding: 10px;
@@ -540,7 +573,7 @@
               <span>MY BRAIN // Cognitive Navigation Terminal</span>
               <div class="terminal-head-actions">
                 <span>Protocol Handshake</span>
-                <button type="button" class="terminal-close" id="terminal-close-btn" aria-label="Collapse terminal panel">Close</button>
+                <button type="button" class="terminal-close" id="terminal-close-btn" aria-label="Expand terminal panel">^</button>
               </div>
             </div>
             <div class="terminal-body" id="boot-log"></div>
@@ -643,6 +676,7 @@
         var terminalStatus = document.getElementById("terminal-status");
         var terminalCloseBtn = document.getElementById("terminal-close-btn");
         var terminalExpanded = false;
+        var terminalMode = "sync";
         var backendRequestCount = 0;
         var renderMetaRequestCount = 0;
         var contactRequestCount = 0;
@@ -725,6 +759,35 @@
           });
         }
 
+        function setTerminalStatusText(text, thinking) {
+          if (!terminalStatus) return;
+          if (thinking) {
+            terminalStatus.innerHTML = text + " <span class=\"terminal-inline-loader\" aria-hidden=\"true\"><span class=\"terminal-inline-loader-dots\"></span></span>";
+            return;
+          }
+          terminalStatus.textContent = text;
+        }
+
+        function syncTerminalToggleControl() {
+          if (!terminalCloseBtn) return;
+          var isExpanded = !!terminalExpanded;
+          terminalCloseBtn.textContent = isExpanded ? "v" : "^";
+          terminalCloseBtn.setAttribute("aria-label", isExpanded ? "Collapse terminal panel" : "Expand terminal panel");
+          terminalCloseBtn.setAttribute("title", isExpanded ? "Collapse terminal panel" : "Expand terminal panel");
+        }
+
+        function applyTerminalModeStatus() {
+          if (terminalMode === "data") {
+            setTerminalStatusText("terminal data mode // esc or close to collapse", false);
+            return;
+          }
+          if (terminalMode === "contact") {
+            setTerminalStatusText("contact relay mode // esc or close to collapse", false);
+            return;
+          }
+          setTerminalStatusText("terminal synced // node lattice online", false);
+        }
+
         function queueTerminalLine(index, delayMs, fn) {
           window.setTimeout(function () {
             fn();
@@ -733,9 +796,8 @@
         }
 
         function beginStarMap() {
-          if (terminalStatus) {
-            terminalStatus.textContent = "terminal synced // node lattice online";
-          }
+          terminalMode = "sync";
+          applyTerminalModeStatus();
           if (starfield) starfield.classList.add("ready");
 
           nodes.forEach(function (node, index) {
@@ -805,11 +867,9 @@
           if (terminalDock) {
             terminalDock.classList.toggle("expanded", expanded);
           }
-          if (terminalStatus) {
-            terminalStatus.textContent = expanded
-              ? "terminal data mode // esc or close to collapse"
-              : "terminal synced // node lattice online";
-          }
+          terminalMode = expanded ? "data" : "sync";
+          applyTerminalModeStatus();
+          syncTerminalToggleControl();
         }
 
         function setContactTerminalExpanded(expanded) {
@@ -817,11 +877,9 @@
           if (terminalDock) {
             terminalDock.classList.toggle("expanded", expanded);
           }
-          if (terminalStatus) {
-            terminalStatus.textContent = expanded
-              ? "contact relay mode // esc or close to collapse"
-              : "terminal synced // node lattice online";
-          }
+          terminalMode = expanded ? "contact" : "sync";
+          applyTerminalModeStatus();
+          syncTerminalToggleControl();
         }
 
         function beginContactRelay() {
@@ -928,6 +986,7 @@
             pushBootLine("> Connected API origin: " + backendBase, false);
           });
           cursor += 1;
+          setTerminalStatusText("render.meta // awaiting response", true);
 
           try {
             var response = await fetch(url);
@@ -1005,6 +1064,7 @@
 
           queueTerminalLine(cursor, delay, function () {
             pushBootLine("> Press ESC or tap Close to collapse terminal view", false);
+            applyTerminalModeStatus();
           });
           terminalQueueOffset += (cursor + 1) * delay;
         }
@@ -1039,10 +1099,15 @@
 
         if (terminalCloseBtn) {
           terminalCloseBtn.addEventListener("click", function () {
-            if (!terminalExpanded) return;
-            setTerminalExpanded(false);
+            if (terminalExpanded) {
+              setTerminalExpanded(false);
+              return;
+            }
+            setTerminalExpanded(true);
           });
         }
+
+        syncTerminalToggleControl();
 
         var bootSequence = [
           { text: "> Initiating protocol: MY BRAIN", highlight: false },

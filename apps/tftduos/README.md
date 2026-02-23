@@ -98,6 +98,9 @@ Server env vars (see `.env.example` and server code):
   - `Individual Action Plans` section directly below AI output (one card per player, AI-driven when available)
   - Less auxiliary box density to keep coaching readable and execution-focused
 - Coaching AI surfaces now use a terminal-styled shell inspired by the portfolio terminal, including staged boot-log lines while GPT coaching is loading and a prompt-style footer around the `AI Coach Brief` payload output.
+- Coaching tab terminal parity pass:
+  - KPI, regional-meta, AI brief, and individual action-plan surfaces now all render inside the same terminal shell styling system used by portfolio (matching monospace font stack, header/prompt sizing, border/glow, and blue accent palette).
+  - AI waiting states now include inline terminal thinking indicators during initial GPT generation and manual `Refresh AI` requests.
 - Coaching text now replaces recognized champion/trait mentions with inline TFT icons (summary/actions/meta/win conditions/5-game plan/player actions and champion build rows), using mention matching against the current filtered match trait+unit pool.
 - GPT-generated coaching lines now render with larger body text/icon sizes for readability, and displayed model text sanitizes `TFT##_*` tokens (for example `TFT16_Ahri`) into clean names (for example `Ahri`).
 - Coaching GPT text/icon sizing now responds to viewport width (keeps larger desktop readability while scaling down on mobile), and long generated lines are forced to wrap to prevent card overflow on narrow screens.

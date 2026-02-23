@@ -147,6 +147,7 @@ Use exactly what Render Custom Domains asks for:
 - The AI coaching prompt is guided for rank-climb use and now supports web-backed meta lookup (via OpenAI Responses API web search tool), plus richer per-game build fingerprints for direct "your builds vs current meta" comparison with source visibility in UI.
 - Coaching UX is now AI-first: compact KPI header, primary AI briefing section, per-player action plans below, and a full-page loading state while GPT coaching is being generated.
 - Coaching view is now terminal-themed to match portfolio terminal behavior, including staged AI boot log lines during loading and a prompt-style footer around the AI brief module.
+- Coaching terminal styling now uses the same core terminal visual system as portfolio (matching monospace typography scale, blue prompt/header palette, border/glow treatment, and terminal-like section cadence across KPI/meta/AI/action-plan surfaces).
 - Coaching backend now layers deterministic evidence (leaks, win-conditions, 5-game plan, champion+item build conversion signals) into the LLM prompt/response to reduce generic output and improve actionability.
 - Coaching UI now uses high-contrast custom error/warning banners and compact AI payload requests to improve readability and reduce large-timeline AI network failures.
 - Coaching AI responses are cached client-side by duo/filter and reused until a newer shared match is detected, reducing repeated OpenAI calls when no new duo games were played.
@@ -162,7 +163,7 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio landing (`portfolio/src/index.html`) is now a space-navigation style animated launcher (living star-map lattice with fixed app nodes, central-brain spokes, and pulsing energy travelling from the core to each icon) while keeping the existing blue/gold dark palette.
 - Portfolio landing now boots through a terminal-style intro ("MY BRAIN" protocol handshake + "Mapping out Brian's mind") and keeps that terminal docked at the bottom with message history plus a blinking prompt-style status line while generated star-map nodes come online.
 - The docked terminal now spans the full lattice container width, uses a fixed height, and keeps boot/message history scrollable inside the terminal body.
-- Clicking the `Backend` node now toggles an expanded full-height terminal mode and prints the connected backend API manifest (health, TFT, duo, coach, and site-performance routes); `Esc` still collapses back to docked mode and the terminal header now includes a `Close` button for touch/mobile users.
+- Clicking the `Backend` node now toggles an expanded full-height terminal mode and prints the connected backend API manifest (health, TFT, duo, coach, and site-performance routes); `Esc` still collapses back to docked mode and the terminal header now includes a caret toggle control (`^` expand, `v` collapse) for touch/mobile users.
 - Backend manifest output now streams line-by-line (terminal typing cadence), and terminal expansion/collapse is animated from the docked bottom edge (no top-hop before expansion).
 - Every `Backend` click now appends a fresh manifest request block at the bottom of terminal history (timestamped), replaying line-by-line like a new backend call.
 - `Render Meta` launcher node is now terminal-native (no separate dashboard navigation from the portfolio node): it queries `/api/site-performance/render/overview` from the shared backend and streams service/summary output line-by-line into the same terminal stack.
@@ -170,6 +171,7 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio `Contact` node now opens the same terminal in expanded contact-relay mode and exposes LinkedIn-only contact routing (no email prompts or mailto popups).
 - When landing on portfolio from known app/subdomain hosts (`tftduos`, `site-performance`, and local app ports), boot handshake animation is skipped for immediate map access.
 - Portfolio node/lattice initialization now completes before skip-boot rendering, fixing the mobile/return-home case where nodes could appear missing at top-left before layout sync.
+- Terminal loading affordances are now explicit in both surfaces: portfolio prompt shows inline thinking state while Render Meta waits on API response, and TFT Coaching terminal shows inline thinking status during GPT generation/refresh waits.
 - Portfolio scene suppresses ambient page caret/cursor artifacts in the lattice viewport while keeping terminal history selectable for copy.
 - Portfolio launcher opens HTTP(S) app destinations in new tabs so the landing scene remains open while navigating.
 - Portfolio visual tuning update: smaller center core, thicker lattice links, and calmer pulse cadence for lower motion intensity.
