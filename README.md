@@ -193,9 +193,9 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio entry states now keep `.organism` explicitly visible in both `intro-sinking` and `map-active`, preventing the brief mid-transition fade-out before `ready` is applied.
 - Brain docking now locks a single computed Y anchor during sink/map entry (instead of recalculating from terminal size), eliminating the slight pre-node upward nudge.
 - Portfolio terminal header now uses `Cognitive Navigation Terminal` (without `SUBJECT`), displays a futuristic protocol label (`Protocol NX-7A19.442`), and hides the up/down caret while the intro is still brain-only (`intro-locked`).
-- Portfolio map no longer uses `Systems`/`Render Meta`/`Backend` brain nodes; system telemetry is now terminal-native via the clickable protocol label, which opens a `Subject Memory Access` stream (Render telemetry today, Postgres health channel placeholder for future integration).
-- Portfolio now includes a dedicated `Memory Access` navigation node that opens terminal data mode and runs the same `Subject Memory Access` telemetry stream as the protocol control.
-- Access semantics are now source-aware: clicking the protocol control emits `Protocol Access` stream language (`run protocol.access ...`), while clicking the `Memory Access` node emits `Subject Memory Access` stream language (`run subject.memory.access ...`).
+- Portfolio map no longer uses `Systems`/`Render Meta`/`Backend` brain nodes; system telemetry is terminal-native through protocol/memory controls.
+- `Memory Access` node now opens terminal data mode and streams the connected API route manifest (TFT, duo, coach, and site-performance endpoints).
+- Access semantics are source-aware: protocol control emits `Protocol Access` language and loads Render telemetry (`run protocol.access ...`), while `Memory Access` emits `Subject Memory Access` language and loads API manifest data (`run subject.memory.access --scope api-manifest ...`).
 - Portfolio HUD now uses a reboot icon (top-right) to reload/reboot the interface, replacing the prior textual explore chip and superseding the old Home node.
 - Portfolio brain is now draggable after map activation: click-drag rotates freely across axes, then releases back toward ambient rotation when pointer is released.
 - Protocol control affordance now includes a soft internal pulse glow to emphasize that it is actionable.
