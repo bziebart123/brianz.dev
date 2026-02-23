@@ -297,7 +297,7 @@
         position: absolute;
         left: 50%;
         top: 50%;
-        width: min(34vw, 310px);
+        width: min(28vw, 250px);
         aspect-ratio: 1;
         transform: translate(-50%, -50%);
         border-radius: 50%;
@@ -309,7 +309,7 @@
           inset 0 0 42px rgba(111, 194, 255, 0.24),
           0 0 66px rgba(111, 194, 255, 0.3),
           0 0 120px rgba(9, 16, 34, 0.72);
-        animation: corePulse 6s ease-in-out infinite;
+        animation: corePulse 10s ease-in-out infinite;
       }
 
       .core::before,
@@ -330,11 +330,11 @@
         0%,
         100% {
           transform: translate(-50%, -50%) scale(1);
-          filter: brightness(0.98);
+          filter: brightness(0.99);
         }
         50% {
-          transform: translate(-50%, -50%) scale(1.035);
-          filter: brightness(1.05);
+          transform: translate(-50%, -50%) scale(1.012);
+          filter: brightness(1.02);
         }
       }
 
@@ -447,7 +447,7 @@
         }
 
         .core {
-          width: min(52vw, 250px);
+          width: min(44vw, 210px);
         }
 
         .star-node {
@@ -669,6 +669,8 @@
         var organism = document.getElementById("organism");
         var core = organism ? organism.querySelector(".core") : null;
         var nodes = Array.prototype.slice.call(document.querySelectorAll(".star-node"));
+        var nodeState = [];
+        var latticePulseLines = [];
         var nodeAnimationStarted = false;
         var spokeGreeting = false;
 
@@ -837,53 +839,26 @@
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
-            pushBootLine("> Step 1/2: capture email subject", false);
+            pushBootLineHtml("&gt; run contact.relay --channel linkedin", "api-line");
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
-            pushBootLine("> Step 2/2: capture message payload", false);
+            pushBootLine("> Public contact route ready", false);
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
-            pushBootLineHtml("&gt; Alternate route available: <a class=\"terminal-link\" href=\"" + linkedinUrl + "\" target=\"_blank\" rel=\"noopener noreferrer\">LinkedIn</a>", "api-line");
+            pushBootLineHtml("&gt; <strong>[LINKEDIN]</strong> <a class=\"terminal-link\" href=\"" + linkedinUrl + "\" target=\"_blank\" rel=\"noopener noreferrer\">Open Brian's LinkedIn</a>", "api-line");
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
-            pushBootLine("> Prompting operator now...", false);
+            pushBootLine("> Email relay disabled for public privacy", false);
+          });
+          cursor += 1;
+          queueTerminalLine(cursor, delay, function () {
+            pushBootLine("> Press ESC or tap Close to collapse terminal view", false);
           });
 
           terminalQueueOffset += (cursor + 1) * delay;
-
-          window.setTimeout(function () {
-            var wantsEmail = window.confirm("Send Brian an email? Press OK for email compose, or Cancel to open LinkedIn.");
-            if (!wantsEmail) {
-              pushBootLine("> Operator selected LinkedIn route", true);
-              window.open(linkedinUrl, "_blank", "noopener,noreferrer");
-              if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
-              return;
-            }
-
-            var subject = window.prompt("Contact subject:", "Portfolio inquiry");
-            if (subject === null) {
-              pushBootLine("> Contact relay cancelled before subject capture", false);
-              if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
-              return;
-            }
-
-            var message = window.prompt("Message:", "Hey Brian, I'd like to chat about...");
-            if (message === null) {
-              pushBootLine("> Contact relay cancelled before payload capture", false);
-              if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
-              return;
-            }
-
-            var normalizedSubject = subject.trim() || "Portfolio inquiry";
-            var normalizedMessage = message.trim() || "Hello Brian,";
-            var mailtoHref = "mailto:brian@brianz.dev?subject=" + encodeURIComponent(normalizedSubject) + "&body=" + encodeURIComponent(normalizedMessage);
-            pushBootLine("> Launching local mail client compose window", true);
-            window.location.href = mailtoHref;
-            if (bootLog) bootLog.scrollTop = bootLog.scrollHeight;
-          }, 220 + (cursor + 1) * delay);
         }
 
         if (backendLink) {
@@ -1078,32 +1053,10 @@
           { text: "> Handshake complete. Welcome aboard.", highlight: true }
         ];
         var referrer = String(document.referrer || "");
-        var skipBoot = subAppHosts.some(function (hostMarker) {
+        var shouldSkipBoot = subAppHosts.some(function (hostMarker) {
           return referrer.indexOf(hostMarker) !== -1;
         });
-
-        if (skipBoot) {
-          bootSequence.forEach(function (line) {
-            pushBootLine(line.text, line.highlight);
-          });
-          beginStarMap();
-        } else {
-          bootSequence.forEach(function (line, index) {
-            window.setTimeout(function () {
-              pushBootLine(line.text, line.highlight);
-              if (bootLog) {
-                bootLog.scrollTop = bootLog.scrollHeight;
-              }
-            }, 260 + index * 460);
-          });
-
-          window.setTimeout(function () {
-            beginStarMap();
-            speakGreeting();
-          }, 260 + bootSequence.length * 460 + 460);
-        }
-
-        var nodeState = nodes.map(function (node, index) {
+        nodeState = nodes.map(function (node, index) {
           var x = Number(node.getAttribute("data-x") || 50) / 100;
           var y = Number(node.getAttribute("data-y") || 50) / 100;
           return {
@@ -1116,11 +1069,11 @@
           };
         });
 
-        var latticePulseLines = nodes.map(function (_node, index) {
+        latticePulseLines = nodes.map(function (_node, index) {
           return {
             nodeIndex: index,
             phase: index * 0.72,
-            speed: 0.28 + (index % 3) * 0.07
+            speed: 0.14 + (index % 3) * 0.035
           };
         });
 
@@ -1166,18 +1119,39 @@
         window.addEventListener("resize", resizeLattice);
         resizeLattice();
 
+        if (shouldSkipBoot) {
+          bootSequence.forEach(function (line) {
+            pushBootLine(line.text, line.highlight);
+          });
+          beginStarMap();
+        } else {
+          bootSequence.forEach(function (line, index) {
+            window.setTimeout(function () {
+              pushBootLine(line.text, line.highlight);
+              if (bootLog) {
+                bootLog.scrollTop = bootLog.scrollHeight;
+              }
+            }, 260 + index * 460);
+          });
+
+          window.setTimeout(function () {
+            beginStarMap();
+            speakGreeting();
+          }, 260 + bootSequence.length * 460 + 460);
+        }
+
         function drawLinks(timeSec) {
           if (!latticeCtx || !latticeCanvas) return;
 
           latticeCtx.clearRect(0, 0, latticeCanvas.width, latticeCanvas.height);
-          latticeCtx.lineWidth = 1.1;
+          latticeCtx.lineWidth = 1.8;
 
           for (var i = 0; i < latticePulseLines.length; i += 1) {
             var stream = latticePulseLines[i];
             var target = nodeState[stream.nodeIndex];
             if (!target) continue;
 
-            var pulse = 0.2 + (Math.sin(timeSec * 1.1 + stream.phase) + 1) * 0.11;
+            var pulse = 0.24 + (Math.sin(timeSec * 0.52 + stream.phase) + 1) * 0.045;
             latticeCtx.strokeStyle = "rgba(126, 186, 255," + pulse.toFixed(3) + ")";
             latticeCtx.beginPath();
             latticeCtx.moveTo(corePoint.x, corePoint.y);
@@ -1187,7 +1161,7 @@
             var travel = (timeSec * stream.speed + stream.phase) % 1;
             var px = corePoint.x + (target.px - corePoint.x) * travel;
             var py = corePoint.y + (target.py - corePoint.y) * travel;
-            var pulseRadius = 2 + (Math.sin((timeSec + stream.phase) * 7.5) + 1) * 1.7;
+            var pulseRadius = 1.4 + (Math.sin((timeSec + stream.phase) * 2.9) + 1) * 0.55;
             var pulseGlow = latticeCtx.createRadialGradient(px, py, 0, px, py, pulseRadius * 5);
             pulseGlow.addColorStop(0, "rgba(224, 245, 255, 0.95)");
             pulseGlow.addColorStop(1, "rgba(224, 245, 255, 0)");
@@ -1197,7 +1171,7 @@
             latticeCtx.fill();
           }
 
-          var coreGlowRadius = 16 + (Math.sin(timeSec * 2.3) + 1) * 7;
+          var coreGlowRadius = 16 + (Math.sin(timeSec * 0.8) + 1) * 2.2;
           var coreGlow = latticeCtx.createRadialGradient(corePoint.x, corePoint.y, 0, corePoint.x, corePoint.y, coreGlowRadius * 2.4);
           coreGlow.addColorStop(0, "rgba(186, 230, 255, 0.82)");
           coreGlow.addColorStop(1, "rgba(186, 230, 255, 0)");
