@@ -462,6 +462,12 @@ body::after {
   line-height: 1.48 !important;
 }
 
+.coaching-terminal-body strong,
+.coaching-terminal-head strong,
+.coaching-terminal-prompt strong {
+  color: #ffd84d !important;
+}
+
 .coaching-terminal-body [data-evergreen-id="heading"] {
   color: #e9efff !important;
   font-size: 0.82rem !important;

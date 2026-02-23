@@ -101,6 +101,9 @@ Server env vars (see `.env.example` and server code):
 - Coaching tab terminal parity pass:
   - KPI, regional-meta, AI brief, and individual action-plan surfaces now all render inside the same terminal shell styling system used by portfolio (matching monospace font stack, header/prompt sizing, border/glow, and blue accent palette).
   - AI waiting states now include inline terminal thinking indicators during initial GPT generation and manual `Refresh AI` requests.
+- Coaching terminal UX refresh:
+  - SI Coach now renders as a single continuous terminal panel (instead of separate terminal cards), with KPI/meta/AI/action-plan sections separated by ASCII divider lines to mimic a real console log flow.
+  - Highlighted coaching words (`strong` labels and emphasis) now use yellow terminal accents to match requested portfolio-style emphasis updates.
 - Coaching text now replaces recognized champion/trait mentions with inline TFT icons (summary/actions/meta/win conditions/5-game plan/player actions and champion build rows), using mention matching against the current filtered match trait+unit pool.
 - GPT-generated coaching lines now render with larger body text/icon sizes for readability, and displayed model text sanitizes `TFT##_*` tokens (for example `TFT16_Ahri`) into clean names (for example `Ahri`).
 - Coaching GPT text/icon sizing now responds to viewport width (keeps larger desktop readability while scaling down on mobile), and long generated lines are forced to wrap to prevent card overflow on narrow screens.
