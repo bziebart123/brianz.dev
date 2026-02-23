@@ -91,10 +91,7 @@
         border-radius: 24px;
         overflow: hidden;
         user-select: none;
-        background:
-          radial-gradient(circle at 52% 49%, rgba(111, 194, 255, 0.13), transparent 44%),
-          radial-gradient(circle at 48% 53%, rgba(224, 189, 114, 0.1), transparent 32%),
-          linear-gradient(160deg, rgba(10, 18, 34, 0.8), rgba(8, 14, 30, 0.9));
+        background: linear-gradient(160deg, rgba(10, 18, 34, 0.8), rgba(8, 14, 30, 0.9));
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.06),
           0 32px 62px rgba(0, 0, 0, 0.56);
@@ -105,7 +102,18 @@
         position: absolute;
         inset: 0;
         pointer-events: none;
-        background: none;
+        background:
+          radial-gradient(
+            circle at var(--brain-glow-x, 50%) var(--brain-glow-y, 50%),
+            rgba(111, 194, 255, 0.2),
+            transparent 43%
+          ),
+          radial-gradient(
+            circle at var(--brain-glow-x, 50%) var(--brain-glow-y, 50%),
+            rgba(224, 189, 114, 0.08),
+            transparent 28%
+          );
+        transition: background-position 120ms linear;
       }
 
       .map-hud {
@@ -1946,6 +1954,16 @@
           } else {
             corePoint.x = rect.left + rect.width * 0.5;
             corePoint.y = rect.top + rect.height * 0.5;
+          }
+
+          if (starfield) {
+            var starRect = starfield.getBoundingClientRect();
+            var glowX = ((corePoint.x - starRect.left) / Math.max(1, starRect.width)) * 100;
+            var glowY = ((corePoint.y - starRect.top) / Math.max(1, starRect.height)) * 100;
+            var gx = Math.max(0, Math.min(100, glowX));
+            var gy = Math.max(0, Math.min(100, glowY));
+            starfield.style.setProperty("--brain-glow-x", gx.toFixed(2) + "%");
+            starfield.style.setProperty("--brain-glow-y", gy.toFixed(2) + "%");
           }
         }
 
