@@ -192,6 +192,7 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio intro pipeline is now hard-locked to a single class path (`intro-locked` -> `intro-sinking` + `map-active`) with no legacy zoom/fade classes, removing transition-state hops during brain entry.
 - Portfolio entry states now keep `.organism` explicitly visible in both `intro-sinking` and `map-active`, preventing the brief mid-transition fade-out before `ready` is applied.
 - Brain docking now locks a single computed Y anchor during sink/map entry (instead of recalculating from terminal size), eliminating the slight pre-node upward nudge.
+- Portfolio terminal header now uses `Cognitive Navigation Terminal` (without `SUBJECT`), displays a futuristic protocol label (`Protocol NX-7A19.442`), and hides the up/down caret while the intro is still brain-only (`intro-locked`).
 - TFTDuos + Site Performance frontends now share portfolio visual language tokens (thin luminous blue outlines, translucent navy cards, controlled glow/opacity) and starfield-backed atmospherics while preserving foreground readability.
 - Starfield parity pass: TFTDuos and Site Performance now use denser/brighter star specks plus stronger background drift/twinkle motion so non-portfolio apps better match the portfolio launcher's ambient movement profile.
 - Site Performance frontend has been refactored into a dedicated 40K Companion terminal app that mirrors the portfolio terminal styling and uses command-driven quick-reference responses for tabletop reminders.

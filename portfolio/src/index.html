@@ -362,6 +362,10 @@
         height: clamp(122px, 16vh, 148px);
       }
 
+      .starfield.intro-locked .terminal-close {
+        display: none;
+      }
+
       .starfield.intro-locked .organism {
         opacity: 1;
         filter: blur(0);
@@ -789,9 +793,9 @@
         <div class="terminal-dock" aria-live="polite">
           <div class="terminal">
             <div class="terminal-head">
-              <span>SUBJECT // Cognitive Navigation Terminal</span>
+              <span>Cognitive Navigation Terminal</span>
               <div class="terminal-head-actions">
-                <span>Protocol Handshake</span>
+                <span>Protocol NX-7A19.442</span>
                 <button type="button" class="terminal-close" id="terminal-close-btn" aria-label="Expand terminal panel">^</button>
               </div>
             </div>
@@ -1728,12 +1732,12 @@
         syncTerminalToggleControl();
 
         var bootSequence = [
-          { text: "> Initiating protocol: SUBJECT", highlight: false },
+          { text: "> Initiating protocol: NX-7A19.442", highlight: false },
           { text: "> Calibrating semi-sentient navigator...", highlight: false },
           { text: "> Mapping subject neural topology", highlight: true },
           { text: "> Compiling project constellations", highlight: false },
           { text: "> Rendering neural routes and access nodes", highlight: false },
-          { text: "> Subject acquired. Interface online.", highlight: true }
+          { text: "> Interface online.", highlight: true }
         ];
         var referrer = String(document.referrer || "");
         var shouldSkipBoot = subAppHosts.some(function (hostMarker) {
