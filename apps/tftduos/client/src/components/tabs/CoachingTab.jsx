@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Badge, Button, Card, Heading, Pane, Spinner, Strong, Text, Tooltip } from "evergreen-ui";
+import { Badge, Button, Card, Heading, Pane, Strong, Text, Tooltip } from "evergreen-ui";
 import IconWithLabel from "../IconWithLabel";
 import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
 import { asArray, prettyName } from "../../utils/tft";
@@ -149,6 +149,15 @@ function splitTextByMentions(text, mentions) {
   return output.filter((segment) => (segment.type === "text" ? segment.value.length > 0 : true));
 }
 
+function InlineThinking({ label = "thinking" }) {
+  return (
+    <span className="coaching-inline-loader" role="status" aria-live="polite">
+      {label}
+      <span className="coaching-inline-loader-dots" aria-hidden="true" />
+    </span>
+  );
+}
+
 export default function CoachingTab({
   duoRisk,
   decisionGrade,
@@ -184,8 +193,8 @@ export default function CoachingTab({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const gptLineTextSize = isMobileViewport ? 400 : 500;
-  const gptIconSize = isMobileViewport ? 18 : 24;
+  const gptLineTextSize = 300;
+  const gptIconSize = isMobileViewport ? 18 : 22;
   const placements = asArray(placementTrend).map((value) => Number(value || 0)).filter((value) => value > 0);
   const top2Rate = pct(placements.filter((value) => value <= 2).length, placements.length);
   const winRate = pct(placements.filter((value) => value <= 1).length, placements.length);
@@ -332,7 +341,7 @@ export default function CoachingTab({
         <Card className="coaching-terminal-shell" elevation={0} padding={0} background="transparent" minHeight={420}>
           <Pane className="coaching-terminal-head" display="flex" alignItems="center" justifyContent="space-between" gap={12}>
             <Text size={300}>ai-coach://duo-terminal</Text>
-            <Badge color="blue">STREAMING</Badge>
+            <Badge color="blue">THINKING</Badge>
           </Pane>
           <Pane className="coaching-terminal-body" display="grid" gap={8}>
             {AI_TERMINAL_BOOT_LINES.slice(0, visibleBootLines).map((line, idx) => (
@@ -340,16 +349,21 @@ export default function CoachingTab({
                 {`> ${line}`}
               </Text>
             ))}
-            <Pane display="flex" alignItems="center" gap={10} marginTop={6}>
-              <Spinner size={20} />
-              <Heading size={600}>Generating AI coaching...</Heading>
-            </Pane>
-            <Text size={400} color="muted">
+            <Text size={gptLineTextSize} className="coaching-terminal-line">
+              {"> waiting for GPT response "}
+              <InlineThinking label="loading" />
+            </Text>
+            <Text size={gptLineTextSize} className="coaching-terminal-line">
+              Generating AI coaching...
+            </Text>
+            <Text size={gptLineTextSize} className="coaching-terminal-line">
               Loading the full coaching page once GPT analysis is ready.
             </Text>
           </Pane>
           <Pane className="coaching-terminal-prompt">
-            <Text size={300}>awaiting coaching payload</Text>
+            <Text size={300}>
+              coach@duos:~$ awaiting payload <InlineThinking />
+            </Text>
           </Pane>
         </Card>
       </Pane>
@@ -370,66 +384,72 @@ export default function CoachingTab({
             </Badge>
           </Pane>
         </Pane>
-        <Pane marginTop={12} display="grid" gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))" gap={10}>
-          <Card elevation={0} padding={12} background="rgba(255,255,255,0.03)" border="default">
-            <Text size={400} color="muted">Decision Grade</Text>
-            <Heading size={700} marginTop={6}>{decisionGrade}/100</Heading>
-          </Card>
-          <Card elevation={0} padding={12} background="rgba(255,255,255,0.03)" border="default">
-            <Text size={400} color="muted">Team Top2 Rate</Text>
-            <Heading size={700} marginTop={6}>{top2Rate.toFixed(1)}%</Heading>
-          </Card>
-          <Card elevation={0} padding={12} background="rgba(255,255,255,0.03)" border="default">
-            <Text size={400} color="muted">Team Win Rate</Text>
-            <Heading size={700} marginTop={6}>{winRate.toFixed(1)}%</Heading>
-          </Card>
-          <Card elevation={0} padding={12} background="rgba(255,255,255,0.03)" border="default">
-            <Text size={400} color="muted">Rescue / Clutch</Text>
-            <Heading size={700} marginTop={6}>{rescueRate.toFixed(1)}% / {clutchIndex.toFixed(1)}%</Heading>
-          </Card>
+        <Pane className="coaching-terminal-body" display="grid" gap={10}>
+          <Text size={300} className="coaching-terminal-line">{"> boot // duo telemetry loaded"}</Text>
+          <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))" gap={10}>
+            <Card elevation={0} padding={12} background="rgba(255,255,255,0.03)" border="default">
+              <Text size={400} color="muted">Decision Grade</Text>
+              <Heading size={700} marginTop={6}>{decisionGrade}/100</Heading>
+            </Card>
+            <Card elevation={0} padding={12} background="rgba(255,255,255,0.03)" border="default">
+              <Text size={400} color="muted">Team Top2 Rate</Text>
+              <Heading size={700} marginTop={6}>{top2Rate.toFixed(1)}%</Heading>
+            </Card>
+            <Card elevation={0} padding={12} background="rgba(255,255,255,0.03)" border="default">
+              <Text size={400} color="muted">Team Win Rate</Text>
+              <Heading size={700} marginTop={6}>{winRate.toFixed(1)}%</Heading>
+            </Card>
+            <Card elevation={0} padding={12} background="rgba(255,255,255,0.03)" border="default">
+              <Text size={400} color="muted">Rescue / Clutch</Text>
+              <Heading size={700} marginTop={6}>{rescueRate.toFixed(1)}% / {clutchIndex.toFixed(1)}%</Heading>
+            </Card>
+          </Pane>
         </Pane>
       </Card>
 
 
-      <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
-        <Pane display="flex" alignItems="center" justifyContent="space-between" gap={10} flexWrap="wrap">
+      <Card className="coaching-terminal-shell" elevation={0} padding={0} background="transparent">
+        <Pane className="coaching-terminal-head" display="flex" alignItems="center" justifyContent="space-between" gap={10} flexWrap="wrap">
           <Heading size={500}>Regional Meta Pressure</Heading>
           <Badge color="blue">{String(rankContext?.platform || "-").toUpperCase()}</Badge>
         </Pane>
-        <Text size={400} color="muted" marginTop={6} display="block">
-          Apex ladder sample: {Number(rankContext?.queuePopulation?.apexPopulation?.total || 0)} players · Snapshot {rankContext?.snapshotAt ? formatGeneratedTime(Date.parse(rankContext.snapshotAt)) : "unknown"}
-        </Text>
-        <Pane marginTop={10} display="grid" gridTemplateColumns="repeat(auto-fit, minmax(240px, 1fr))" gap={10}>
-          <Pane>
-            <Text size={400} color="muted">Most Pressured Traits</Text>
-            <Pane marginTop={6} display="flex" flexWrap="wrap" gap={6}>
-              {regionalTraits.length ? regionalTraits.map((trait) => (
-                <IconWithLabel
-                  key={`coach-regional-trait-${trait.name}`}
-                  kind="trait"
-                  token={trait.name}
-                  label={prettyName(trait.name)}
-                  count={trait.count}
-                  size={20}
-                  iconManifest={iconManifest}
-                />
-              )) : <Text size={300} color="muted">No trait snapshot.</Text>}
+        <Pane className="coaching-terminal-body" display="grid" gap={8}>
+          <Text size={300} className="coaching-terminal-line">{"> telemetry // regional ladder pressure snapshot"}</Text>
+          <Text size={400} color="muted" display="block">
+            Apex ladder sample: {Number(rankContext?.queuePopulation?.apexPopulation?.total || 0)} players | Snapshot {rankContext?.snapshotAt ? formatGeneratedTime(Date.parse(rankContext.snapshotAt)) : "unknown"}
+          </Text>
+          <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(240px, 1fr))" gap={10}>
+            <Pane>
+              <Text size={400} color="muted">Most Pressured Traits</Text>
+              <Pane marginTop={6} display="flex" flexWrap="wrap" gap={6}>
+                {regionalTraits.length ? regionalTraits.map((trait) => (
+                  <IconWithLabel
+                    key={`coach-regional-trait-${trait.name}`}
+                    kind="trait"
+                    token={trait.name}
+                    label={prettyName(trait.name)}
+                    count={trait.count}
+                    size={20}
+                    iconManifest={iconManifest}
+                  />
+                )) : <Text size={300} color="muted">No trait snapshot.</Text>}
+              </Pane>
             </Pane>
-          </Pane>
-          <Pane>
-            <Text size={400} color="muted">Most Pressured Champions</Text>
-            <Pane marginTop={6} display="flex" flexWrap="wrap" gap={6}>
-              {regionalChamps.length ? regionalChamps.map((unit) => (
-                <IconWithLabel
-                  key={`coach-regional-unit-${unit.characterId}`}
-                  kind="unit"
-                  token={unit.characterId}
-                  label={prettyName(unit.characterId)}
-                  count={unit.count}
-                  size={20}
-                  iconManifest={iconManifest}
-                />
-              )) : <Text size={300} color="muted">No champion snapshot.</Text>}
+            <Pane>
+              <Text size={400} color="muted">Most Pressured Champions</Text>
+              <Pane marginTop={6} display="flex" flexWrap="wrap" gap={6}>
+                {regionalChamps.length ? regionalChamps.map((unit) => (
+                  <IconWithLabel
+                    key={`coach-regional-unit-${unit.characterId}`}
+                    kind="unit"
+                    token={unit.characterId}
+                    label={prettyName(unit.characterId)}
+                    count={unit.count}
+                    size={20}
+                    iconManifest={iconManifest}
+                  />
+                )) : <Text size={300} color="muted">No champion snapshot.</Text>}
+              </Pane>
             </Pane>
           </Pane>
         </Pane>
@@ -452,151 +472,165 @@ export default function CoachingTab({
         <Pane className="coaching-terminal-body" display="grid" gap={8}>
           <Text size={300} className="coaching-terminal-line">{"> boot // ai brief loaded"}</Text>
           <Text size={300} className="coaching-terminal-line">{"> rendering suggestions with champion + trait overlays"}</Text>
-        {aiCoachingError ? (
-          <Pane className="tft-error-banner" marginTop={10}>
-            <Strong>AI Coach Error</Strong>
-            <Text size={400} display="block" marginTop={4}>{aiCoachingError}</Text>
-          </Pane>
-        ) : null}
-        {aiCoaching?.brief ? (
-          <Pane marginTop={10} display="grid" gap={8}>
-            <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
-              {visibleAiLines >= 1 ? <Strong>{sanitizeModelText(aiCoaching.brief.headline || "AI Coaching Brief")}</Strong> : null}
-              {visibleAiLines >= 2 ? <Pane marginTop={6}>{renderLineWithIcons(aiCoaching.brief.summary || "No summary returned.", "ai-summary")}</Pane> : null}
-              <Text size={300} color="muted" display="block" marginTop={6}>
-                Confidence: {aiCoaching.brief.confidence || "unknown"}
-                {aiCoaching?.reason ? ` | ${aiCoaching.reason}` : ""}
-                {` | Generated ${formatGeneratedTime(aiCoaching?.generatedAt)}`}
-              </Text>
+          {aiCoachingLoading ? (
+            <Text size={300} className="coaching-terminal-line">
+              {"> waiting for updated model response "}
+              <InlineThinking />
+            </Text>
+          ) : null}
+          {aiCoachingError ? (
+            <Pane className="tft-error-banner" marginTop={10}>
+              <Strong>AI Coach Error</Strong>
+              <Text size={400} display="block" marginTop={4}>{aiCoachingError}</Text>
             </Pane>
-
-            {teamPlanLines.length ? (
+          ) : null}
+          {aiCoaching?.brief ? (
+            <Pane marginTop={10} display="grid" gap={8}>
               <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
-                <Text size={400} color="muted">Team Actions</Text>
-                <Pane marginTop={6} display="grid" gap={4}>
-                  {withLineBudget(teamPlanLines, teamPlanOffset).map((line, idx) => (
-                    <Pane key={`ai-team-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={gptLineTextSize}>-</Text>
-                      {renderLineWithIcons(line, `ai-team-line-${idx}`)}
-                    </Pane>
-                  ))}
-                </Pane>
+                {visibleAiLines >= 1 ? <Strong>{sanitizeModelText(aiCoaching.brief.headline || "AI Coaching Brief")}</Strong> : null}
+                {visibleAiLines >= 2 ? <Pane marginTop={6}>{renderLineWithIcons(aiCoaching.brief.summary || "No summary returned.", "ai-summary")}</Pane> : null}
+                <Text size={300} color="muted" display="block" marginTop={6}>
+                  Confidence: {aiCoaching.brief.confidence || "unknown"}
+                  {aiCoaching?.reason ? ` | ${aiCoaching.reason}` : ""}
+                  {` | Generated ${formatGeneratedTime(aiCoaching?.generatedAt)}`}
+                </Text>
               </Pane>
-            ) : null}
 
-            {metaDeltaLines.length ? (
-              <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
-                <Text size={400} color="muted">Meta vs Your Builds</Text>
-                <Pane marginTop={6} display="grid" gap={4}>
-                  {withLineBudget(metaDeltaLines, metaDeltaOffset).map((line, idx) => (
-                    <Pane key={`ai-meta-delta-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={gptLineTextSize}>-</Text>
-                      {renderLineWithIcons(line, `ai-meta-delta-line-${idx}`)}
-                    </Pane>
-                  ))}
-                </Pane>
-              </Pane>
-            ) : null}
-
-            {improveLines.length ? (
-              <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
-                <Text size={400} color="muted">Top Improvement Areas</Text>
-                <Pane marginTop={6} display="grid" gap={4}>
-                  {withLineBudget(improveLines, improveOffset).map((line, idx) => (
-                    <Pane key={`ai-improve-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={gptLineTextSize}>-</Text>
-                      {renderLineWithIcons(line, `ai-improve-line-${idx}`)}
-                    </Pane>
-                  ))}
-                </Pane>
-              </Pane>
-            ) : null}
-
-            {winConditionLines.length ? (
-              <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
-                <Text size={400} color="muted">Win Conditions</Text>
-                <Pane marginTop={6} display="grid" gap={4}>
-                  {withLineBudget(winConditionLines, winOffset).map((line, idx) => (
-                    <Pane key={`ai-wincon-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={gptLineTextSize}>-</Text>
-                      {renderLineWithIcons(line, `ai-wincon-line-${idx}`)}
-                    </Pane>
-                  ))}
-                </Pane>
-              </Pane>
-            ) : null}
-
-            {plan5Lines.length ? (
-              <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
-                <Text size={400} color="muted">Next 5 Games Plan</Text>
-                <Pane marginTop={6} display="grid" gap={4}>
-                  {withLineBudget(plan5Lines, plan5Offset).map((line, idx) => (
-                    <Pane key={`ai-plan5-${idx}`} display="flex" alignItems="flex-start" gap={6}>
-                      <Text size={gptLineTextSize}>-</Text>
-                      {renderLineWithIcons(line, `ai-plan5-line-${idx}`)}
-                    </Pane>
-                  ))}
-                </Pane>
-              </Pane>
-            ) : null}
-
-            {championBuildRows.length ? (
-              <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
-                <Text size={400} color="muted">Champion Build Signals</Text>
-                <Pane marginTop={8} display="grid" gap={6}>
-                  {withLineBudget(championBuildRows, championOffset).map((row, idx) => (
-                    <Pane key={`ai-build-${idx}`} padding={8} border="default" borderRadius={6} background="rgba(255,255,255,0.02)">
-                      <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
-                        <Strong>{row.player}</Strong>
+              {teamPlanLines.length ? (
+                <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                  <Text size={400} color="muted">Team Actions</Text>
+                  <Pane marginTop={6} display="grid" gap={4}>
+                    {withLineBudget(teamPlanLines, teamPlanOffset).map((line, idx) => (
+                      <Pane key={`ai-team-${idx}`} display="flex" alignItems="flex-start" gap={6}>
                         <Text size={gptLineTextSize}>-</Text>
-                        <IconWithLabel kind="unit" token={row.champion} label={prettyName(row.champion)} size={gptIconSize} />
-                        {asArray(row.items).length ? <Text size={gptLineTextSize}>| {asArray(row.items).join(", ")}</Text> : null}
+                        {renderLineWithIcons(line, `ai-team-line-${idx}`)}
                       </Pane>
-                      <Text size={300} color="muted" display="block" marginTop={4}>
-                        {Number(row.top2Rate || 0).toFixed(1)}% Top2 over {Number(row.games || 0)} games
-                        {row.note ? ` | ${sanitizeModelText(row.note)}` : ""}
-                      </Text>
-                    </Pane>
-                  ))}
+                    ))}
+                  </Pane>
                 </Pane>
-              </Pane>
-            ) : null}
-          </Pane>
-        ) : (
-          <Text size={400} color="muted" marginTop={10} display="block">
-            No AI brief yet. Use Refresh AI.
-          </Text>
-        )}
+              ) : null}
+
+              {metaDeltaLines.length ? (
+                <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                  <Text size={400} color="muted">Meta vs Your Builds</Text>
+                  <Pane marginTop={6} display="grid" gap={4}>
+                    {withLineBudget(metaDeltaLines, metaDeltaOffset).map((line, idx) => (
+                      <Pane key={`ai-meta-delta-${idx}`} display="flex" alignItems="flex-start" gap={6}>
+                        <Text size={gptLineTextSize}>-</Text>
+                        {renderLineWithIcons(line, `ai-meta-delta-line-${idx}`)}
+                      </Pane>
+                    ))}
+                  </Pane>
+                </Pane>
+              ) : null}
+
+              {improveLines.length ? (
+                <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                  <Text size={400} color="muted">Top Improvement Areas</Text>
+                  <Pane marginTop={6} display="grid" gap={4}>
+                    {withLineBudget(improveLines, improveOffset).map((line, idx) => (
+                      <Pane key={`ai-improve-${idx}`} display="flex" alignItems="flex-start" gap={6}>
+                        <Text size={gptLineTextSize}>-</Text>
+                        {renderLineWithIcons(line, `ai-improve-line-${idx}`)}
+                      </Pane>
+                    ))}
+                  </Pane>
+                </Pane>
+              ) : null}
+
+              {winConditionLines.length ? (
+                <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                  <Text size={400} color="muted">Win Conditions</Text>
+                  <Pane marginTop={6} display="grid" gap={4}>
+                    {withLineBudget(winConditionLines, winOffset).map((line, idx) => (
+                      <Pane key={`ai-wincon-${idx}`} display="flex" alignItems="flex-start" gap={6}>
+                        <Text size={gptLineTextSize}>-</Text>
+                        {renderLineWithIcons(line, `ai-wincon-line-${idx}`)}
+                      </Pane>
+                    ))}
+                  </Pane>
+                </Pane>
+              ) : null}
+
+              {plan5Lines.length ? (
+                <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                  <Text size={400} color="muted">Next 5 Games Plan</Text>
+                  <Pane marginTop={6} display="grid" gap={4}>
+                    {withLineBudget(plan5Lines, plan5Offset).map((line, idx) => (
+                      <Pane key={`ai-plan5-${idx}`} display="flex" alignItems="flex-start" gap={6}>
+                        <Text size={gptLineTextSize}>-</Text>
+                        {renderLineWithIcons(line, `ai-plan5-line-${idx}`)}
+                      </Pane>
+                    ))}
+                  </Pane>
+                </Pane>
+              ) : null}
+
+              {championBuildRows.length ? (
+                <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                  <Text size={400} color="muted">Champion Build Signals</Text>
+                  <Pane marginTop={8} display="grid" gap={6}>
+                    {withLineBudget(championBuildRows, championOffset).map((row, idx) => (
+                      <Pane key={`ai-build-${idx}`} padding={8} border="default" borderRadius={6} background="rgba(255,255,255,0.02)">
+                        <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
+                          <Strong>{row.player}</Strong>
+                          <Text size={gptLineTextSize}>-</Text>
+                          <IconWithLabel kind="unit" token={row.champion} label={prettyName(row.champion)} size={gptIconSize} />
+                          {asArray(row.items).length ? <Text size={gptLineTextSize}>| {asArray(row.items).join(", ")}</Text> : null}
+                        </Pane>
+                        <Text size={300} color="muted" display="block" marginTop={4}>
+                          {Number(row.top2Rate || 0).toFixed(1)}% Top2 over {Number(row.games || 0)} games
+                          {row.note ? ` | ${sanitizeModelText(row.note)}` : ""}
+                        </Text>
+                      </Pane>
+                    ))}
+                  </Pane>
+                </Pane>
+              ) : null}
+            </Pane>
+          ) : (
+            <Text size={400} color="muted" marginTop={10} display="block">
+              No AI brief yet. Use Refresh AI.
+            </Text>
+          )}
         </Pane>
         <Pane className="coaching-terminal-prompt">
-          <Text size={300}>coach@duos:~$ briefing-ready</Text>
+          <Text size={300}>
+            coach@duos:~$ {aiCoachingLoading ? <InlineThinking label="thinking" /> : "briefing-ready"}
+          </Text>
         </Pane>
       </Card>
 
-      <Card elevation={0} padding={16} background="rgba(255,255,255,0.03)">
-        <Heading size={500}>Individual Action Plans</Heading>
-        <Pane marginTop={10} display="grid" gridTemplateColumns="repeat(auto-fit, minmax(280px, 1fr))" gap={10}>
-          {playerPlans.map((plan, idx) => (
-            <Pane key={`${plan.player}-${idx}`} padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
-              <Pane display="flex" alignItems="center" justifyContent="space-between" gap={8}>
-                <Strong>{plan.player}</Strong>
-                {Number.isFinite(plan.pressure) ? (
-                  <Badge color={plan.pressure >= 5 ? "red" : plan.pressure >= 3 ? "yellow" : "green"}>
-                    Pressure {plan.pressure}
-                  </Badge>
-                ) : null}
+      <Card className="coaching-terminal-shell" elevation={0} padding={0} background="transparent">
+        <Pane className="coaching-terminal-head" display="flex" alignItems="center" justifyContent="space-between" gap={10} flexWrap="wrap">
+          <Heading size={500}>Individual Action Plans</Heading>
+          <Badge color="neutral">Field Ops</Badge>
+        </Pane>
+        <Pane className="coaching-terminal-body" display="grid" gap={10}>
+          <Text size={300} className="coaching-terminal-line">{"> action queue // player-by-player execution plan"}</Text>
+          <Pane display="grid" gridTemplateColumns="repeat(auto-fit, minmax(280px, 1fr))" gap={10}>
+            {playerPlans.map((plan, idx) => (
+              <Pane key={`${plan.player}-${idx}`} padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
+                <Pane display="flex" alignItems="center" justifyContent="space-between" gap={8}>
+                  <Strong>{plan.player}</Strong>
+                  {Number.isFinite(plan.pressure) ? (
+                    <Badge color={plan.pressure >= 5 ? "red" : plan.pressure >= 3 ? "yellow" : "green"}>
+                      Pressure {plan.pressure}
+                    </Badge>
+                  ) : null}
+                </Pane>
+                <Text size={gptLineTextSize} display="block" marginTop={6}>Focus: {sanitizeModelText(plan.focus || "n/a")}</Text>
+                <Pane marginTop={8} display="grid" gap={4}>
+                  {asArray(plan.actions).slice(0, 3).map((line, actionIdx) => (
+                    <Pane key={`${plan.player}-action-${actionIdx}`} display="flex" alignItems="flex-start" gap={6}>
+                      <Text size={gptLineTextSize}>-</Text>
+                      {renderLineWithIcons(line, `${plan.player}-action-line-${actionIdx}`)}
+                    </Pane>
+                  ))}
+                </Pane>
               </Pane>
-              <Text size={gptLineTextSize} display="block" marginTop={6}>Focus: {sanitizeModelText(plan.focus || "n/a")}</Text>
-              <Pane marginTop={8} display="grid" gap={4}>
-                {asArray(plan.actions).slice(0, 3).map((line, actionIdx) => (
-                  <Pane key={`${plan.player}-action-${actionIdx}`} display="flex" alignItems="flex-start" gap={6}>
-                    <Text size={gptLineTextSize}>-</Text>
-                    {renderLineWithIcons(line, `${plan.player}-action-line-${actionIdx}`)}
-                  </Pane>
-                ))}
-              </Pane>
-            </Pane>
-          ))}
+            ))}
+          </Pane>
         </Pane>
       </Card>
     </Pane>

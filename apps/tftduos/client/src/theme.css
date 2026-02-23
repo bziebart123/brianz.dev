@@ -400,23 +400,77 @@ body::after {
 .coaching-terminal-shell {
   border: 1px solid rgba(111, 194, 255, 0.48);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(12, 22, 42, 0.88), rgba(8, 14, 28, 0.84));
-  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.5), 0 0 24px rgba(111, 194, 255, 0.18);
+  background: linear-gradient(180deg, rgba(12, 22, 42, 0.86), rgba(8, 14, 28, 0.82));
+  box-shadow: 0 22px 44px rgba(0, 0, 0, 0.56), 0 0 32px rgba(111, 194, 255, 0.2);
+  backdrop-filter: blur(3px);
   overflow: hidden;
 }
 
 .coaching-terminal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 10px 14px;
   border-bottom: 1px solid rgba(111, 194, 255, 0.24);
-  background: rgba(18, 33, 62, 0.62);
+  background: rgba(18, 33, 62, 0.65);
+  font-family: "Consolas", "Menlo", "SFMono-Regular", monospace;
+  font-size: 0.72rem;
+  color: #9ab0dd;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.coaching-terminal-head [data-evergreen-id="text"],
+.coaching-terminal-head [data-evergreen-id="heading"] {
+  font-family: "Consolas", "Menlo", "SFMono-Regular", monospace !important;
+  font-size: 0.72rem !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #9ab0dd !important;
+}
+
+.coaching-terminal-head [data-evergreen-id="badge"] {
+  font-family: "Consolas", "Menlo", "SFMono-Regular", monospace !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.06em !important;
 }
 
 .coaching-terminal-body {
   padding: 12px 14px 10px;
   font-family: "Consolas", "Menlo", "SFMono-Regular", monospace;
+  font-size: 0.78rem;
+  line-height: 1.48;
   color: #b5ddff;
+}
+
+.coaching-terminal-body [data-evergreen-id="text"],
+.coaching-terminal-body [data-evergreen-id="heading"],
+.coaching-terminal-body strong {
+  font-family: "Consolas", "Menlo", "SFMono-Regular", monospace !important;
+  font-size: 0.78rem !important;
+  line-height: 1.48 !important;
+}
+
+.coaching-terminal-body [data-evergreen-id="heading"] {
+  color: #e9efff !important;
+  font-size: 0.82rem !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+}
+
+.coaching-terminal-body [data-evergreen-id="text"] {
+  color: #d4e4ff !important;
+}
+
+.coaching-terminal-body [data-evergreen-id="text"][color="muted"] {
+  color: #9ab0dd !important;
+}
+
+.coaching-terminal-body [data-evergreen-id="card"] {
+  border: 1px solid rgba(111, 194, 255, 0.3) !important;
+  background: linear-gradient(165deg, rgba(18, 31, 58, 0.55), rgba(10, 19, 37, 0.72)) !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.02) !important;
 }
 
 .coaching-terminal-line {
@@ -430,9 +484,47 @@ body::after {
   color: #8fb8da;
 }
 
+.coaching-terminal-prompt [data-evergreen-id="text"] {
+  font-family: "Consolas", "Menlo", "SFMono-Regular", monospace !important;
+  font-size: 0.8rem !important;
+  line-height: 1.3 !important;
+  color: #9ab0dd !important;
+}
+
 .coaching-terminal-prompt::after {
   content: " _";
   animation: blinkCursor 1s steps(1, end) infinite;
+}
+
+.coaching-inline-loader {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  color: #8ef0c8 !important;
+  font: inherit;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.coaching-inline-loader-dots {
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  animation: terminalThinkingDots 1.2s steps(4, end) infinite;
+}
+
+.coaching-inline-loader-dots::before {
+  content: "...";
+}
+
+@keyframes terminalThinkingDots {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 1.2em;
+  }
 }
 .analysis-player-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));

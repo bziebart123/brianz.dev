@@ -277,6 +277,25 @@
         animation: blinkCursor 1s steps(1, end) infinite;
       }
 
+      .terminal-inline-loader {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 2px;
+        color: #8ef0c8;
+      }
+
+      .terminal-inline-loader-dots {
+        display: inline-block;
+        width: 0;
+        overflow: hidden;
+        vertical-align: bottom;
+        animation: terminalThinkingDots 1.2s steps(4, end) infinite;
+      }
+
+      .terminal-inline-loader-dots::before {
+        content: "...";
+      }
+
       .boot-line {
         opacity: 0;
         transform: translateY(5px);
@@ -434,6 +453,15 @@
         50%,
         100% {
           opacity: 0;
+        }
+      }
+
+      @keyframes terminalThinkingDots {
+        0% {
+          width: 0;
+        }
+        100% {
+          width: 1.2em;
         }
       }
 
@@ -643,6 +671,7 @@
         var terminalStatus = document.getElementById("terminal-status");
         var terminalCloseBtn = document.getElementById("terminal-close-btn");
         var terminalExpanded = false;
+        var terminalMode = "sync";
         var backendRequestCount = 0;
         var renderMetaRequestCount = 0;
         var contactRequestCount = 0;
@@ -725,6 +754,27 @@
           });
         }
 
+        function setTerminalStatusText(text, thinking) {
+          if (!terminalStatus) return;
+          if (thinking) {
+            terminalStatus.innerHTML = text + " <span class=\"terminal-inline-loader\" aria-hidden=\"true\"><span class=\"terminal-inline-loader-dots\"></span></span>";
+            return;
+          }
+          terminalStatus.textContent = text;
+        }
+
+        function applyTerminalModeStatus() {
+          if (terminalMode === "data") {
+            setTerminalStatusText("terminal data mode // esc or close to collapse", false);
+            return;
+          }
+          if (terminalMode === "contact") {
+            setTerminalStatusText("contact relay mode // esc or close to collapse", false);
+            return;
+          }
+          setTerminalStatusText("terminal synced // node lattice online", false);
+        }
+
         function queueTerminalLine(index, delayMs, fn) {
           window.setTimeout(function () {
             fn();
@@ -733,9 +783,8 @@
         }
 
         function beginStarMap() {
-          if (terminalStatus) {
-            terminalStatus.textContent = "terminal synced // node lattice online";
-          }
+          terminalMode = "sync";
+          applyTerminalModeStatus();
           if (starfield) starfield.classList.add("ready");
 
           nodes.forEach(function (node, index) {
@@ -805,11 +854,8 @@
           if (terminalDock) {
             terminalDock.classList.toggle("expanded", expanded);
           }
-          if (terminalStatus) {
-            terminalStatus.textContent = expanded
-              ? "terminal data mode // esc or close to collapse"
-              : "terminal synced // node lattice online";
-          }
+          terminalMode = expanded ? "data" : "sync";
+          applyTerminalModeStatus();
         }
 
         function setContactTerminalExpanded(expanded) {
@@ -817,11 +863,8 @@
           if (terminalDock) {
             terminalDock.classList.toggle("expanded", expanded);
           }
-          if (terminalStatus) {
-            terminalStatus.textContent = expanded
-              ? "contact relay mode // esc or close to collapse"
-              : "terminal synced // node lattice online";
-          }
+          terminalMode = expanded ? "contact" : "sync";
+          applyTerminalModeStatus();
         }
 
         function beginContactRelay() {
@@ -928,6 +971,7 @@
             pushBootLine("> Connected API origin: " + backendBase, false);
           });
           cursor += 1;
+          setTerminalStatusText("render.meta // awaiting response", true);
 
           try {
             var response = await fetch(url);
@@ -1005,6 +1049,7 @@
 
           queueTerminalLine(cursor, delay, function () {
             pushBootLine("> Press ESC or tap Close to collapse terminal view", false);
+            applyTerminalModeStatus();
           });
           terminalQueueOffset += (cursor + 1) * delay;
         }
