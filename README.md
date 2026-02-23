@@ -197,6 +197,7 @@ Use exactly what Render Custom Domains asks for:
 - `Memory Access` node now opens terminal data mode and streams the connected API route manifest (TFT, duo, coach, and site-performance endpoints).
 - Access semantics are source-aware: protocol control emits `Protocol Access` language and loads Render telemetry (`run protocol.access ...`), while `Memory Access` emits `Subject Memory Access` language and loads API manifest data (`run subject.memory.access --scope api-manifest ...`).
 - Terminal churn indicators now render inside terminal output lines (e.g., `> processing telemetry stream ...`) instead of only near the prompt underscore, making active fetch/processing states more obvious.
+- Memory Access now uses the same in-output loading indicator pattern (`> processing api manifest ...`) before route-manifest lines stream, matching Protocol Access churn visibility.
 - Portfolio HUD now uses a reboot icon (top-right) to reload/reboot the interface, replacing the prior textual explore chip and superseding the old Home node.
 - Portfolio brain is now draggable after map activation: click-drag rotates freely across axes, then releases back toward ambient rotation when pointer is released.
 - Protocol control affordance now includes a soft internal pulse glow to emphasize that it is actionable.
