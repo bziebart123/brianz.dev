@@ -164,6 +164,13 @@
         transition: opacity 360ms ease;
       }
 
+      .map-hud-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        pointer-events: none;
+      }
+
       .chip {
         pointer-events: auto;
         display: inline-flex;
@@ -194,6 +201,18 @@
       .chip-reset-btn svg {
         width: 18px;
         height: 18px;
+      }
+
+      .chip-audio-btn .icon-muted {
+        display: none;
+      }
+
+      .chip-audio-btn.is-muted .icon-wave {
+        display: none;
+      }
+
+      .chip-audio-btn.is-muted .icon-muted {
+        display: block;
       }
 
       .chip-dot {
@@ -935,12 +954,22 @@
 
         <div class="map-hud">
           <div class="chip"><span class="chip-dot" aria-hidden="true"></span> brianz.dev lattice</div>
-          <button type="button" class="chip chip-reset-btn" id="reboot-link" aria-label="Reboot interface" title="Reboot interface">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M19 8A8 8 0 1 0 20 12" stroke="#8EF0C8" stroke-width="2" stroke-linecap="round"/>
-              <path d="M20 4V9H15" stroke="#8EF0C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
+          <div class="map-hud-actions">
+            <button type="button" class="chip chip-reset-btn chip-audio-btn" id="sfx-toggle-btn" data-sfx-skip="true" aria-label="Mute sound effects" title="Mute sound effects">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M4 9H8L13 5V19L8 15H4V9Z" stroke="#8EF0C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path class="icon-wave" d="M16 9C17.6 10.2 17.6 13.8 16 15" stroke="#8EF0C8" stroke-width="2" stroke-linecap="round"/>
+                <path class="icon-wave" d="M18.6 7.2C21.4 9.4 21.4 14.6 18.6 16.8" stroke="#8EF0C8" stroke-width="2" stroke-linecap="round"/>
+                <path class="icon-muted" d="M16.4 8L21 16M21 8L16.4 16" stroke="#8EF0C8" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <button type="button" class="chip chip-reset-btn" id="reboot-link" aria-label="Reboot interface" title="Reboot interface">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M19 8A8 8 0 1 0 20 12" stroke="#8EF0C8" stroke-width="2" stroke-linecap="round"/>
+                <path d="M20 4V9H15" stroke="#8EF0C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div class="organism" id="organism">
@@ -1032,6 +1061,7 @@
         var terminalDock = document.querySelector(".terminal-dock");
         var terminalPanel = document.querySelector(".terminal");
         var mapHud = document.querySelector(".map-hud");
+        var sfxToggleBtn = document.getElementById("sfx-toggle-btn");
         var rebootLink = document.getElementById("reboot-link");
         var protocolLink = document.getElementById("protocol-link");
         var bootLog = document.getElementById("boot-log");
@@ -1053,6 +1083,8 @@
         var uiSfxElementAt = new WeakMap();
         var terminalOutputSfxLastAt = 0;
         var terminalLoadingSfxTimer = null;
+        var uiSfxMuted = false;
+        var UI_SFX_MUTE_STORAGE_KEY = "brianz_portfolio_sfx_muted";
         var subAppHosts = [
           "tftduos.brianz.dev",
           "site-performance.brianz.dev",
@@ -1152,9 +1184,29 @@
           uiSfxUnlocked = true;
         }
 
+        function syncUiSfxToggleButton() {
+          if (!sfxToggleBtn) return;
+          sfxToggleBtn.classList.toggle("is-muted", !!uiSfxMuted);
+          sfxToggleBtn.setAttribute("aria-label", uiSfxMuted ? "Unmute sound effects" : "Mute sound effects");
+          sfxToggleBtn.setAttribute("title", uiSfxMuted ? "Unmute sound effects" : "Mute sound effects");
+        }
+
+        function setUiSfxMuted(nextMuted) {
+          uiSfxMuted = !!nextMuted;
+          try {
+            window.localStorage.setItem(UI_SFX_MUTE_STORAGE_KEY, uiSfxMuted ? "1" : "0");
+          } catch (_error) {}
+          if (uiSfxMuted) {
+            stopTerminalLoadingSfx();
+          } else if (terminalOutputLoadingLine && terminalOutputLoadingLine.parentNode) {
+            startTerminalLoadingSfx();
+          }
+          syncUiSfxToggleButton();
+        }
+
         function playUiClickSfx(variant) {
           var ctx = ensureUiSfxContext();
-          if (!ctx || !uiSfxUnlocked) return;
+          if (!ctx || !uiSfxUnlocked || uiSfxMuted) return;
           if (ctx.state === "suspended") {
             ctx.resume().catch(function () {});
           }
@@ -1195,7 +1247,7 @@
 
         function playTerminalOutputSfx(kind) {
           var ctx = ensureUiSfxContext();
-          if (!ctx || !uiSfxUnlocked) return;
+          if (!ctx || !uiSfxUnlocked || uiSfxMuted) return;
           if (ctx.state === "suspended") {
             ctx.resume().catch(function () {});
           }
@@ -1238,6 +1290,7 @@
 
         function startTerminalLoadingSfx() {
           stopTerminalLoadingSfx();
+          if (uiSfxMuted) return;
           terminalLoadingSfxTimer = window.setInterval(function () {
             if (!terminalOutputLoadingLine || !terminalOutputLoadingLine.parentNode) {
               stopTerminalLoadingSfx();
@@ -1249,7 +1302,7 @@
 
         function bindUiSfxToInteractive() {
           var interactive = Array.prototype.slice.call(document.querySelectorAll("a, button, [role=\"button\"]")).filter(function (el) {
-            return !el.classList.contains("star-node") && el.id !== "brain-core";
+            return !el.classList.contains("star-node") && el.id !== "brain-core" && !el.hasAttribute("data-sfx-skip");
           });
           interactive.forEach(function (el) {
             var triggerHover = function () {
@@ -1308,6 +1361,12 @@
 
         window.addEventListener("pointerdown", unlockUiSfx, { once: true });
         window.addEventListener("keydown", unlockUiSfx, { once: true });
+        try {
+          uiSfxMuted = window.localStorage.getItem(UI_SFX_MUTE_STORAGE_KEY) === "1";
+        } catch (_error) {
+          uiSfxMuted = false;
+        }
+        syncUiSfxToggleButton();
         bindUiSfxToInteractive();
 
         initThreeBrain();
@@ -2111,6 +2170,13 @@
           rebootLink.addEventListener("click", function (event) {
             event.preventDefault();
             window.location.reload();
+          });
+        }
+
+        if (sfxToggleBtn) {
+          sfxToggleBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+            setUiSfxMuted(!uiSfxMuted);
           });
         }
 

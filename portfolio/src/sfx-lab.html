@@ -63,6 +63,13 @@
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 10px;
       }
+      .section-title {
+        margin: 16px 0 8px;
+        color: #a8c8f2;
+        font-size: 0.86rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
       button {
         border: 1px solid var(--line);
         background: linear-gradient(145deg, rgba(22, 41, 86, 0.75), rgba(16, 34, 72, 0.65));
@@ -91,15 +98,20 @@
   </head>
   <body>
     <main class="panel">
-      <h1>UI Click SFX Lab</h1>
-      <p>Tap each profile. Pick the one you want wired into portfolio hover/click.</p>
+      <h1>Portfolio SFX Lab</h1>
+      <p>Test current live sounds and alternate options before wiring them into the app.</p>
       <div class="toolbar">
         <label for="volume">Master Volume</label>
         <input id="volume" type="range" min="0" max="100" value="30" />
         <span id="vol-label">30%</span>
       </div>
-      <section class="grid" id="grid"></section>
-      <p class="hint">Tip: Use headphones and test quickly in sequence: A, B, C...</p>
+      <div class="section-title">Live Sounds</div>
+      <section class="grid" id="live-grid"></section>
+      <div class="section-title">UI Click Options</div>
+      <section class="grid" id="option-grid"></section>
+      <div class="section-title">Terminal Options</div>
+      <section class="grid" id="terminal-grid"></section>
+      <p class="hint">Tip: compare at 20-35% volume; pick one UI set and one terminal set.</p>
     </main>
 
     <script>
@@ -107,15 +119,23 @@
         var ctx = null;
         var volumeInput = document.getElementById("volume");
         var volumeLabel = document.getElementById("vol-label");
-        var grid = document.getElementById("grid");
+        var liveGrid = document.getElementById("live-grid");
+        var optionGrid = document.getElementById("option-grid");
+        var terminalGrid = document.getElementById("terminal-grid");
+        var loadingTimer = null;
 
-        var profiles = [
+        var uiProfiles = [
           { id: "a", name: "A - Micro Tick", base: 1700, top: 2500, attack: 0.0015, decay: 0.018, gain: 0.017, hp: 950, waveA: "square", waveB: "triangle" },
           { id: "b", name: "B - Hard Click", base: 1820, top: 2760, attack: 0.001, decay: 0.016, gain: 0.021, hp: 1050, waveA: "square", waveB: "square" },
           { id: "c", name: "C - Glass Tap", base: 1560, top: 3200, attack: 0.0018, decay: 0.023, gain: 0.015, hp: 1200, waveA: "triangle", waveB: "sine" },
           { id: "d", name: "D - UI Blip", base: 1480, top: 2340, attack: 0.002, decay: 0.028, gain: 0.018, hp: 760, waveA: "triangle", waveB: "triangle" },
           { id: "e", name: "E - Tight Dual", base: 1900, top: 2920, attack: 0.001, decay: 0.014, gain: 0.019, hp: 1300, waveA: "square", waveB: "triangle" },
           { id: "f", name: "F - Soft Tick", base: 1360, top: 2140, attack: 0.0024, decay: 0.03, gain: 0.014, hp: 700, waveA: "triangle", waveB: "sine" }
+        ];
+        var terminalProfiles = [
+          { id: "t1", name: "T1 - Crisp Telemetry", base: 1760, decay: 0.022, gain: 0.009, hp: 1120, wave: "square" },
+          { id: "t2", name: "T2 - Soft Console", base: 1540, decay: 0.028, gain: 0.008, hp: 900, wave: "triangle" },
+          { id: "t3", name: "T3 - Dense Pulse", base: 1890, decay: 0.019, gain: 0.010, hp: 1260, wave: "square" }
         ];
 
         function ensureCtx() {
@@ -130,11 +150,15 @@
           return ctx;
         }
 
-        function play(profile) {
+        function masterVolume() {
+          return Number(volumeInput.value || "30") / 100;
+        }
+
+        function playUi(profile) {
           var audio = ensureCtx();
           if (!audio) return;
           var now = audio.currentTime;
-          var vol = Number(volumeInput.value || "30") / 100;
+          var vol = masterVolume();
           var oscA = audio.createOscillator();
           var oscB = audio.createOscillator();
           var hp = audio.createBiquadFilter();
@@ -167,17 +191,94 @@
           oscB.stop(now + profile.decay + 0.008);
         }
 
+        function playTerminal(profile, loading) {
+          var audio = ensureCtx();
+          if (!audio) return;
+          var now = audio.currentTime;
+          var vol = masterVolume();
+          var osc = audio.createOscillator();
+          var hp = audio.createBiquadFilter();
+          var gain = audio.createGain();
+          var decay = loading ? profile.decay * 1.15 : profile.decay;
+          var amplitude = loading ? profile.gain * 0.8 : profile.gain;
+
+          osc.type = profile.wave;
+          osc.frequency.setValueAtTime(profile.base, now);
+          osc.frequency.exponentialRampToValueAtTime(profile.base * 0.68, now + decay);
+
+          hp.type = "highpass";
+          hp.frequency.setValueAtTime(profile.hp, now);
+          hp.Q.setValueAtTime(0.4, now);
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.exponentialRampToValueAtTime(amplitude * vol, now + 0.0014);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+
+          osc.connect(hp);
+          hp.connect(gain);
+          gain.connect(audio.destination);
+          osc.start(now);
+          osc.stop(now + decay + 0.01);
+        }
+
+        function stopLoadingPreview() {
+          if (loadingTimer) {
+            window.clearInterval(loadingTimer);
+            loadingTimer = null;
+          }
+        }
+
+        function addButton(container, label, onClick) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = label;
+          btn.addEventListener("click", onClick);
+          container.appendChild(btn);
+        }
+
         function mount() {
-          profiles.forEach(function (profile) {
-            var btn = document.createElement("button");
-            btn.type = "button";
-            btn.textContent = profile.name;
-            btn.addEventListener("click", function () {
-              play(profile);
+          // Mirrors currently wired production sounds.
+          addButton(liveGrid, "Live UI Hover (E)", function () {
+            playUi({ base: 1900, top: 2920, attack: 0.0012, decay: 0.018, gain: 0.0175, hp: 1300, waveA: "square", waveB: "triangle" });
+          });
+          addButton(liveGrid, "Live UI Press (E+)", function () {
+            playUi({ base: 2020, top: 3040, attack: 0.0012, decay: 0.021, gain: 0.021, hp: 1360, waveA: "square", waveB: "triangle" });
+          });
+          addButton(liveGrid, "Live Terminal Line", function () {
+            playTerminal({ base: 1760, decay: 0.022, gain: 0.009, hp: 1120, wave: "square" }, false);
+          });
+          addButton(liveGrid, "Live Terminal Loading x1", function () {
+            playTerminal({ base: 1480, decay: 0.028, gain: 0.0075, hp: 980, wave: "triangle" }, true);
+          });
+          addButton(liveGrid, "Live Loading Loop On/Off", function (event) {
+            if (loadingTimer) {
+              stopLoadingPreview();
+              event.currentTarget.textContent = "Live Loading Loop On/Off";
+              return;
+            }
+            event.currentTarget.textContent = "Stop Loading Loop";
+            loadingTimer = window.setInterval(function () {
+              playTerminal({ base: 1480, decay: 0.028, gain: 0.0075, hp: 980, wave: "triangle" }, true);
+            }, 190);
+          });
+
+          uiProfiles.forEach(function (profile) {
+            addButton(optionGrid, profile.name, function () {
+              playUi(profile);
             });
-            grid.appendChild(btn);
+          });
+
+          terminalProfiles.forEach(function (profile) {
+            addButton(terminalGrid, profile.name + " Line", function () {
+              playTerminal(profile, false);
+            });
+            addButton(terminalGrid, profile.name + " Loading", function () {
+              playTerminal(profile, true);
+            });
           });
         }
+
+        window.addEventListener("beforeunload", stopLoadingPreview);
 
         volumeInput.addEventListener("input", function () {
           volumeLabel.textContent = volumeInput.value + "%";
