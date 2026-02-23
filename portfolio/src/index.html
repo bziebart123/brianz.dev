@@ -1530,6 +1530,7 @@
 
           var delay = 170;
           var cursor = 0;
+          setTerminalOutputLoading("> processing api manifest");
           queueTerminalLine(cursor, delay, function () {
             pushBootLine("> Subject memory access accepted [" + stamp + "] #" + backendRequestCount, true);
           });
@@ -1555,6 +1556,7 @@
           });
           queueTerminalLine(cursor, delay, function () {
             pushBootLine("> Press ESC or tap Close to collapse terminal view", false);
+            setTerminalOutputLoading("");
           });
           terminalQueueOffset += (cursor + 1) * delay;
         }
