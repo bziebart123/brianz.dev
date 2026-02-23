@@ -199,6 +199,7 @@ Use exactly what Render Custom Domains asks for:
 - Terminal churn indicators now render inside terminal output lines (e.g., `> processing telemetry stream ...`) instead of only near the prompt underscore, making active fetch/processing states more obvious.
 - Memory Access now uses the same in-output loading indicator pattern (`> processing api manifest ...`) before route-manifest lines stream, matching Protocol Access churn visibility.
 - Portfolio background ambient glow now follows the brain position dynamically (instead of staying statically centered), so the faint halo remains directly behind the brain across intro and map states.
+- Lattice links from the brain are now rendered brighter/thicker and their traveling data pulses move faster for stronger readability and livelier network motion.
 - Portfolio HUD now uses a reboot icon (top-right) to reload/reboot the interface, replacing the prior textual explore chip and superseding the old Home node.
 - Portfolio brain is now draggable after map activation: click-drag rotates freely across axes, then releases back toward ambient rotation when pointer is released.
 - Protocol control affordance now includes a soft internal pulse glow to emphasize that it is actionable.

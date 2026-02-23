@@ -1882,7 +1882,7 @@
           return {
             nodeIndex: index,
             phase: index * 0.72,
-            speed: 0.14 + (index % 3) * 0.035
+            speed: 0.24 + (index % 3) * 0.055
           };
         });
 
@@ -2069,15 +2069,15 @@
           if (!latticeCtx || !latticeCanvas) return;
 
           latticeCtx.clearRect(0, 0, latticeCanvas.width, latticeCanvas.height);
-          latticeCtx.lineWidth = 1.8;
+          latticeCtx.lineWidth = 2.2;
 
           for (var i = 0; i < latticePulseLines.length; i += 1) {
             var stream = latticePulseLines[i];
             var target = nodeState[stream.nodeIndex];
             if (!target) continue;
 
-            var pulse = 0.24 + (Math.sin(timeSec * 0.52 + stream.phase) + 1) * 0.045;
-            latticeCtx.strokeStyle = "rgba(126, 186, 255," + pulse.toFixed(3) + ")";
+            var pulse = 0.42 + (Math.sin(timeSec * 0.75 + stream.phase) + 1) * 0.07;
+            latticeCtx.strokeStyle = "rgba(152, 214, 255," + pulse.toFixed(3) + ")";
             latticeCtx.beginPath();
             latticeCtx.moveTo(corePoint.x, corePoint.y);
             latticeCtx.lineTo(target.px, target.py);
@@ -2086,9 +2086,9 @@
             var travel = (timeSec * stream.speed + stream.phase) % 1;
             var px = corePoint.x + (target.px - corePoint.x) * travel;
             var py = corePoint.y + (target.py - corePoint.y) * travel;
-            var pulseRadius = 1.4 + (Math.sin((timeSec + stream.phase) * 2.9) + 1) * 0.55;
+            var pulseRadius = 1.6 + (Math.sin((timeSec + stream.phase) * 3.4) + 1) * 0.62;
             var pulseGlow = latticeCtx.createRadialGradient(px, py, 0, px, py, pulseRadius * 5);
-            pulseGlow.addColorStop(0, "rgba(224, 245, 255, 0.95)");
+            pulseGlow.addColorStop(0, "rgba(236, 248, 255, 0.98)");
             pulseGlow.addColorStop(1, "rgba(224, 245, 255, 0)");
             latticeCtx.fillStyle = pulseGlow;
             latticeCtx.beginPath();
