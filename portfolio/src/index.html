@@ -1052,6 +1052,9 @@
         var mapActivated = false;
         var brainDockedY = null;
         var brainShakeMeter = 0;
+        var brainShakeSessionEnergy = 0;
+        var brainShakeMildIssued = false;
+        var brainShakeStrongIssued = false;
         var brainShakeAlertUntil = 0;
 
         nodes.forEach(function (node) {
@@ -1267,16 +1270,22 @@
           terminalStatus.textContent = text;
         }
 
-        function signalBrainShakeWarning() {
+        function signalBrainShakeWarning(level) {
           var nowMs = Date.now();
           if (nowMs < brainShakeAlertUntil) return;
-          brainShakeAlertUntil = nowMs + 9500;
-          pushBootLine("> Warning: be careful with the subject.", true);
-          setTerminalStatusText("warning // subject stability at risk", false);
+          var isStrong = level === "strong";
+          brainShakeAlertUntil = nowMs + (isStrong ? 11500 : 9000);
+          if (isStrong) {
+            pushBootLine("> Critical Warning: neural stress spike detected. stabilize the subject immediately.", true);
+            setTerminalStatusText("critical // subject stability compromised", false);
+          } else {
+            pushBootLine("> Warning: be careful with the subject.", true);
+            setTerminalStatusText("warning // subject stability at risk", false);
+          }
           setTimeout(function () {
             if (Date.now() < brainShakeAlertUntil) return;
             setTerminalStatusText("terminal synced // node lattice online", false);
-          }, 2200);
+          }, isStrong ? 3200 : 2200);
         }
 
         function setTerminalOutputLoading(text) {
@@ -2180,6 +2189,9 @@
             brainDragActive = true;
             brainDragPointerId = event.pointerId;
             brainShakeMeter = 0;
+            brainShakeSessionEnergy = 0;
+            brainShakeMildIssued = false;
+            brainShakeStrongIssued = false;
             if (brainCore.setPointerCapture) {
               brainCore.setPointerCapture(event.pointerId);
             }
@@ -2194,9 +2206,16 @@
             brainUserRotX = Math.max(-42, Math.min(42, nextX));
             var dragDelta = Math.abs(event.movementX) + Math.abs(event.movementY);
             brainShakeMeter = (brainShakeMeter * 0.86) + dragDelta;
-            if (brainShakeMeter > 120) {
-              signalBrainShakeWarning();
+            brainShakeSessionEnergy += dragDelta;
+            if (!brainShakeMildIssued && (brainShakeMeter > 120 || brainShakeSessionEnergy > 650)) {
+              signalBrainShakeWarning("mild");
+              brainShakeMildIssued = true;
               brainShakeMeter = 42;
+            }
+            if (!brainShakeStrongIssued && (brainShakeMeter > 200 || brainShakeSessionEnergy > 1800)) {
+              signalBrainShakeWarning("strong");
+              brainShakeStrongIssued = true;
+              brainShakeMeter = 58;
             }
           });
           brainCore.addEventListener("pointerup", function (event) {
