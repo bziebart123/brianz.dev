@@ -41,6 +41,7 @@ From repo root:
 - `npm run dev:brianz:backend`
 - `npm run dev:tftduos:server` (alias for backward compatibility)
 - `npm run dev:site-performance:client`
+- Site Performance local URL: `http://localhost:4174` (pinned in Vite config)
 
 From `apps/tftduos`:
 
@@ -210,7 +211,7 @@ Use exactly what Render Custom Domains asks for:
 - Site Performance frontend has been refactored into a dedicated 40K Companion terminal app that mirrors the portfolio terminal styling and uses command-driven quick-reference responses for tabletop reminders.
 - Portfolio launcher link assumptions:
   - production node links: `https://tftduos.brianz.dev` (TFT) and `https://api.brianz.dev` (shared backend + Render Meta terminal data source)
-  - local host node links: `http://localhost:4173` (TFT) and `http://localhost:3001` (shared backend + Render Meta terminal data source)
+  - local host node links: `http://localhost:4173` (TFT), `http://localhost:4174` (Warhammer), and `http://localhost:3001` (shared backend + Render Meta terminal data source)
   - contact fallback: `https://www.linkedin.com/in/brian-ziebart/`
 
 ## AI Context Files
