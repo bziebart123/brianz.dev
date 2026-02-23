@@ -205,6 +205,7 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio now includes synthesized sci-fi UI SFX tuned for tight, percussive click feedback (short high-passed ticks on hover/focus plus a sharper press tick on click/tap), unlocked after first user gesture and rate-limited to stay subtle.
 - Added `portfolio/src/sfx-lab.html`, a local click-sound audition page with six short WebAudio click profiles (A-F) and master volume so SFX can be selected before integrating into main UI interactions.
 - Portfolio live UI SFX is now tuned to the auditioned `E - Tight Dual` profile (with a slightly stronger press tick) for tighter hover/click feedback.
+- Portfolio node SFX hotspoting is now icon-scoped: star-node sounds fire from `.node-icon` hover/click (plus keyboard focus), avoiding early triggers from surrounding node padding.
 - Portfolio HUD now uses a reboot icon (top-right) to reload/reboot the interface, replacing the prior textual explore chip and superseding the old Home node.
 - Portfolio brain is now draggable after map activation: click-drag rotates freely across axes, then releases back toward ambient rotation when pointer is released.
 - Protocol control affordance now includes a soft internal pulse glow to emphasize that it is actionable.

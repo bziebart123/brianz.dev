@@ -1132,7 +1132,9 @@
         }
 
         function bindUiSfxToInteractive() {
-          var interactive = Array.prototype.slice.call(document.querySelectorAll("a, button, [role=\"button\"]"));
+          var interactive = Array.prototype.slice.call(document.querySelectorAll("a, button, [role=\"button\"]")).filter(function (el) {
+            return !el.classList.contains("star-node");
+          });
           interactive.forEach(function (el) {
             var triggerHover = function () {
               if (!el || el.hasAttribute("disabled") || el.getAttribute("aria-hidden") === "true") return;
@@ -1155,6 +1157,36 @@
             el.addEventListener("pointerenter", triggerHover);
             el.addEventListener("focus", triggerHover);
             el.addEventListener("click", triggerPress);
+          });
+
+          // Star-node sounds should trigger from the visible icon hotspot, not padded node bounds.
+          var starNodes = Array.prototype.slice.call(document.querySelectorAll(".star-node"));
+          starNodes.forEach(function (node) {
+            var icon = node.querySelector(".node-icon");
+            if (!icon) return;
+
+            var triggerHover = function () {
+              if (!node || node.hasAttribute("disabled") || node.getAttribute("aria-hidden") === "true") return;
+              var nowMs = Date.now();
+              var lastForElement = Number(uiSfxElementAt.get(node) || 0);
+              if (nowMs - lastForElement < 120) return;
+              if (nowMs - uiSfxLastAt < 50) return;
+              uiSfxElementAt.set(node, nowMs);
+              uiSfxLastAt = nowMs;
+              playUiClickSfx("hover");
+            };
+            var triggerPress = function () {
+              if (!node || node.hasAttribute("disabled") || node.getAttribute("aria-hidden") === "true") return;
+              var nowMs = Date.now();
+              if (nowMs - uiSfxLastAt < 36) return;
+              uiSfxElementAt.set(node, nowMs);
+              uiSfxLastAt = nowMs;
+              playUiClickSfx("press");
+            };
+
+            icon.addEventListener("pointerenter", triggerHover);
+            icon.addEventListener("click", triggerPress);
+            node.addEventListener("focus", triggerHover);
           });
         }
 
