@@ -180,14 +180,14 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio `Contact` node now opens the same terminal in expanded contact-relay mode and exposes LinkedIn-only contact routing (no email prompts or mailto popups).
 - When landing on portfolio from known app/subdomain hosts (`tftduos`, `site-performance`, and local app ports), boot handshake animation is skipped for immediate map access.
 - Portfolio node/lattice initialization now completes before skip-boot rendering, fixing the mobile/return-home case where nodes could appear missing at top-left before layout sync.
-- Terminal loading affordances are now explicit in both surfaces: portfolio prompt shows inline thinking state while Render Meta waits on API response, and TFT Coaching terminal shows inline thinking status during GPT generation/refresh waits.
+- Terminal loading affordances are now explicit in both surfaces: portfolio prompt shows inline thinking state while Render Stats waits on API response, and TFT Coaching terminal shows inline thinking status during GPT generation/refresh waits.
 - Portfolio scene suppresses ambient page caret/cursor artifacts in the lattice viewport while keeping terminal history selectable for copy.
 - Portfolio launcher opens HTTP(S) app destinations in new tabs so the landing scene remains open while navigating.
 - Portfolio visual tuning update: thicker lattice links, calmer pulse cadence, and lower-motion digital-brain drift for reduced visual fatigue.
 - TFTDuos + Site Performance frontends now share portfolio visual language tokens (thin luminous blue outlines, translucent navy cards, controlled glow/opacity) and starfield-backed atmospherics while preserving foreground readability.
 - Portfolio launcher link assumptions:
-  - production node links: `https://tftduos.brianz.dev` (TFT) and `https://api.brianz.dev` (shared backend + Render Meta terminal data source)
-  - local host node links: `http://localhost:4173` (TFT) and `http://localhost:3001` (shared backend + Render Meta terminal data source)
+  - production node links: `https://tftduos.brianz.dev` (TFT) and `https://api.brianz.dev` (shared backend + Render Stats terminal data source)
+  - local host node links: `http://localhost:4173` (TFT) and `http://localhost:3001` (shared backend + Render Stats terminal data source)
   - contact fallback: `https://www.linkedin.com/in/brian-ziebart/`
 
 ## AI Context Files
