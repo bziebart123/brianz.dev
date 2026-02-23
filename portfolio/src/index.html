@@ -506,8 +506,12 @@
         transform: translate(-50%, -50%) scale(0.84) rotateX(var(--brain-tilt-x, 0deg)) rotateY(var(--brain-tilt-y, 0deg));
         opacity: 0.86;
         pointer-events: auto;
-        cursor: grab;
+        cursor: default;
         filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 26px rgba(111, 194, 255, 0.2));
+      }
+
+      .starfield.map-active .brain-core.is-brain-hit {
+        cursor: grab;
       }
 
       .starfield.map-active .brain-core.is-dragging {
@@ -1105,6 +1109,8 @@
         var subjectAlertTarget = 0;
         var subjectAlertLastMotionAt = 0;
         var subjectRecoveryPending = false;
+        var subjectRecoveryStatusActive = false;
+        var brainHitSfxAt = 0;
 
         nodes.forEach(function (node) {
           node.removeAttribute("target");
@@ -1187,7 +1193,7 @@
 
         function bindUiSfxToInteractive() {
           var interactive = Array.prototype.slice.call(document.querySelectorAll("a, button, [role=\"button\"]")).filter(function (el) {
-            return !el.classList.contains("star-node");
+            return !el.classList.contains("star-node") && el.id !== "brain-core";
           });
           interactive.forEach(function (el) {
             var triggerHover = function () {
@@ -1337,6 +1343,7 @@
             if (nowMs < brainShakeMildCooldownUntil) return;
             brainShakeMildCooldownUntil = nowMs + 9000;
           }
+          subjectRecoveryStatusActive = false;
           if (isStrong) {
             pushBootLine("> Critical Warning: neural stress spike detected. stabilize the subject immediately.", true);
             setTerminalStatusText("critical // subject stability compromised", false);
@@ -2261,6 +2268,7 @@
             if (!mapActivated) return;
             if (event.button !== 0) return;
             if (!isPointerOnBrain(event)) return;
+            playUiClickSfx("press");
             brainDragActive = true;
             brainDragPointerId = event.pointerId;
             brainShakeMeter = 0;
@@ -2268,13 +2276,25 @@
             brainShakeMildIssued = false;
             brainShakeStrongIssued = false;
             subjectAlertLastMotionAt = Date.now();
+            subjectRecoveryStatusActive = false;
             if (brainCore.setPointerCapture) {
               brainCore.setPointerCapture(event.pointerId);
             }
             brainCore.classList.add("is-dragging");
+            brainCore.classList.add("is-brain-hit");
             event.preventDefault();
           });
           brainCore.addEventListener("pointermove", function (event) {
+            var isOverBrain = isPointerOnBrain(event);
+            brainCore.classList.toggle("is-brain-hit", isOverBrain || brainDragActive);
+            if (!brainDragActive && isOverBrain) {
+              var nowMsForSfx = Date.now();
+              if (nowMsForSfx - brainHitSfxAt > 170 && nowMsForSfx - uiSfxLastAt > 70) {
+                brainHitSfxAt = nowMsForSfx;
+                uiSfxLastAt = nowMsForSfx;
+                playUiClickSfx("hover");
+              }
+            }
             if (!brainDragActive || event.pointerId !== brainDragPointerId) return;
             var nextY = brainUserRotY + (event.movementX * 0.28);
             var nextX = brainUserRotX + (event.movementY * 0.24);
@@ -2305,12 +2325,19 @@
               try { brainCore.releasePointerCapture(event.pointerId); } catch (_error) {}
             }
             brainCore.classList.remove("is-dragging");
+            brainCore.classList.remove("is-brain-hit");
           });
           brainCore.addEventListener("pointercancel", function (event) {
             if (event.pointerId !== brainDragPointerId) return;
             brainDragActive = false;
             brainDragPointerId = null;
             brainCore.classList.remove("is-dragging");
+            brainCore.classList.remove("is-brain-hit");
+          });
+          brainCore.addEventListener("pointerleave", function () {
+            if (!brainDragActive) {
+              brainCore.classList.remove("is-brain-hit");
+            }
           });
           brainCore.addEventListener("keydown", function (event) {
             if (event.key === "Enter" || event.key === " ") {
@@ -2379,16 +2406,21 @@
 
         function updateLattice(now) {
           var timeSec = now * 0.001;
-          if (subjectAlertTarget > 0 && (!brainDragActive || (Date.now() - subjectAlertLastMotionAt) > 520)) {
+          if (subjectAlertTarget > 0 && (!brainDragActive || (Date.now() - subjectAlertLastMotionAt) > 1650)) {
             subjectAlertTarget = 0;
+            if (subjectRecoveryPending && !subjectRecoveryStatusActive) {
+              subjectRecoveryStatusActive = true;
+              setTerminalStatusText("stabalizing // subject returning to baseline", false);
+            }
           }
-          subjectAlertLevel += (subjectAlertTarget - subjectAlertLevel) * (subjectAlertTarget > subjectAlertLevel ? 0.16 : 0.08);
+          subjectAlertLevel += (subjectAlertTarget - subjectAlertLevel) * (subjectAlertTarget > subjectAlertLevel ? 0.16 : 0.035);
           if (Math.abs(subjectAlertTarget - subjectAlertLevel) < 0.01) {
             subjectAlertLevel = subjectAlertTarget;
           }
           if (subjectRecoveryPending && subjectAlertTarget === 0 && subjectAlertLevel < 0.02) {
-            pushBootLine("> Stability decay complete. subject returned to nominal baseline.", true);
+            pushBootLine("> Stabalizing complete. subject returned to nominal baseline.", true);
             subjectRecoveryPending = false;
+            subjectRecoveryStatusActive = false;
             applyTerminalModeStatus();
           }
           if (starfield) {
