@@ -1110,7 +1110,7 @@
         var subjectAlertLastMotionAt = 0;
         var subjectRecoveryPending = false;
         var subjectRecoveryStatusActive = false;
-        var brainHitSfxAt = 0;
+        var brainHoverSfxActive = false;
 
         nodes.forEach(function (node) {
           node.removeAttribute("target");
@@ -2287,13 +2287,16 @@
           brainCore.addEventListener("pointermove", function (event) {
             var isOverBrain = isPointerOnBrain(event);
             brainCore.classList.toggle("is-brain-hit", isOverBrain || brainDragActive);
-            if (!brainDragActive && isOverBrain) {
+            if (!brainDragActive && isOverBrain && !brainHoverSfxActive) {
+              brainHoverSfxActive = true;
               var nowMsForSfx = Date.now();
-              if (nowMsForSfx - brainHitSfxAt > 170 && nowMsForSfx - uiSfxLastAt > 70) {
-                brainHitSfxAt = nowMsForSfx;
+              if (nowMsForSfx - uiSfxLastAt > 70) {
                 uiSfxLastAt = nowMsForSfx;
                 playUiClickSfx("hover");
               }
+            }
+            if (!isOverBrain) {
+              brainHoverSfxActive = false;
             }
             if (!brainDragActive || event.pointerId !== brainDragPointerId) return;
             var nextY = brainUserRotY + (event.movementX * 0.28);
@@ -2326,6 +2329,7 @@
             }
             brainCore.classList.remove("is-dragging");
             brainCore.classList.remove("is-brain-hit");
+            brainHoverSfxActive = false;
           });
           brainCore.addEventListener("pointercancel", function (event) {
             if (event.pointerId !== brainDragPointerId) return;
@@ -2333,11 +2337,13 @@
             brainDragPointerId = null;
             brainCore.classList.remove("is-dragging");
             brainCore.classList.remove("is-brain-hit");
+            brainHoverSfxActive = false;
           });
           brainCore.addEventListener("pointerleave", function () {
             if (!brainDragActive) {
               brainCore.classList.remove("is-brain-hit");
             }
+            brainHoverSfxActive = false;
           });
           brainCore.addEventListener("keydown", function (event) {
             if (event.key === "Enter" || event.key === " ") {

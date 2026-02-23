@@ -213,6 +213,7 @@ Use exactly what Render Custom Domains asks for:
 - Shake alerts now include explicit recovery behavior: after a longer cool-down, footer status switches to `stabalizing // subject returning to baseline`; once the alert glow fully decays, terminal history logs `Stabalizing complete...` and footer status settles to `stable // subject stability nominal`.
 - Brain drag capture hit-testing is now constrained to the brain silhouette area (ellipse around the model) so map-mode rotation starts only when pointer-down occurs over the brain itself, not the wider glow/container region.
 - In map mode, brain cursor affordance and brain-specific hover/click SFX now activate only while pointer is over the brain hit area (not the surrounding glow field).
+- Brain hover SFX is now one-shot per hover entry (re-arms on leave), preventing rapid repeated hover ticks while moving within the same brain hit area.
 - Portfolio launcher node ordering now prioritizes app nodes first (`TFT Duos`, `Warhammer`) and groups utility nodes after (`Memory Access`, `Contact`, `Source`), with app nodes on `core` yellow styling and utility nodes on `meta` green styling (including hover state).
 - Portfolio `Source` node icon now uses a GitHub mark, and app node glyphs were refreshed toward a TFT crest and Warhammer banner motif.
 - App node glyphs are now intentionally generic/custom: TFT icon uses a yellow-only `TFT` crest (no blue accent), and Warhammer icon uses a simple `40K` text mark to avoid dependency on third-party trademark logo assets.
