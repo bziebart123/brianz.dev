@@ -105,7 +105,7 @@
         position: absolute;
         inset: 0;
         pointer-events: none;
-        background: radial-gradient(circle at 50% 55%, transparent 0%, transparent 34%, rgba(255, 255, 255, 0.04) 35%, transparent 37%, transparent 100%);
+        background: none;
       }
 
       .map-hud {
@@ -343,6 +343,19 @@
         opacity: 1;
         transform: translateY(0);
         pointer-events: none;
+      }
+
+      .starfield.intro-locked,
+      .starfield.intro-zooming,
+      .starfield.intro-faded {
+        display: grid;
+        align-items: center;
+      }
+
+      .starfield.intro-locked .organism,
+      .starfield.intro-zooming .organism,
+      .starfield.intro-faded .organism {
+        height: min(46vh, 430px);
       }
 
       .starfield.intro-locked .terminal {
