@@ -1090,7 +1090,7 @@
           uiSfxUnlocked = true;
         }
 
-        function playUiHoverSfx() {
+        function playUiClickSfx(variant) {
           var ctx = ensureUiSfxContext();
           if (!ctx || !uiSfxUnlocked) return;
           if (ctx.state === "suspended") {
@@ -1100,44 +1100,60 @@
           var oscA = ctx.createOscillator();
           var oscB = ctx.createOscillator();
           var gain = ctx.createGain();
+          var filter = ctx.createBiquadFilter();
+          var isPress = variant === "press";
 
-          oscA.type = "triangle";
-          oscA.frequency.setValueAtTime(1680, now);
-          oscA.frequency.exponentialRampToValueAtTime(1080, now + 0.035);
+          oscA.type = "square";
+          oscA.frequency.setValueAtTime(isPress ? 1950 : 1760, now);
+          oscA.frequency.exponentialRampToValueAtTime(isPress ? 1260 : 1320, now + 0.012);
 
-          oscB.type = "sine";
-          oscB.frequency.setValueAtTime(2380, now);
-          oscB.frequency.exponentialRampToValueAtTime(1540, now + 0.03);
+          oscB.type = "triangle";
+          oscB.frequency.setValueAtTime(isPress ? 2680 : 2440, now);
+          oscB.frequency.exponentialRampToValueAtTime(isPress ? 1710 : 1680, now + 0.01);
 
           gain.gain.setValueAtTime(0.0001, now);
-          gain.gain.exponentialRampToValueAtTime(0.018, now + 0.008);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+          gain.gain.exponentialRampToValueAtTime(isPress ? 0.024 : 0.016, now + 0.002);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + (isPress ? 0.028 : 0.022));
 
-          oscA.connect(gain);
-          oscB.connect(gain);
+          filter.type = "highpass";
+          filter.frequency.setValueAtTime(960, now);
+          filter.Q.setValueAtTime(0.42, now);
+
+          oscA.connect(filter);
+          oscB.connect(filter);
+          filter.connect(gain);
           gain.connect(ctx.destination);
 
           oscA.start(now);
           oscB.start(now);
-          oscA.stop(now + 0.07);
-          oscB.stop(now + 0.055);
+          oscA.stop(now + (isPress ? 0.035 : 0.03));
+          oscB.stop(now + (isPress ? 0.028 : 0.024));
         }
 
         function bindUiSfxToInteractive() {
           var interactive = Array.prototype.slice.call(document.querySelectorAll("a, button, [role=\"button\"]"));
           interactive.forEach(function (el) {
-            var trigger = function () {
+            var triggerHover = function () {
               if (!el || el.hasAttribute("disabled") || el.getAttribute("aria-hidden") === "true") return;
               var nowMs = Date.now();
               var lastForElement = Number(uiSfxElementAt.get(el) || 0);
-              if (nowMs - lastForElement < 180) return;
-              if (nowMs - uiSfxLastAt < 70) return;
+              if (nowMs - lastForElement < 120) return;
+              if (nowMs - uiSfxLastAt < 50) return;
               uiSfxElementAt.set(el, nowMs);
               uiSfxLastAt = nowMs;
-              playUiHoverSfx();
+              playUiClickSfx("hover");
             };
-            el.addEventListener("pointerenter", trigger);
-            el.addEventListener("focus", trigger);
+            var triggerPress = function () {
+              if (!el || el.hasAttribute("disabled") || el.getAttribute("aria-hidden") === "true") return;
+              var nowMs = Date.now();
+              if (nowMs - uiSfxLastAt < 36) return;
+              uiSfxElementAt.set(el, nowMs);
+              uiSfxLastAt = nowMs;
+              playUiClickSfx("press");
+            };
+            el.addEventListener("pointerenter", triggerHover);
+            el.addEventListener("focus", triggerHover);
+            el.addEventListener("click", triggerPress);
           });
         }
 
