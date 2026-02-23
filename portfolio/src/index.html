@@ -175,6 +175,9 @@
         display: flex;
         align-items: flex-end;
         pointer-events: none;
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 340ms ease, transform 420ms ease;
       }
 
       .terminal-dock.expanded .terminal {
@@ -185,7 +188,7 @@
 
       .terminal {
         width: 100%;
-        height: 228px;
+        height: clamp(176px, 24vh, 228px);
         display: flex;
         flex-direction: column;
         border: 1px solid rgba(111, 194, 255, 0.48);
@@ -324,14 +327,53 @@
         position: absolute;
         left: 50%;
         top: 50%;
-        width: min(40vw, 430px);
+        width: min(56vw, 620px);
         aspect-ratio: 1.28;
         transform: translate(-50%, -50%) rotateX(var(--brain-tilt-x, 0deg)) rotateY(var(--brain-tilt-y, 0deg));
         transform-style: preserve-3d;
         transform-origin: center center;
         pointer-events: none;
         filter: drop-shadow(0 28px 42px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 58px rgba(111, 194, 255, 0.25));
-        transition: transform 140ms linear;
+        transition: transform 140ms linear, opacity 520ms ease, filter 520ms ease;
+        opacity: 1;
+      }
+
+      .starfield.intro-locked .terminal-dock {
+        opacity: 0;
+        transform: translateY(20px);
+        pointer-events: none;
+      }
+
+      .starfield.intro-locked .organism {
+        opacity: 1;
+        filter: blur(0);
+      }
+
+      .starfield.intro-locked .brain-core {
+        pointer-events: auto;
+        cursor: pointer;
+      }
+
+      .starfield.intro-locked .brain-core:hover,
+      .starfield.intro-locked .brain-core:focus-visible {
+        filter: drop-shadow(0 32px 48px rgba(0, 0, 0, 0.58)) drop-shadow(0 0 72px rgba(111, 194, 255, 0.32));
+        outline: none;
+      }
+
+      .starfield.intro-zooming .brain-core {
+        transition: transform 980ms cubic-bezier(0.12, 0.72, 0.2, 1), opacity 520ms ease, filter 520ms ease;
+        transform: translate(-50%, -50%) scale(1.95) rotateX(var(--brain-tilt-x, 0deg)) rotateY(var(--brain-tilt-y, 0deg));
+      }
+
+      .starfield.intro-faded .brain-core {
+        opacity: 0;
+        filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0)) blur(8px);
+      }
+
+      .starfield.map-active .brain-core {
+        opacity: 0;
+        pointer-events: none;
+        filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0)) blur(8px);
       }
 
       .brain-viewport {
@@ -341,10 +383,10 @@
         pointer-events: none;
       }
 
-      .brain-core.is-3d-ready .brain-shell,
-      .brain-core.is-3d-ready .brain-grid,
-      .brain-core.is-3d-ready .brain-wireframe {
-        opacity: 0;
+      .brain-shell,
+      .brain-grid,
+      .brain-wireframe {
+        display: none;
       }
 
       .brain-shell,
@@ -597,7 +639,7 @@
         }
 
         .brain-core {
-          width: min(56vw, 320px);
+          width: min(70vw, 460px);
         }
 
         .star-node {
@@ -634,6 +676,30 @@
         .star-sub-node span {
           font-size: 0.58rem;
           padding: 2px 7px;
+        }
+      }
+
+      @media (max-height: 860px) {
+        .organism {
+          height: min(82vh, 720px);
+        }
+
+        .brain-core {
+          width: min(52vw, 520px);
+        }
+      }
+
+      @media (max-height: 760px) {
+        .terminal {
+          height: clamp(156px, 22vh, 190px);
+        }
+
+        .organism {
+          height: min(84vh, 660px);
+        }
+
+        .brain-core {
+          width: min(56vw, 460px);
         }
       }
 
@@ -698,7 +764,7 @@
     <div class="scan-noise" aria-hidden="true"></div>
 
     <main class="cosmos-shell">
-      <section class="starfield" aria-label="Star map launcher">
+      <section class="starfield intro-locked" aria-label="Star map launcher">
         <div class="terminal-dock" aria-live="polite">
           <div class="terminal">
             <div class="terminal-head">
@@ -719,7 +785,7 @@
         </div>
 
         <div class="organism" id="organism">
-          <div class="brain-core" id="brain-core" aria-hidden="true">
+          <div class="brain-core" id="brain-core" role="button" tabindex="0" aria-label="Enter neural map">
             <div class="brain-viewport" id="brain-viewport"></div>
             <div class="brain-shell"></div>
             <div class="brain-grid"></div>
@@ -731,7 +797,7 @@
             </svg>
           </div>
 
-          <a class="star-node star-node--primary" id="tftduos-link" data-kind="core" data-x="33" data-y="36" href="https://tftduos.brianz.dev" aria-label="Open TFT Duos Coach">
+          <a class="star-node star-node--primary" id="tftduos-link" data-kind="core" data-x="26" data-y="44" href="https://tftduos.brianz.dev" aria-label="Open TFT Duos Coach">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M32 4L56 18V46L32 60L8 46V18L32 4Z" fill="#16223B" stroke="#E0BD72" stroke-width="2.4"/>
@@ -743,7 +809,7 @@
             <span>TFT Duos</span>
           </a>
 
-          <a class="star-node star-node--primary star-node--ops" id="ops-link" data-kind="meta" data-x="67" data-y="50" href="#" aria-label="Expand systems intelligence nodes" aria-haspopup="true">
+          <a class="star-node star-node--primary star-node--ops" id="ops-link" data-kind="meta" data-x="74" data-y="44" href="#" aria-label="Expand systems intelligence nodes" aria-haspopup="true">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
@@ -779,7 +845,7 @@
             <span>Backend</span>
           </a>
 
-          <a class="star-node star-node--primary" data-x="35" data-y="66" href="https://github.com/bziebart123/brianz.dev" aria-label="Open GitHub Repository">
+          <a class="star-node star-node--primary" data-x="38" data-y="74" href="https://github.com/bziebart123/brianz.dev" aria-label="Open GitHub Repository">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="9" y="9" width="46" height="46" rx="12" fill="#121f35" stroke="#E0BD72" stroke-width="2.2"/>
@@ -790,7 +856,7 @@
             <span>Source</span>
           </a>
 
-          <a class="star-node star-node--primary" data-x="50" data-y="24" href="https://brianz.dev" aria-label="Reload home hub">
+          <a class="star-node star-node--primary" data-x="50" data-y="20" href="https://brianz.dev" aria-label="Reload home hub">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M32 8L52 24V52H12V24L32 8Z" fill="#13233A" stroke="#6FC2FF" stroke-width="2.2"/>
@@ -800,7 +866,7 @@
             <span>Home</span>
           </a>
 
-          <a class="star-node star-node--primary" id="contact-link" data-kind="meta" data-x="50" data-y="78" href="#" aria-label="Open contact relay">
+          <a class="star-node star-node--primary" id="contact-link" data-kind="meta" data-x="62" data-y="74" href="#" aria-label="Open contact relay">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="10" y="14" width="44" height="36" rx="8" fill="#13223A" stroke="#8EF0C8" stroke-width="2.2"/>
@@ -818,9 +884,6 @@
       import * as THREE from "./vendor/three.module.min.js";
       import { GLTFLoader } from "./vendor/GLTFLoader.js";
 
-      window.THREE = THREE;
-      window.THREE.GLTFLoader = GLTFLoader;
-
       (function () {
         var host = window.location.hostname;
         var isLocal = host === "localhost" || host === "127.0.0.1";
@@ -832,6 +895,7 @@
         var contactLink = document.getElementById("contact-link");
         var starfield = document.querySelector(".starfield");
         var terminalDock = document.querySelector(".terminal-dock");
+        var mapHud = document.querySelector(".map-hud");
         var bootLog = document.getElementById("boot-log");
         var terminalStatus = document.getElementById("terminal-status");
         var terminalCloseBtn = document.getElementById("terminal-close-btn");
@@ -881,7 +945,10 @@
         var brainModelGroup = null;
         var latticePulseLines = [];
         var nodeAnimationStarted = false;
+        var latticeLoopStarted = false;
         var spokeGreeting = false;
+        var introTransitionActive = false;
+        var mapActivated = false;
 
         nodes.forEach(function (node) {
           var href = node.getAttribute("href") || "";
@@ -1051,8 +1118,8 @@
           var ny = (clientY - rect.top) / Math.max(1, rect.height);
           var clampedX = Math.max(0, Math.min(1, nx));
           var clampedY = Math.max(0, Math.min(1, ny));
-          brainTiltTargetY = (clampedX - 0.5) * 18;
-          brainTiltTargetX = (0.5 - clampedY) * 14;
+          brainTiltTargetY = (clampedX - 0.5) * 30;
+          brainTiltTargetX = (0.5 - clampedY) * 24;
         }
 
         function buildFallbackBrainMesh() {
@@ -1092,26 +1159,126 @@
           if (!THREE || !rootModel) return;
           rootModel.traverse(function (child) {
             if (!child || !child.isMesh) return;
-            child.material = new THREE.MeshStandardMaterial({
-              color: 0x6fc2ff,
-              emissive: 0x184f86,
-              emissiveIntensity: 0.95,
-              roughness: 0.56,
-              metalness: 0.24,
-              transparent: true,
-              opacity: 0.9
+            var sourceMaterial = child.material;
+            var materials = Array.isArray(sourceMaterial) ? sourceMaterial : [sourceMaterial];
+            var tuned = materials.map(function (mat) {
+              if (!mat || typeof mat.clone !== "function") {
+                return new THREE.MeshStandardMaterial({
+                  color: 0x83c7ff,
+                  transparent: true,
+                  opacity: 0.72,
+                  roughness: 0.3,
+                  metalness: 0.08,
+                  emissive: 0x0f3560,
+                  emissiveIntensity: 0.22
+                });
+              }
+              var next = mat.clone();
+              if (next.color && typeof next.color.lerp === "function") {
+                next.color.lerp(new THREE.Color(0x8dcfff), 0.34);
+              }
+              next.transparent = true;
+              next.opacity = Math.min(0.8, Math.max(0.66, Number(next.opacity || 1) * 0.82));
+              next.depthWrite = true;
+              next.depthTest = true;
+              next.alphaTest = 0.01;
+              next.side = THREE.DoubleSide;
+              if ("roughness" in next) next.roughness = Math.max(0.2, Number(next.roughness || 0.45) * 0.72);
+              if ("metalness" in next) next.metalness = Math.min(0.22, Number(next.metalness || 0) + 0.06);
+              if ("transmission" in next) next.transmission = 0;
+              if ("thickness" in next) next.thickness = 0;
+              if ("emissiveIntensity" in next) next.emissiveIntensity = Math.max(0.14, Number(next.emissiveIntensity || 0) + 0.14);
+              return next;
             });
+            child.material = Array.isArray(sourceMaterial) ? tuned : tuned[0];
           });
           var box = new THREE.Box3().setFromObject(rootModel);
           var size = new THREE.Vector3();
           box.getSize(size);
           var maxAxis = Math.max(size.x, size.y, size.z) || 1;
-          var scale = 2.1 / maxAxis;
+          var scale = 2.45 / maxAxis;
           rootModel.scale.setScalar(scale);
           box.setFromObject(rootModel);
           var center = new THREE.Vector3();
           box.getCenter(center);
           rootModel.position.sub(center);
+          alignBrainToViewport(rootModel);
+        }
+
+        function alignBrainToViewport(rootModel) {
+          if (!THREE || !rootModel || !brainCamera) return;
+          brainCamera.updateProjectionMatrix();
+          brainCamera.updateMatrixWorld();
+
+          function projectedSilhouetteCenter(model) {
+            var minX = Infinity;
+            var maxX = -Infinity;
+            var minY = Infinity;
+            var maxY = -Infinity;
+            var sumX = 0;
+            var sumY = 0;
+            var count = 0;
+            var hasPoint = false;
+            var worldPos = new THREE.Vector3();
+            var ndcPos = new THREE.Vector3();
+
+            model.traverse(function (node) {
+              if (!node || !node.isMesh || !node.geometry) return;
+              var posAttr = node.geometry.getAttribute && node.geometry.getAttribute("position");
+              if (!posAttr || !posAttr.count) return;
+              var step = Math.max(1, Math.ceil(posAttr.count / 2200));
+              for (var idx = 0; idx < posAttr.count; idx += step) {
+                worldPos.fromBufferAttribute(posAttr, idx);
+                worldPos.applyMatrix4(node.matrixWorld);
+                ndcPos.copy(worldPos).project(brainCamera);
+                if (ndcPos.z < -1 || ndcPos.z > 1) continue;
+                if (ndcPos.x < minX) minX = ndcPos.x;
+                if (ndcPos.x > maxX) maxX = ndcPos.x;
+                if (ndcPos.y < minY) minY = ndcPos.y;
+                if (ndcPos.y > maxY) maxY = ndcPos.y;
+                sumX += ndcPos.x;
+                sumY += ndcPos.y;
+                count += 1;
+                hasPoint = true;
+              }
+            });
+
+            if (!hasPoint) return null;
+            var avgX = sumX / Math.max(1, count);
+            var avgY = sumY / Math.max(1, count);
+            return {
+              // Blend centroid + bounds midpoint for stable visual centering.
+              x: (avgX * 0.75) + (((minX + maxX) * 0.5) * 0.25),
+              y: (avgY * 0.75) + (((minY + maxY) * 0.5) * 0.25)
+            };
+          }
+
+          var targetNdcX = -0.31;
+          var targetNdcY = 0.0;
+          for (var i = 0; i < 7; i += 1) {
+            rootModel.updateMatrixWorld(true);
+            var bounds = new THREE.Box3().setFromObject(rootModel);
+            var size = new THREE.Vector3();
+            bounds.getSize(size);
+
+            var focus = new THREE.Vector3(
+              (bounds.min.x + bounds.max.x) * 0.5,
+              bounds.min.y + size.y * 0.69,
+              (bounds.min.z + bounds.max.z) * 0.5
+            );
+            var silhouetteCenter = projectedSilhouetteCenter(rootModel);
+            var ndc = silhouetteCenter || focus.clone().project(brainCamera);
+            var focusCam = focus.clone().applyMatrix4(brainCamera.matrixWorldInverse);
+            var depth = Math.max(0.001, -focusCam.z);
+            var fovRad = (brainCamera.fov * Math.PI) / 180;
+            var worldPerNdcY = depth * Math.tan(fovRad * 0.5);
+            var worldPerNdcX = worldPerNdcY * brainCamera.aspect;
+
+            var dxCam = (targetNdcX - ndc.x) * worldPerNdcX;
+            var dyCam = (targetNdcY - ndc.y) * worldPerNdcY;
+            var deltaWorld = new THREE.Vector3(dxCam, dyCam, 0).applyQuaternion(brainCamera.quaternion);
+            rootModel.position.add(deltaWorld.multiplyScalar(1.2));
+          }
         }
 
         function attachBrainModel(group) {
@@ -1130,7 +1297,7 @@
 
           brainScene = new THREE.Scene();
           brainCamera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
-          brainCamera.position.set(0, 0.22, 5.1);
+          brainCamera.position.set(0, 0.06, 5.1);
 
           brainRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
           brainRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -1156,19 +1323,14 @@
               function (gltf) {
                 var group = gltf && gltf.scene ? gltf.scene : null;
                 if (!group) {
-                  attachBrainModel(buildFallbackBrainMesh());
                   return;
                 }
                 styleLoadedBrain(group);
                 attachBrainModel(group);
               },
               undefined,
-              function () {
-                attachBrainModel(buildFallbackBrainMesh());
-              }
+              function () {}
             );
-          } else {
-            attachBrainModel(buildFallbackBrainMesh());
           }
         }
 
@@ -1183,8 +1345,8 @@
 
         function renderThreeBrain(timeSec) {
           if (!brainRenderer || !brainScene || !brainCamera || !brainRoot) return;
-          var rx = (brainTiltX * Math.PI / 180) * 0.55;
-          var ry = (brainTiltY * Math.PI / 180) * 0.6;
+          var rx = (brainTiltX * Math.PI / 180) * 0.8;
+          var ry = (brainTiltY * Math.PI / 180) * 0.85;
           brainRoot.rotation.x = rx;
           brainRoot.rotation.y = ry;
           brainRoot.rotation.z = Math.sin(timeSec * 0.22) * 0.03;
@@ -1203,6 +1365,8 @@
         }
 
         function beginStarMap() {
+          if (mapActivated) return;
+          mapActivated = true;
           terminalMode = "sync";
           applyTerminalModeStatus();
           if (starfield) starfield.classList.add("ready");
@@ -1213,11 +1377,50 @@
             }, index * 150);
           });
 
-          if (!nodeAnimationStarted) {
-            nodeAnimationStarted = true;
-            updateNodeLayout();
-            requestAnimationFrame(updateLattice);
+          nodeAnimationStarted = true;
+          updateNodeLayout();
+        }
+
+        function runBootSequenceAfterEntry(shouldSkipBoot, bootSequence) {
+          if (shouldSkipBoot) {
+            bootSequence.forEach(function (line) {
+              pushBootLine(line.text, line.highlight);
+            });
+            beginStarMap();
+            return;
           }
+
+          bootSequence.forEach(function (line, index) {
+            window.setTimeout(function () {
+              pushBootLine(line.text, line.highlight);
+              if (bootLog) {
+                bootLog.scrollTop = bootLog.scrollHeight;
+              }
+            }, 180 + index * 420);
+          });
+
+          window.setTimeout(function () {
+            beginStarMap();
+            speakGreeting();
+          }, 180 + bootSequence.length * 420 + 300);
+        }
+
+        function triggerBrainEntry(shouldSkipBoot, bootSequence) {
+          if (introTransitionActive || mapActivated) return;
+          introTransitionActive = true;
+          if (starfield) starfield.classList.add("intro-zooming");
+          window.setTimeout(function () {
+            if (starfield) starfield.classList.add("intro-faded");
+          }, 90);
+          window.setTimeout(function () {
+            if (starfield) {
+              starfield.classList.remove("intro-locked");
+              starfield.classList.remove("intro-zooming");
+              starfield.classList.remove("intro-faded");
+              starfield.classList.add("map-active");
+            }
+            runBootSequenceAfterEntry(shouldSkipBoot, bootSequence);
+          }, 1240);
         }
 
         function appendApiManifest() {
@@ -1565,16 +1768,31 @@
         function updateNodeLayout() {
           if (!organism) return;
           var rect = organism.getBoundingClientRect();
+          var hudRect = mapHud ? mapHud.getBoundingClientRect() : null;
+          var hudHeight = hudRect ? hudRect.height : 0;
+          // Keep map geometry stable across terminal expand/collapse.
+          var safeTop = Math.max(20, 18 + hudHeight);
+          var safeBottom = Math.max(150, Math.min(230, rect.height * 0.28));
+          if (window.innerHeight <= 760) {
+            safeBottom = Math.max(132, Math.min(200, rect.height * 0.25));
+          }
+          var usableTop = safeTop;
+          var usableHeight = Math.max(1, rect.height - safeTop - safeBottom);
 
           for (var i = 0; i < nodeState.length; i += 1) {
             var state = nodeState[i];
             var x = state.x * rect.width;
-            var y = state.y * rect.height;
+            var y = usableTop + (state.y * usableHeight);
             state.lx = x;
             state.ly = y;
             state.px = rect.left + x;
             state.py = rect.top + y;
             state.el.style.transform = "translate(-50%, -50%) translate(" + x.toFixed(2) + "px," + y.toFixed(2) + "px)";
+          }
+
+          if (brainCore) {
+            var centeredY = usableTop + (usableHeight * 0.5);
+            brainCore.style.top = centeredY.toFixed(2) + "px";
           }
 
           if (brainCore) {
@@ -1634,29 +1852,21 @@
           resizeBrainViewport();
         }
 
+        if (brainCore) {
+          brainCore.addEventListener("click", function () {
+            triggerBrainEntry(shouldSkipBoot, bootSequence);
+          });
+          brainCore.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              triggerBrainEntry(shouldSkipBoot, bootSequence);
+            }
+          });
+        }
+
         window.addEventListener("resize", resizeLattice);
         resizeLattice();
-
-        if (shouldSkipBoot) {
-          bootSequence.forEach(function (line) {
-            pushBootLine(line.text, line.highlight);
-          });
-          beginStarMap();
-        } else {
-          bootSequence.forEach(function (line, index) {
-            window.setTimeout(function () {
-              pushBootLine(line.text, line.highlight);
-              if (bootLog) {
-                bootLog.scrollTop = bootLog.scrollHeight;
-              }
-            }, 260 + index * 460);
-          });
-
-          window.setTimeout(function () {
-            beginStarMap();
-            speakGreeting();
-          }, 260 + bootSequence.length * 460 + 460);
-        }
+        startLatticeLoop();
 
         function drawLinks(timeSec) {
           if (!latticeCtx || !latticeCanvas) return;
@@ -1713,10 +1923,20 @@
 
         function updateLattice(now) {
           updateBrainTilt();
-          updateOpsSubNodeLayout();
           var timeSec = now * 0.001;
-          drawLinks(timeSec);
+          if (mapActivated) {
+            updateOpsSubNodeLayout();
+            drawLinks(timeSec);
+          } else if (latticeCtx && latticeCanvas) {
+            latticeCtx.clearRect(0, 0, latticeCanvas.width, latticeCanvas.height);
+          }
           renderThreeBrain(timeSec);
+          requestAnimationFrame(updateLattice);
+        }
+
+        function startLatticeLoop() {
+          if (latticeLoopStarted) return;
+          latticeLoopStarted = true;
           requestAnimationFrame(updateLattice);
         }
 

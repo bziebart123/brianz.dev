@@ -32,6 +32,8 @@ Create a personal portfolio site at the root domain and host multiple sub-apps o
 
 From repo root:
 
+- `npm run dev:all` (starts backend + TFTDuos client + Site Performance client together)
+- `npm run verify:local` (runs TFT client tests + backend syntax check + all builds)
 - `npm run build:portfolio`
 - `npm run build:tftduos`
 - `npm run build:site-performance`
@@ -50,6 +52,10 @@ From `apps/tftduos/client`:
 - `npm run test`
 - `npm run test:watch`
 - `npm run test:coverage`
+
+Windows PowerShell note:
+
+- If script execution policy blocks `npm`, use `npm.cmd` (for example `npm.cmd run dev:all`).
 
 ## Render setup
 
