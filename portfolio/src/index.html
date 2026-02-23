@@ -941,8 +941,7 @@
         var opsCollapseTimer = null;
         var brainTiltX = 0;
         var brainTiltY = 0;
-        var brainTiltTargetX = 0;
-        var brainTiltTargetY = 0;
+        var brainLoadStartMs = (window.performance && typeof window.performance.now === "function") ? window.performance.now() : Date.now();
         var brainScene = null;
         var brainCamera = null;
         var brainRenderer = null;
@@ -974,16 +973,6 @@
         }
 
         setOpsExpanded(false);
-
-        if (organism) {
-          organism.addEventListener("pointermove", function (event) {
-            setBrainTiltTarget(event.clientX, event.clientY);
-          });
-          organism.addEventListener("pointerleave", function () {
-            brainTiltTargetX = 0;
-            brainTiltTargetY = 0;
-          });
-        }
 
         initThreeBrain();
         resizeBrainViewport();
@@ -1113,17 +1102,6 @@
           opsCollapseTimer = window.setTimeout(function () {
             setOpsExpanded(false);
           }, 220);
-        }
-
-        function setBrainTiltTarget(clientX, clientY) {
-          if (!organism) return;
-          var rect = organism.getBoundingClientRect();
-          var nx = (clientX - rect.left) / Math.max(1, rect.width);
-          var ny = (clientY - rect.top) / Math.max(1, rect.height);
-          var clampedX = Math.max(0, Math.min(1, nx));
-          var clampedY = Math.max(0, Math.min(1, ny));
-          brainTiltTargetY = (clampedX - 0.5) * 30;
-          brainTiltTargetX = (0.5 - clampedY) * 24;
         }
 
         function buildFallbackBrainMesh() {
@@ -1292,6 +1270,7 @@
           }
           brainModelGroup = group;
           brainRoot.add(group);
+          brainLoadStartMs = (window.performance && typeof window.performance.now === "function") ? window.performance.now() : Date.now();
           if (brainCore) brainCore.classList.add("is-3d-ready");
         }
 
@@ -1358,9 +1337,18 @@
           brainRoot.rotation.x = rx;
           brainRoot.rotation.y = ry;
           brainRoot.rotation.z = Math.sin(timeSec * 0.22) * 0.03;
+
+          var nowMs = (window.performance && typeof window.performance.now === "function") ? window.performance.now() : Date.now();
+          var introProgress = Math.max(0, Math.min(1, (nowMs - brainLoadStartMs) / 620));
+          var introEase = 1 - Math.pow(1 - introProgress, 3);
+          var introScale = 0.06 + (introEase * 0.94);
+
           if (brainModelGroup) {
             var s = 1 + (Math.sin(timeSec * 0.84) * 0.012);
-            brainRoot.scale.set(s, s, s);
+            var totalScale = s * introScale;
+            brainRoot.scale.set(totalScale, totalScale, totalScale);
+          } else {
+            brainRoot.scale.set(introScale, introScale, introScale);
           }
           brainRenderer.render(brainScene, brainCamera);
         }
@@ -1838,10 +1826,12 @@
           }
         }
 
-        function updateBrainTilt() {
+        function updateBrainTilt(timeSec) {
           if (!organism) return;
-          brainTiltX += (brainTiltTargetX - brainTiltX) * 0.12;
-          brainTiltY += (brainTiltTargetY - brainTiltY) * 0.12;
+          var targetX = Math.sin(timeSec * 0.8) * 9;
+          var targetY = Math.cos(timeSec * 1.05) * 12;
+          brainTiltX += (targetX - brainTiltX) * 0.08;
+          brainTiltY += (targetY - brainTiltY) * 0.08;
           organism.style.setProperty("--brain-tilt-x", brainTiltX.toFixed(2) + "deg");
           organism.style.setProperty("--brain-tilt-y", brainTiltY.toFixed(2) + "deg");
         }
@@ -1930,8 +1920,8 @@
         }
 
         function updateLattice(now) {
-          updateBrainTilt();
           var timeSec = now * 0.001;
+          updateBrainTilt(timeSec);
           if (mapActivated) {
             updateOpsSubNodeLayout();
             drawLinks(timeSec);
