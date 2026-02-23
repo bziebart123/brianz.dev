@@ -211,6 +211,7 @@ Use exactly what Render Custom Domains asks for:
 - Critical/red escalation sensitivity has been tuned slightly higher than the initial rollout so users must sustain stronger shake input before entering the critical state.
 - Portfolio terminal output now auto-follows newest appended lines (including shake warnings and stream logs), so latest status stays visible at the bottom while preserving normal manual scroll behavior between new messages.
 - Shake alerts now include explicit recovery behavior: once the alert glow decays back to baseline, terminal history logs a stability-recovered line and the footer status settles to `stable // subject stability nominal`.
+- Brain drag capture hit-testing is now constrained to the brain silhouette area (ellipse around the model) so map-mode rotation starts only when pointer-down occurs over the brain itself, not the wider glow/container region.
 - Portfolio launcher node ordering now prioritizes app nodes first (`TFT Duos`, `Warhammer`) and groups utility nodes after (`Memory Access`, `Contact`, `Source`), with app nodes on `core` yellow styling and utility nodes on `meta` green styling (including hover state).
 - Portfolio `Source` node icon now uses a GitHub mark, and app node glyphs were refreshed toward a TFT crest and Warhammer banner motif.
 - App node glyphs are now intentionally generic/custom: TFT icon uses a yellow-only `TFT` crest (no blue accent), and Warhammer icon uses a simple `40K` text mark to avoid dependency on third-party trademark logo assets.

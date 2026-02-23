@@ -2227,6 +2227,18 @@
           organism.style.setProperty("--brain-tilt-y", brainTiltY.toFixed(2) + "deg");
         }
 
+        function isPointerOnBrain(event) {
+          if (!brainCore) return false;
+          var rect = brainCore.getBoundingClientRect();
+          if (!rect.width || !rect.height) return false;
+          var cx = rect.left + rect.width * 0.5;
+          var cy = rect.top + rect.height * 0.48;
+          // Limit drag capture to the core silhouette area, not full glow/container bounds.
+          var nx = (event.clientX - cx) / (rect.width * 0.32);
+          var ny = (event.clientY - cy) / (rect.height * 0.36);
+          return (nx * nx + ny * ny) <= 1;
+        }
+
         function resizeLattice() {
           if (!latticeCanvas || !latticeCtx) return;
           var w = Math.max(1, Math.floor(window.innerWidth * window.devicePixelRatio));
@@ -2248,6 +2260,7 @@
           brainCore.addEventListener("pointerdown", function (event) {
             if (!mapActivated) return;
             if (event.button !== 0) return;
+            if (!isPointerOnBrain(event)) return;
             brainDragActive = true;
             brainDragPointerId = event.pointerId;
             brainShakeMeter = 0;
