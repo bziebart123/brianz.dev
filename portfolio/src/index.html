@@ -1103,21 +1103,22 @@
           var filter = ctx.createBiquadFilter();
           var isPress = variant === "press";
 
+          // E profile (Tight Dual) from sfx-lab, with slightly hotter press accent.
           oscA.type = "square";
-          oscA.frequency.setValueAtTime(isPress ? 1950 : 1760, now);
-          oscA.frequency.exponentialRampToValueAtTime(isPress ? 1260 : 1320, now + 0.012);
+          oscA.frequency.setValueAtTime(isPress ? 2020 : 1900, now);
+          oscA.frequency.exponentialRampToValueAtTime(isPress ? 1310 : 1290, now + 0.011);
 
           oscB.type = "triangle";
-          oscB.frequency.setValueAtTime(isPress ? 2680 : 2440, now);
-          oscB.frequency.exponentialRampToValueAtTime(isPress ? 1710 : 1680, now + 0.01);
+          oscB.frequency.setValueAtTime(isPress ? 3040 : 2920, now);
+          oscB.frequency.exponentialRampToValueAtTime(isPress ? 1820 : 1810, now + 0.009);
 
           gain.gain.setValueAtTime(0.0001, now);
-          gain.gain.exponentialRampToValueAtTime(isPress ? 0.024 : 0.016, now + 0.002);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + (isPress ? 0.028 : 0.022));
+          gain.gain.exponentialRampToValueAtTime(isPress ? 0.021 : 0.0175, now + 0.0012);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + (isPress ? 0.021 : 0.018));
 
           filter.type = "highpass";
-          filter.frequency.setValueAtTime(960, now);
-          filter.Q.setValueAtTime(0.42, now);
+          filter.frequency.setValueAtTime(isPress ? 1360 : 1300, now);
+          filter.Q.setValueAtTime(0.45, now);
 
           oscA.connect(filter);
           oscB.connect(filter);
@@ -1126,8 +1127,8 @@
 
           oscA.start(now);
           oscB.start(now);
-          oscA.stop(now + (isPress ? 0.035 : 0.03));
-          oscB.stop(now + (isPress ? 0.028 : 0.024));
+          oscA.stop(now + (isPress ? 0.024 : 0.021));
+          oscB.stop(now + (isPress ? 0.02 : 0.018));
         }
 
         function bindUiSfxToInteractive() {
