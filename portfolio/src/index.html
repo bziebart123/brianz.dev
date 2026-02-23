@@ -381,6 +381,10 @@
         font-weight: 600;
       }
 
+      .boot-line-loading {
+        color: #8ef0c8;
+      }
+
       .brain-core {
         position: absolute;
         left: 50%;
@@ -973,6 +977,7 @@
         var terminalQueueOffset = 0;
         var renderMetaChain = Promise.resolve();
         var systemAccessMode = "memory";
+        var terminalOutputLoadingLine = null;
         var linkedinUrl = "https://www.linkedin.com/in/brian-ziebart/";
         var subAppHosts = [
           "tftduos.brianz.dev",
@@ -1109,11 +1114,22 @@
 
         function setTerminalStatusText(text, thinking) {
           if (!terminalStatus) return;
-          if (thinking) {
-            terminalStatus.innerHTML = text + " <span class=\"terminal-inline-loader\" aria-hidden=\"true\"><span class=\"terminal-inline-loader-dots\"></span></span>";
-            return;
-          }
           terminalStatus.textContent = text;
+        }
+
+        function setTerminalOutputLoading(text) {
+          if (!bootLog) return;
+          if (terminalOutputLoadingLine && terminalOutputLoadingLine.parentNode) {
+            terminalOutputLoadingLine.parentNode.removeChild(terminalOutputLoadingLine);
+          }
+          terminalOutputLoadingLine = null;
+          if (!text) return;
+          var line = document.createElement("div");
+          line.className = "boot-line boot-line-loading show";
+          line.innerHTML = text + " <span class=\"terminal-inline-loader\" aria-hidden=\"true\"><span class=\"terminal-inline-loader-dots\"></span></span>";
+          bootLog.appendChild(line);
+          terminalOutputLoadingLine = line;
+          bootLog.scrollTop = bootLog.scrollHeight;
         }
 
         function syncTerminalToggleControl() {
@@ -1671,7 +1687,8 @@
             pushBootLine("> Memory channel: render telemetry + service state", false);
           });
           cursor += 1;
-          setTerminalStatusText((systemAccessMode === "protocol" ? "protocol.access" : "subject.memory") + " // awaiting response", true);
+          setTerminalStatusText((systemAccessMode === "protocol" ? "protocol.access" : "subject.memory") + " // awaiting response", false);
+          setTerminalOutputLoading("> processing telemetry stream");
 
           try {
             var response = await fetch(url);
@@ -1749,6 +1766,8 @@
               pushBootLine("> " + accessLabel + " stream error: " + String(error && error.message ? error.message : error), true);
             });
             cursor += 1;
+          } finally {
+            setTerminalOutputLoading("");
           }
 
           queueTerminalLine(cursor, delay, function () {
