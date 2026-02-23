@@ -14,7 +14,7 @@ Create a personal portfolio site at the root domain and host multiple sub-apps o
 
 ```txt
 /portfolio          # Static site for brianz.dev
-/apps/site-performance          # Site Performance dashboard (frontend-only, shared backend API)
+/apps/site-performance          # Site Performance 40K companion app (frontend-only terminal UX)
   /client           # Vite React app
 /apps/backend       # brianz backend (shared Express API service)
 /apps/tftduos       # TFTDuos app sources
@@ -187,6 +187,7 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio brain centerpiece now runs on an ambient auto-rotation loop (no cursor tracking), and each brain load starts from a tiny scale before a rapid zoom-in to full size for a "target acquired" feel.
 - TFTDuos + Site Performance frontends now share portfolio visual language tokens (thin luminous blue outlines, translucent navy cards, controlled glow/opacity) and starfield-backed atmospherics while preserving foreground readability.
 - Starfield parity pass: TFTDuos and Site Performance now use denser/brighter star specks plus stronger background drift/twinkle motion so non-portfolio apps better match the portfolio launcher's ambient movement profile.
+- Site Performance frontend has been refactored into a dedicated 40K Companion terminal app that mirrors the portfolio terminal styling and uses command-driven quick-reference responses for tabletop reminders.
 - Portfolio launcher link assumptions:
   - production node links: `https://tftduos.brianz.dev` (TFT) and `https://api.brianz.dev` (shared backend + Render Meta terminal data source)
   - local host node links: `http://localhost:4173` (TFT) and `http://localhost:3001` (shared backend + Render Meta terminal data source)
