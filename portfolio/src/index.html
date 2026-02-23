@@ -223,6 +223,26 @@
         gap: 8px;
       }
 
+      .terminal-protocol-btn {
+        border: 1px solid rgba(111, 194, 255, 0.44);
+        border-radius: 999px;
+        background: rgba(9, 17, 33, 0.78);
+        color: #d4e4ff;
+        font-family: inherit;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        cursor: pointer;
+      }
+
+      .terminal-protocol-btn:hover,
+      .terminal-protocol-btn:focus-visible {
+        border-color: rgba(142, 240, 200, 0.72);
+        color: #8ef0c8;
+        outline: none;
+      }
+
       .terminal-close {
         border: 1px solid rgba(111, 194, 255, 0.44);
         border-radius: 999px;
@@ -364,6 +384,11 @@
 
       .starfield.intro-locked .terminal-close {
         display: none;
+      }
+
+      .starfield.intro-locked .terminal-protocol-btn {
+        pointer-events: none;
+        opacity: 0.7;
       }
 
       .starfield.intro-locked .organism {
@@ -795,7 +820,7 @@
             <div class="terminal-head">
               <span>Cognitive Navigation Terminal</span>
               <div class="terminal-head-actions">
-                <span>Protocol NX-7A19.442</span>
+                <button type="button" class="terminal-protocol-btn" id="protocol-link">Protocol NX-7A19.442</button>
                 <button type="button" class="terminal-close" id="terminal-close-btn" aria-label="Expand terminal panel">^</button>
               </div>
             </div>
@@ -832,42 +857,6 @@
               </svg>
             </div>
             <span>TFT Duos</span>
-          </a>
-
-          <a class="star-node star-node--primary star-node--ops" id="ops-link" data-kind="meta" data-x="74" data-y="44" href="#" aria-label="Expand systems intelligence nodes" aria-haspopup="true">
-            <div class="node-icon">
-              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
-                <path d="M17 21H47M17 32H47M17 43H36" stroke="#8EF0C8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="45" cy="43" r="3" fill="#8EF0C8"/>
-              </svg>
-            </div>
-            <span>Systems</span>
-          </a>
-
-          <a class="star-sub-node" id="meta-link" data-kind="meta" data-parent="ops" data-offset-x="108" data-offset-y="-52" href="https://api.brianz.dev/api/site-performance/render/overview?hours=24" aria-label="Load Render Meta in terminal">
-            <div class="node-icon">
-              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
-                <path d="M17 42L25 33L31 37L40 25L47 30" stroke="#8EF0C8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="25" cy="33" r="2.6" fill="#8EF0C8"/>
-                <circle cx="31" cy="37" r="2.6" fill="#8EF0C8"/>
-                <circle cx="40" cy="25" r="2.6" fill="#8EF0C8"/>
-              </svg>
-            </div>
-            <span>Render Meta</span>
-          </a>
-
-          <a class="star-sub-node" id="backend-link" data-kind="meta" data-parent="ops" data-offset-x="112" data-offset-y="52" href="https://api.brianz.dev/health" aria-label="Open Backend Health">
-            <div class="node-icon">
-              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="32" cy="32" r="24" fill="#11253E" stroke="#6FC2FF" stroke-width="2.2"/>
-                <path d="M19 32H45" stroke="#6FC2FF" stroke-width="3" stroke-linecap="round"/>
-                <path d="M32 19V45" stroke="#6FC2FF" stroke-width="3" stroke-linecap="round"/>
-                <circle cx="32" cy="32" r="6" fill="#E0BD72"/>
-              </svg>
-            </div>
-            <span>Backend</span>
           </a>
 
           <a class="star-node star-node--primary" data-x="38" data-y="74" href="https://github.com/bziebart123/brianz.dev" aria-label="Open GitHub Repository">
@@ -922,6 +911,7 @@
         var terminalDock = document.querySelector(".terminal-dock");
         var terminalPanel = document.querySelector(".terminal");
         var mapHud = document.querySelector(".map-hud");
+        var protocolLink = document.getElementById("protocol-link");
         var bootLog = document.getElementById("boot-log");
         var terminalStatus = document.getElementById("terminal-status");
         var terminalCloseBtn = document.getElementById("terminal-close-btn");
@@ -1077,6 +1067,15 @@
           terminalCloseBtn.textContent = isExpanded ? "v" : "^";
           terminalCloseBtn.setAttribute("aria-label", isExpanded ? "Collapse terminal panel" : "Expand terminal panel");
           terminalCloseBtn.setAttribute("title", isExpanded ? "Collapse terminal panel" : "Expand terminal panel");
+        }
+
+        function beginSubjectMemoryAccess() {
+          if (!terminalExpanded) setTerminalExpanded(true);
+          renderMetaChain = renderMetaChain.then(function () {
+            return appendRenderMetaSnapshot();
+          }).catch(function () {
+            return appendRenderMetaSnapshot();
+          });
         }
 
         function applyTerminalModeStatus() {
@@ -1590,11 +1589,11 @@
           var cursor = 0;
 
           queueTerminalLine(cursor, delay, function () {
-            pushBootLine("> Render Meta snapshot request accepted [" + stamp + "] #" + renderMetaRequestCount, true);
+            pushBootLine("> Subject memory access accepted [" + stamp + "] #" + renderMetaRequestCount, true);
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
-            pushBootLineHtml("&gt; run render.meta --hours 24 --origin \"" + backendBase + "\"", "api-line");
+            pushBootLineHtml("&gt; run subject.memory.access --window 24h --origin \"" + backendBase + "\"", "api-line");
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
@@ -1602,10 +1601,10 @@
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
-            pushBootLine("> Connected API origin: " + backendBase, false);
+            pushBootLine("> Memory channel: render telemetry + service state", false);
           });
           cursor += 1;
-          setTerminalStatusText("render.meta // awaiting response", true);
+          setTerminalStatusText("subject.memory // awaiting response", true);
 
           try {
             var response = await fetch(url);
@@ -1642,6 +1641,10 @@
               pushBootLine("> Avg memory: " + avgMemory, false);
             });
             cursor += 1;
+            queueTerminalLine(cursor, delay, function () {
+              pushBootLine("> Postgres memory-health channel: pending integration", false);
+            });
+            cursor += 1;
 
             if (services.length) {
               services.slice(0, 8).forEach(function (service) {
@@ -1671,12 +1674,12 @@
             }
 
             queueTerminalLine(cursor, delay, function () {
-              pushBootLine("> Render Meta snapshot stream complete", true);
+              pushBootLine("> Subject memory stream complete", true);
             });
             cursor += 1;
           } catch (error) {
             queueTerminalLine(cursor, delay, function () {
-              pushBootLine("> Render Meta stream error: " + String(error && error.message ? error.message : error), true);
+              pushBootLine("> Subject memory stream error: " + String(error && error.message ? error.message : error), true);
             });
             cursor += 1;
           }
@@ -1692,12 +1695,15 @@
           metaLink.addEventListener("click", function (event) {
             if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
             event.preventDefault();
-            if (!terminalExpanded) setTerminalExpanded(true);
-            renderMetaChain = renderMetaChain.then(function () {
-              return appendRenderMetaSnapshot();
-            }).catch(function () {
-              return appendRenderMetaSnapshot();
-            });
+            beginSubjectMemoryAccess();
+          });
+        }
+
+        if (protocolLink) {
+          protocolLink.addEventListener("click", function (event) {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            beginSubjectMemoryAccess();
           });
         }
 
@@ -1733,9 +1739,8 @@
 
         var bootSequence = [
           { text: "> Initiating protocol: NX-7A19.442", highlight: false },
-          { text: "> Calibrating semi-sentient navigator...", highlight: false },
+          { text: "> Calibrating navigation bus...", highlight: false },
           { text: "> Mapping subject neural topology", highlight: true },
-          { text: "> Compiling project constellations", highlight: false },
           { text: "> Rendering neural routes and access nodes", highlight: false },
           { text: "> Interface online.", highlight: true }
         ];
