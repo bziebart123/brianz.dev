@@ -148,6 +148,9 @@
         position: relative;
         width: 100%;
         height: min(84vh, 860px);
+        perspective: 1600px;
+        --brain-tilt-x: 0deg;
+        --brain-tilt-y: 0deg;
         opacity: 0;
         filter: blur(4px);
         transition: opacity 460ms ease, filter 460ms ease;
@@ -317,48 +320,117 @@
         font-weight: 600;
       }
 
-      .core {
+      .brain-core {
         position: absolute;
         left: 50%;
         top: 50%;
-        width: min(28vw, 250px);
-        aspect-ratio: 1;
-        transform: translate(-50%, -50%);
-        border-radius: 50%;
-        border: 1px solid rgba(111, 194, 255, 0.5);
-        background:
-          radial-gradient(circle at 34% 30%, rgba(140, 205, 255, 0.4), rgba(25, 40, 72, 0.24) 38%, rgba(9, 16, 30, 0.88) 70%),
-          radial-gradient(circle at 75% 72%, rgba(224, 189, 114, 0.2), transparent 55%);
-        box-shadow:
-          inset 0 0 42px rgba(111, 194, 255, 0.24),
-          0 0 66px rgba(111, 194, 255, 0.3),
-          0 0 120px rgba(9, 16, 34, 0.72);
-        animation: corePulse 10s ease-in-out infinite;
+        width: min(40vw, 430px);
+        aspect-ratio: 1.28;
+        transform: translate(-50%, -50%) rotateX(var(--brain-tilt-x, 0deg)) rotateY(var(--brain-tilt-y, 0deg));
+        transform-style: preserve-3d;
+        transform-origin: center center;
+        pointer-events: none;
+        filter: drop-shadow(0 28px 42px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 58px rgba(111, 194, 255, 0.25));
+        transition: transform 140ms linear;
       }
 
-      .core::before,
-      .core::after {
-        content: "";
+      .brain-shell,
+      .brain-shell::before,
+      .brain-shell::after {
         position: absolute;
-        inset: 12%;
-        border-radius: 50%;
+        content: "";
+      }
+
+      .brain-shell {
+        inset: 9% 5%;
+        border-radius: 53% 47% 49% 51% / 61% 43% 57% 39%;
+        border: 1px solid rgba(111, 194, 255, 0.45);
+        background:
+          radial-gradient(circle at 36% 34%, rgba(161, 217, 255, 0.34), rgba(18, 30, 54, 0.2) 34%, rgba(8, 14, 28, 0.9) 78%),
+          linear-gradient(150deg, rgba(26, 42, 74, 0.55), rgba(9, 16, 30, 0.72));
+        box-shadow:
+          inset 0 0 36px rgba(111, 194, 255, 0.24),
+          0 0 42px rgba(111, 194, 255, 0.3);
+        animation: brainPulse 9.5s ease-in-out infinite;
+      }
+
+      .brain-shell::before {
+        inset: 13% 9%;
+        border-radius: 53% 47% 52% 48% / 60% 44% 56% 40%;
         border: 1px solid rgba(111, 194, 255, 0.3);
       }
 
-      .core::after {
-        inset: -20%;
-        border-color: rgba(224, 189, 114, 0.2);
+      .brain-shell::after {
+        inset: -8% -5%;
+        border-radius: 54% 46% 50% 50% / 62% 42% 58% 38%;
+        border: 1px solid rgba(224, 189, 114, 0.2);
       }
 
-      @keyframes corePulse {
+      .brain-grid {
+        position: absolute;
+        inset: 11% 7%;
+        border-radius: 52% 48% 50% 50% / 62% 42% 58% 38%;
+        background:
+          linear-gradient(0deg, rgba(111, 194, 255, 0.16), rgba(111, 194, 255, 0.16)) 0 50% / 100% 1px no-repeat,
+          repeating-linear-gradient(
+            90deg,
+            rgba(111, 194, 255, 0.13) 0px,
+            rgba(111, 194, 255, 0.13) 1px,
+            transparent 1px,
+            transparent 14px
+          ),
+          repeating-linear-gradient(
+            0deg,
+            rgba(111, 194, 255, 0.1) 0px,
+            rgba(111, 194, 255, 0.1) 1px,
+            transparent 1px,
+            transparent 12px
+          );
+        mix-blend-mode: screen;
+        opacity: 0.54;
+        animation: brainGridDrift 10s linear infinite;
+      }
+
+      .brain-wireframe {
+        position: absolute;
+        inset: 9% 4%;
+        width: 92%;
+        height: 82%;
+        overflow: visible;
+      }
+
+      .brain-wireframe path {
+        fill: none;
+        stroke: rgba(140, 214, 255, 0.58);
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        filter: drop-shadow(0 0 8px rgba(111, 194, 255, 0.26));
+      }
+
+      .brain-wireframe .brain-wireframe-accent {
+        stroke: rgba(224, 189, 114, 0.42);
+        stroke-width: 1.2;
+      }
+
+      @keyframes brainPulse {
         0%,
         100% {
-          transform: translate(-50%, -50%) scale(1);
-          filter: brightness(0.99);
+          transform: scale(1);
+          filter: brightness(0.97);
         }
         50% {
-          transform: translate(-50%, -50%) scale(1.012);
-          filter: brightness(1.02);
+          transform: scale(1.015);
+          filter: brightness(1.04);
+        }
+      }
+
+      @keyframes brainGridDrift {
+        0% {
+          transform: translate3d(0, 0, 0);
+        }
+        100% {
+          transform: translate3d(14px, -8px, 0);
         }
       }
 
@@ -382,6 +454,38 @@
       .star-node.is-visible {
         opacity: 1;
         pointer-events: auto;
+      }
+
+      .star-node--ops {
+        z-index: 6;
+      }
+
+      .star-sub-node {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 124px;
+        transform: translate(-50%, -50%);
+        display: grid;
+        justify-items: center;
+        gap: 6px;
+        text-decoration: none;
+        color: var(--text);
+        z-index: 7;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 220ms ease;
+      }
+
+      .star-sub-node .node-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 15px;
+      }
+
+      .star-sub-node span {
+        font-size: 0.64rem;
+        padding: 3px 8px;
       }
 
       .node-icon {
@@ -479,8 +583,8 @@
           height: min(88vh, 760px);
         }
 
-        .core {
-          width: min(44vw, 210px);
+        .brain-core {
+          width: min(56vw, 320px);
         }
 
         .star-node {
@@ -502,6 +606,21 @@
         .star-node span {
           font-size: 0.66rem;
           padding: 3px 8px;
+        }
+
+        .star-sub-node {
+          width: 96px;
+        }
+
+        .star-sub-node .node-icon {
+          width: 46px;
+          height: 46px;
+          border-radius: 12px;
+        }
+
+        .star-sub-node span {
+          font-size: 0.58rem;
+          padding: 2px 7px;
         }
       }
 
@@ -587,9 +706,18 @@
         </div>
 
         <div class="organism" id="organism">
-          <div class="core" aria-hidden="true"></div>
+          <div class="brain-core" id="brain-core" aria-hidden="true">
+            <div class="brain-shell"></div>
+            <div class="brain-grid"></div>
+            <svg class="brain-wireframe" viewBox="0 0 420 260" xmlns="http://www.w3.org/2000/svg">
+              <path d="M40 142C52 88 106 56 168 58C196 44 222 42 249 51C318 54 366 92 377 145C366 196 314 228 248 225C219 237 191 238 164 229C103 226 53 194 40 142Z" />
+              <path d="M88 96C127 89 155 94 173 112C191 93 220 88 259 94C278 110 286 129 283 151C282 175 271 192 249 203C214 210 190 208 173 196C153 208 129 211 99 203C76 191 65 173 65 148C60 127 68 109 88 96Z" />
+              <path d="M77 140H128M133 110L162 128M168 92V126M212 86L196 127M238 99L212 132M269 120L224 142M133 176L168 158M197 158L235 178M258 170L286 188" />
+              <path class="brain-wireframe-accent" d="M169 127C183 112 201 112 213 128M169 158C183 173 201 174 213 158M173 127V196M213 127V196" />
+            </svg>
+          </div>
 
-          <a class="star-node" id="tftduos-link" data-kind="core" data-x="20" data-y="26" href="https://tftduos.brianz.dev" aria-label="Open TFT Duos Coach">
+          <a class="star-node star-node--primary" id="tftduos-link" data-kind="core" data-x="33" data-y="36" href="https://tftduos.brianz.dev" aria-label="Open TFT Duos Coach">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M32 4L56 18V46L32 60L8 46V18L32 4Z" fill="#16223B" stroke="#E0BD72" stroke-width="2.4"/>
@@ -601,7 +729,18 @@
             <span>TFT Duos</span>
           </a>
 
-          <a class="star-node" id="meta-link" data-kind="meta" data-x="80" data-y="30" href="https://api.brianz.dev/api/site-performance/render/overview?hours=24" aria-label="Load Render Meta in terminal">
+          <a class="star-node star-node--primary star-node--ops" id="ops-link" data-kind="meta" data-x="67" data-y="50" href="#" aria-label="Expand systems intelligence nodes" aria-haspopup="true">
+            <div class="node-icon">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
+                <path d="M17 21H47M17 32H47M17 43H36" stroke="#8EF0C8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="45" cy="43" r="3" fill="#8EF0C8"/>
+              </svg>
+            </div>
+            <span>Systems</span>
+          </a>
+
+          <a class="star-sub-node" id="meta-link" data-kind="meta" data-parent="ops" data-offset-x="108" data-offset-y="-52" href="https://api.brianz.dev/api/site-performance/render/overview?hours=24" aria-label="Load Render Meta in terminal">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
@@ -614,7 +753,7 @@
             <span>Render Meta</span>
           </a>
 
-          <a class="star-node" id="backend-link" data-kind="meta" data-x="74" data-y="76" href="https://api.brianz.dev/health" aria-label="Open Backend Health">
+          <a class="star-sub-node" id="backend-link" data-kind="meta" data-parent="ops" data-offset-x="112" data-offset-y="52" href="https://api.brianz.dev/health" aria-label="Open Backend Health">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="32" cy="32" r="24" fill="#11253E" stroke="#6FC2FF" stroke-width="2.2"/>
@@ -626,7 +765,7 @@
             <span>Backend</span>
           </a>
 
-          <a class="star-node" data-x="28" data-y="74" href="https://github.com/bziebart123/brianz.dev" aria-label="Open GitHub Repository">
+          <a class="star-node star-node--primary" data-x="35" data-y="66" href="https://github.com/bziebart123/brianz.dev" aria-label="Open GitHub Repository">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="9" y="9" width="46" height="46" rx="12" fill="#121f35" stroke="#E0BD72" stroke-width="2.2"/>
@@ -637,7 +776,7 @@
             <span>Source</span>
           </a>
 
-          <a class="star-node" data-x="50" data-y="16" href="https://brianz.dev" aria-label="Reload home hub">
+          <a class="star-node star-node--primary" data-x="50" data-y="24" href="https://brianz.dev" aria-label="Reload home hub">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M32 8L52 24V52H12V24L32 8Z" fill="#13233A" stroke="#6FC2FF" stroke-width="2.2"/>
@@ -647,7 +786,7 @@
             <span>Home</span>
           </a>
 
-          <a class="star-node" id="contact-link" data-kind="meta" data-x="50" data-y="86" href="#" aria-label="Open contact relay">
+          <a class="star-node star-node--primary" id="contact-link" data-kind="meta" data-x="50" data-y="78" href="#" aria-label="Open contact relay">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="10" y="14" width="44" height="36" rx="8" fill="#13223A" stroke="#8EF0C8" stroke-width="2.2"/>
@@ -667,6 +806,7 @@
         var isLocal = host === "localhost" || host === "127.0.0.1";
 
         var tftLink = document.getElementById("tftduos-link");
+        var opsLink = document.getElementById("ops-link");
         var metaLink = document.getElementById("meta-link");
         var backendLink = document.getElementById("backend-link");
         var contactLink = document.getElementById("contact-link");
@@ -701,9 +841,18 @@
         }
 
         var organism = document.getElementById("organism");
-        var core = organism ? organism.querySelector(".core") : null;
-        var nodes = Array.prototype.slice.call(document.querySelectorAll(".star-node"));
+        var brainCore = document.getElementById("brain-core");
+        var nodes = Array.prototype.slice.call(document.querySelectorAll(".star-node--primary"));
+        var opsSubNodes = Array.prototype.slice.call(document.querySelectorAll(".star-sub-node"));
         var nodeState = [];
+        var opsAnchorState = null;
+        var opsExpanded = false;
+        var opsExpandProgress = 0;
+        var opsCollapseTimer = null;
+        var brainTiltX = 0;
+        var brainTiltY = 0;
+        var brainTiltTargetX = 0;
+        var brainTiltTargetY = 0;
         var latticePulseLines = [];
         var nodeAnimationStarted = false;
         var spokeGreeting = false;
@@ -724,6 +873,63 @@
           metaLink.removeAttribute("target");
           metaLink.removeAttribute("rel");
         }
+        if (opsLink) {
+          opsLink.removeAttribute("target");
+          opsLink.removeAttribute("rel");
+        }
+
+        setOpsExpanded(false);
+
+        if (organism) {
+          organism.addEventListener("pointermove", function (event) {
+            setBrainTiltTarget(event.clientX, event.clientY);
+          });
+          organism.addEventListener("pointerleave", function () {
+            brainTiltTargetX = 0;
+            brainTiltTargetY = 0;
+          });
+        }
+
+        if (opsLink) {
+          opsLink.addEventListener("mouseenter", function () {
+            cancelOpsCollapse();
+            setOpsExpanded(true);
+          });
+          opsLink.addEventListener("focus", function () {
+            cancelOpsCollapse();
+            setOpsExpanded(true);
+          });
+          opsLink.addEventListener("mouseleave", scheduleOpsCollapse);
+          opsLink.addEventListener("blur", scheduleOpsCollapse);
+          opsLink.addEventListener("click", function (event) {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            setOpsExpanded(!opsExpanded);
+          });
+        }
+
+        opsSubNodes.forEach(function (subNode) {
+          subNode.addEventListener("mouseenter", function () {
+            cancelOpsCollapse();
+            setOpsExpanded(true);
+          });
+          subNode.addEventListener("focus", function () {
+            cancelOpsCollapse();
+            setOpsExpanded(true);
+          });
+          subNode.addEventListener("mouseleave", scheduleOpsCollapse);
+          subNode.addEventListener("blur", scheduleOpsCollapse);
+        });
+
+        document.addEventListener("pointerdown", function (event) {
+          var target = event.target;
+          if (!opsLink && !opsSubNodes.length) return;
+          if (opsLink && opsLink.contains(target)) return;
+          for (var i = 0; i < opsSubNodes.length; i += 1) {
+            if (opsSubNodes[i].contains(target)) return;
+          }
+          setOpsExpanded(false);
+        });
 
         function speakGreeting() {
           if (spokeGreeting || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
@@ -786,6 +992,38 @@
             return;
           }
           setTerminalStatusText("terminal synced // node lattice online", false);
+        }
+
+        function setOpsExpanded(expanded) {
+          opsExpanded = !!expanded;
+          if (opsLink) {
+            opsLink.setAttribute("aria-expanded", opsExpanded ? "true" : "false");
+          }
+        }
+
+        function cancelOpsCollapse() {
+          if (opsCollapseTimer) {
+            window.clearTimeout(opsCollapseTimer);
+            opsCollapseTimer = null;
+          }
+        }
+
+        function scheduleOpsCollapse() {
+          cancelOpsCollapse();
+          opsCollapseTimer = window.setTimeout(function () {
+            setOpsExpanded(false);
+          }, 220);
+        }
+
+        function setBrainTiltTarget(clientX, clientY) {
+          if (!organism) return;
+          var rect = organism.getBoundingClientRect();
+          var nx = (clientX - rect.left) / Math.max(1, rect.width);
+          var ny = (clientY - rect.top) / Math.max(1, rect.height);
+          var clampedX = Math.max(0, Math.min(1, nx));
+          var clampedY = Math.max(0, Math.min(1, ny));
+          brainTiltTargetY = (clampedX - 0.5) * 18;
+          brainTiltTargetX = (0.5 - clampedY) * 14;
         }
 
         function queueTerminalLine(index, delayMs, fn) {
@@ -1092,6 +1330,9 @@
         }
 
         window.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && opsExpanded) {
+            setOpsExpanded(false);
+          }
           if (event.key === "Escape" && terminalExpanded) {
             setTerminalExpanded(false);
           }
@@ -1124,14 +1365,20 @@
         nodeState = nodes.map(function (node, index) {
           var x = Number(node.getAttribute("data-x") || 50) / 100;
           var y = Number(node.getAttribute("data-y") || 50) / 100;
-          return {
+          var state = {
             el: node,
             x: x,
             y: y,
             phase: index * 1.2,
+            lx: 0,
+            ly: 0,
             px: 0,
             py: 0
           };
+          if (node.id === "ops-link") {
+            opsAnchorState = state;
+          }
+          return state;
         });
 
         latticePulseLines = nodes.map(function (_node, index) {
@@ -1154,19 +1401,54 @@
             var state = nodeState[i];
             var x = state.x * rect.width;
             var y = state.y * rect.height;
+            state.lx = x;
+            state.ly = y;
             state.px = rect.left + x;
             state.py = rect.top + y;
             state.el.style.transform = "translate(-50%, -50%) translate(" + x.toFixed(2) + "px," + y.toFixed(2) + "px)";
           }
 
-          if (core) {
-            var coreRect = core.getBoundingClientRect();
+          if (brainCore) {
+            var coreRect = brainCore.getBoundingClientRect();
             corePoint.x = coreRect.left + coreRect.width * 0.5;
             corePoint.y = coreRect.top + coreRect.height * 0.5;
           } else {
             corePoint.x = rect.left + rect.width * 0.5;
             corePoint.y = rect.top + rect.height * 0.5;
           }
+        }
+
+        function updateOpsSubNodeLayout() {
+          if (!opsAnchorState) return;
+
+          var target = opsExpanded ? 1 : 0;
+          opsExpandProgress += (target - opsExpandProgress) * 0.16;
+          if (Math.abs(target - opsExpandProgress) < 0.002) {
+            opsExpandProgress = target;
+          }
+
+          for (var i = 0; i < opsSubNodes.length; i += 1) {
+            var node = opsSubNodes[i];
+            var offsetX = Number(node.getAttribute("data-offset-x") || 0);
+            var offsetY = Number(node.getAttribute("data-offset-y") || 0);
+            var x = opsAnchorState.lx + offsetX * opsExpandProgress;
+            var y = opsAnchorState.ly + offsetY * opsExpandProgress;
+            var scale = 0.8 + (opsExpandProgress * 0.2);
+            var interactive = opsExpandProgress > 0.46;
+            node.style.transform = "translate(-50%, -50%) translate(" + x.toFixed(2) + "px," + y.toFixed(2) + "px) scale(" + scale.toFixed(3) + ")";
+            node.style.opacity = (opsExpandProgress * 0.98).toFixed(3);
+            node.style.pointerEvents = interactive ? "auto" : "none";
+            node.setAttribute("aria-hidden", interactive ? "false" : "true");
+            node.setAttribute("tabindex", interactive ? "0" : "-1");
+          }
+        }
+
+        function updateBrainTilt() {
+          if (!organism) return;
+          brainTiltX += (brainTiltTargetX - brainTiltX) * 0.12;
+          brainTiltY += (brainTiltTargetY - brainTiltY) * 0.12;
+          organism.style.setProperty("--brain-tilt-x", brainTiltX.toFixed(2) + "deg");
+          organism.style.setProperty("--brain-tilt-y", brainTiltY.toFixed(2) + "deg");
         }
 
         function resizeLattice() {
@@ -1179,6 +1461,7 @@
           }
           latticeCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
           updateNodeLayout();
+          updateOpsSubNodeLayout();
         }
 
         window.addEventListener("resize", resizeLattice);
@@ -1259,6 +1542,8 @@
         }
 
         function updateLattice(now) {
+          updateBrainTilt();
+          updateOpsSubNodeLayout();
           drawLinks(now * 0.001);
           requestAnimationFrame(updateLattice);
         }
