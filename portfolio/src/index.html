@@ -1217,22 +1217,22 @@
           var filter = ctx.createBiquadFilter();
           var isPress = variant === "press";
 
-          // E profile (Tight Dual) from sfx-lab, with slightly hotter press accent.
-          oscA.type = "square";
-          oscA.frequency.setValueAtTime(isPress ? 2020 : 1900, now);
-          oscA.frequency.exponentialRampToValueAtTime(isPress ? 1310 : 1290, now + 0.011);
+          // Hover: Ceramic Snap. Press: Crunch Dot.
+          oscA.type = isPress ? "square" : "triangle";
+          oscA.frequency.setValueAtTime(isPress ? 1340 : 2420, now);
+          oscA.frequency.exponentialRampToValueAtTime(isPress ? 920 : 1620, now + (isPress ? 0.011 : 0.009));
 
-          oscB.type = "triangle";
-          oscB.frequency.setValueAtTime(isPress ? 3040 : 2920, now);
-          oscB.frequency.exponentialRampToValueAtTime(isPress ? 1820 : 1810, now + 0.009);
+          oscB.type = isPress ? "triangle" : "sine";
+          oscB.frequency.setValueAtTime(isPress ? 2140 : 3900, now);
+          oscB.frequency.exponentialRampToValueAtTime(isPress ? 1280 : 2320, now + (isPress ? 0.01 : 0.008));
 
           gain.gain.setValueAtTime(0.0001, now);
-          gain.gain.exponentialRampToValueAtTime(isPress ? 0.021 : 0.0175, now + 0.0012);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + (isPress ? 0.021 : 0.018));
+          gain.gain.exponentialRampToValueAtTime(isPress ? 0.017 : 0.015, now + 0.0012);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + (isPress ? 0.018 : 0.014));
 
           filter.type = "highpass";
-          filter.frequency.setValueAtTime(isPress ? 1360 : 1300, now);
-          filter.Q.setValueAtTime(0.45, now);
+          filter.frequency.setValueAtTime(isPress ? 760 : 1700, now);
+          filter.Q.setValueAtTime(0.48, now);
 
           oscA.connect(filter);
           oscB.connect(filter);
@@ -1241,13 +1241,38 @@
 
           oscA.start(now);
           oscB.start(now);
-          oscA.stop(now + (isPress ? 0.024 : 0.021));
-          oscB.stop(now + (isPress ? 0.02 : 0.018));
+          oscA.stop(now + (isPress ? 0.022 : 0.018));
+          oscB.stop(now + (isPress ? 0.019 : 0.016));
+
+          if (isPress) {
+            var noiseLen = Math.floor(ctx.sampleRate * 0.02);
+            var noiseBuffer = ctx.createBuffer(1, Math.max(128, noiseLen), ctx.sampleRate);
+            var noiseData = noiseBuffer.getChannelData(0);
+            for (var i = 0; i < noiseData.length; i += 1) {
+              noiseData[i] = (Math.random() * 2 - 1) * (1 - (i / noiseData.length));
+            }
+            var noiseSrc = ctx.createBufferSource();
+            var noiseFilter = ctx.createBiquadFilter();
+            var noiseGain = ctx.createGain();
+            noiseSrc.buffer = noiseBuffer;
+            noiseFilter.type = "highpass";
+            noiseFilter.frequency.setValueAtTime(1800, now);
+            noiseFilter.Q.setValueAtTime(0.52, now);
+            noiseGain.gain.setValueAtTime(0.0001, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.0055, now + 0.0012);
+            noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
+            noiseSrc.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(ctx.destination);
+            noiseSrc.start(now);
+            noiseSrc.stop(now + 0.024);
+          }
         }
 
         function playTerminalOutputSfx(kind) {
           var ctx = ensureUiSfxContext();
           if (!ctx || !uiSfxUnlocked || uiSfxMuted) return;
+          if (kind === "loading") return;
           if (ctx.state === "suspended") {
             ctx.resume().catch(function () {});
           }
@@ -1259,26 +1284,24 @@
           var osc = ctx.createOscillator();
           var gain = ctx.createGain();
           var filter = ctx.createBiquadFilter();
-          var isLoading = kind === "loading";
-
-          osc.type = isLoading ? "triangle" : "square";
-          osc.frequency.setValueAtTime(isLoading ? 1480 : 1760, now);
-          osc.frequency.exponentialRampToValueAtTime(isLoading ? 1060 : 1210, now + (isLoading ? 0.018 : 0.013));
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(980, now);
+          osc.frequency.exponentialRampToValueAtTime(640, now + 0.03);
 
           filter.type = "highpass";
-          filter.frequency.setValueAtTime(isLoading ? 980 : 1120, now);
+          filter.frequency.setValueAtTime(420, now);
           filter.Q.setValueAtTime(0.4, now);
 
           gain.gain.setValueAtTime(0.0001, now);
-          gain.gain.exponentialRampToValueAtTime(isLoading ? 0.0075 : 0.009, now + 0.0014);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + (isLoading ? 0.028 : 0.022));
+          gain.gain.exponentialRampToValueAtTime(0.0075, now + 0.0014);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
 
           osc.connect(filter);
           filter.connect(gain);
           gain.connect(ctx.destination);
 
           osc.start(now);
-          osc.stop(now + (isLoading ? 0.032 : 0.026));
+          osc.stop(now + 0.05);
         }
 
         function stopTerminalLoadingSfx() {
@@ -1290,14 +1313,7 @@
 
         function startTerminalLoadingSfx() {
           stopTerminalLoadingSfx();
-          if (uiSfxMuted) return;
-          terminalLoadingSfxTimer = window.setInterval(function () {
-            if (!terminalOutputLoadingLine || !terminalOutputLoadingLine.parentNode) {
-              stopTerminalLoadingSfx();
-              return;
-            }
-            playTerminalOutputSfx("loading");
-          }, 190);
+          return;
         }
 
         function bindUiSfxToInteractive() {
