@@ -934,6 +934,7 @@
         var contactRequestCount = 0;
         var terminalQueueOffset = 0;
         var renderMetaChain = Promise.resolve();
+        var systemAccessMode = "memory";
         var linkedinUrl = "https://www.linkedin.com/in/brian-ziebart/";
         var subAppHosts = [
           "tftduos.brianz.dev",
@@ -1081,7 +1082,8 @@
           terminalCloseBtn.setAttribute("title", isExpanded ? "Collapse terminal panel" : "Expand terminal panel");
         }
 
-        function beginSubjectMemoryAccess() {
+        function beginSubjectMemoryAccess(mode) {
+          systemAccessMode = mode === "protocol" ? "protocol" : "memory";
           if (!terminalExpanded) setTerminalExpanded(true);
           renderMetaChain = renderMetaChain.then(function () {
             return appendRenderMetaSnapshot();
@@ -1599,13 +1601,17 @@
           var stamp = hh + ":" + mm + ":" + ss;
           var delay = 170;
           var cursor = 0;
+          var accessLabel = systemAccessMode === "protocol" ? "Protocol access" : "Subject memory access";
+          var accessCommand = systemAccessMode === "protocol"
+            ? "protocol.access --window 24h --origin \"" + backendBase + "\""
+            : "subject.memory.access --window 24h --origin \"" + backendBase + "\"";
 
           queueTerminalLine(cursor, delay, function () {
-            pushBootLine("> Subject memory access accepted [" + stamp + "] #" + renderMetaRequestCount, true);
+            pushBootLine("> " + accessLabel + " accepted [" + stamp + "] #" + renderMetaRequestCount, true);
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
-            pushBootLineHtml("&gt; run subject.memory.access --window 24h --origin \"" + backendBase + "\"", "api-line");
+            pushBootLineHtml("&gt; run " + accessCommand, "api-line");
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
@@ -1616,7 +1622,7 @@
             pushBootLine("> Memory channel: render telemetry + service state", false);
           });
           cursor += 1;
-          setTerminalStatusText("subject.memory // awaiting response", true);
+          setTerminalStatusText((systemAccessMode === "protocol" ? "protocol.access" : "subject.memory") + " // awaiting response", true);
 
           try {
             var response = await fetch(url);
@@ -1686,12 +1692,12 @@
             }
 
             queueTerminalLine(cursor, delay, function () {
-              pushBootLine("> Subject memory stream complete", true);
+              pushBootLine("> " + accessLabel + " stream complete", true);
             });
             cursor += 1;
           } catch (error) {
             queueTerminalLine(cursor, delay, function () {
-              pushBootLine("> Subject memory stream error: " + String(error && error.message ? error.message : error), true);
+              pushBootLine("> " + accessLabel + " stream error: " + String(error && error.message ? error.message : error), true);
             });
             cursor += 1;
           }
@@ -1715,7 +1721,7 @@
           protocolLink.addEventListener("click", function (event) {
             if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
             event.preventDefault();
-            beginSubjectMemoryAccess();
+            beginSubjectMemoryAccess("protocol");
           });
         }
 
@@ -1732,7 +1738,7 @@
           memoryLink.addEventListener("click", function (event) {
             if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
             event.preventDefault();
-            beginSubjectMemoryAccess();
+            beginSubjectMemoryAccess("memory");
           });
         }
 
