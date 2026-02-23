@@ -1441,6 +1441,12 @@
             { method: "POST", path: "/api/coach/llm-brief", note: "GPT coaching synthesis" },
             { method: "GET", path: "/api/site-performance/render/overview", note: "Render service overview" }
           ];
+          var routeMethodWidth = routes.reduce(function (max, route) {
+            return Math.max(max, String(route.method || "").length);
+          }, 0);
+          var routePathWidth = routes.reduce(function (max, route) {
+            return Math.max(max, String(route.path || "").length);
+          }, 0);
 
           var delay = 170;
           var cursor = 0;
@@ -1458,7 +1464,12 @@
           cursor += 1;
           routes.forEach(function (route) {
             queueTerminalLine(cursor, delay, function () {
-              pushBootLineHtml("&gt; <strong>[" + route.method + "]</strong> " + route.path + "  // " + route.note, "api-line");
+              var methodColumn = String(route.method || "").toUpperCase().padEnd(routeMethodWidth, " ");
+              var pathColumn = String(route.path || "").padEnd(routePathWidth, " ");
+              pushBootLineHtml(
+                "&gt; <strong>[" + methodColumn + "]</strong> " + pathColumn + "  // " + route.note,
+                "api-line"
+              );
             });
             cursor += 1;
           });
