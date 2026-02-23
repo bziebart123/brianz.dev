@@ -204,6 +204,7 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio HUD now uses a reboot icon (top-right) to reload/reboot the interface, replacing the prior textual explore chip and superseding the old Home node.
 - Portfolio brain is now draggable after map activation: click-drag rotates freely across axes, then releases back toward ambient rotation when pointer is released.
 - Protocol control affordance now includes a soft internal pulse glow to emphasize that it is actionable.
+- Portfolio node map now exposes a dedicated `Warhammer` launcher node that routes to the Site Performance 40K companion app (`site-performance.brianz.dev` in production, `localhost:4174` locally).
 - TFTDuos + Site Performance frontends now share portfolio visual language tokens (thin luminous blue outlines, translucent navy cards, controlled glow/opacity) and starfield-backed atmospherics while preserving foreground readability.
 - Starfield parity pass: TFTDuos and Site Performance now use denser/brighter star specks plus stronger background drift/twinkle motion so non-portfolio apps better match the portfolio launcher's ambient movement profile.
 - Site Performance frontend has been refactored into a dedicated 40K Companion terminal app that mirrors the portfolio terminal styling and uses command-driven quick-reference responses for tabletop reminders.

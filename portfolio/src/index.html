@@ -929,6 +929,17 @@
             <span>Memory Access</span>
           </a>
 
+          <a class="star-node star-node--primary" id="warhammer-link" data-kind="core" data-x="50" data-y="44" href="https://site-performance.brianz.dev" aria-label="Open Warhammer 40K companion app">
+            <div class="node-icon">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="8" width="48" height="48" rx="12" fill="#121f35" stroke="#E0BD72" stroke-width="2.2"/>
+                <path d="M18 22L32 18L46 22L43 41L32 46L21 41L18 22Z" fill="#16223B" stroke="#E0BD72" stroke-width="2"/>
+                <path d="M23 31H27L29 37L32 25L35 37L37 31H41" stroke="#E0BD72" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span>Warhammer</span>
+          </a>
+
           <a class="star-node star-node--primary" data-x="38" data-y="74" href="https://github.com/bziebart123/brianz.dev" aria-label="Open GitHub Repository">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -963,6 +974,7 @@
         var isLocal = host === "localhost" || host === "127.0.0.1";
 
         var tftLink = document.getElementById("tftduos-link");
+        var warhammerLink = document.getElementById("warhammer-link");
         var memoryLink = document.getElementById("memory-link");
         var opsLink = document.getElementById("ops-link");
         var metaLink = document.getElementById("meta-link");
@@ -1002,9 +1014,11 @@
 
         if (isLocal) {
           if (tftLink) tftLink.setAttribute("href", "http://localhost:4173");
+          if (warhammerLink) warhammerLink.setAttribute("href", "http://localhost:4174");
           if (metaLink) metaLink.setAttribute("href", "http://localhost:3001/api/site-performance/render/overview?hours=24");
         } else {
           if (tftLink) tftLink.setAttribute("href", "https://tftduos.brianz.dev");
+          if (warhammerLink) warhammerLink.setAttribute("href", "https://site-performance.brianz.dev");
           if (metaLink) metaLink.setAttribute("href", "https://api.brianz.dev/api/site-performance/render/overview?hours=24");
         }
 
