@@ -1185,7 +1185,6 @@
           var center = new THREE.Vector3();
           box.getCenter(center);
           rootModel.position.sub(center);
-          alignBrainToViewport(rootModel);
         }
 
         function alignBrainToViewport(rootModel) {
@@ -1333,26 +1332,19 @@
 
         function renderThreeBrain(timeSec) {
           if (!brainRenderer || !brainScene || !brainCamera || !brainRoot) return;
-          var rx = (brainTiltX * Math.PI / 180) * 0.8;
           var spinRate = (Math.PI * 2) / 28;
           brainSpinRadians = (timeSec * spinRate) % (Math.PI * 2);
-          var ry = brainSpinRadians + ((brainTiltY * Math.PI / 180) * 0.35);
-          brainRoot.rotation.x = rx;
-          brainRoot.rotation.y = ry;
-          brainRoot.rotation.z = Math.sin(timeSec * 0.22) * 0.03;
+          brainRoot.position.set(0, 0, 0);
+          brainRoot.rotation.x = 0;
+          brainRoot.rotation.y = brainSpinRadians;
+          brainRoot.rotation.z = 0;
 
           var nowMs = (window.performance && typeof window.performance.now === "function") ? window.performance.now() : Date.now();
           var introProgress = Math.max(0, Math.min(1, (nowMs - brainLoadStartMs) / 620));
           var introEase = 1 - Math.pow(1 - introProgress, 3);
           var introScale = 0.06 + (introEase * 0.94);
 
-          if (brainModelGroup) {
-            var s = 1 + (Math.sin(timeSec * 0.84) * 0.012);
-            var totalScale = s * introScale;
-            brainRoot.scale.set(totalScale, totalScale, totalScale);
-          } else {
-            brainRoot.scale.set(introScale, introScale, introScale);
-          }
+          brainRoot.scale.set(introScale, introScale, introScale);
           brainRenderer.render(brainScene, brainCamera);
         }
 
@@ -1842,8 +1834,8 @@
 
         function updateBrainTilt(timeSec) {
           if (!organism) return;
-          var targetX = Math.sin(timeSec * 0.8) * 9;
-          var targetY = Math.cos(timeSec * 1.05) * 12;
+          var targetX = 0;
+          var targetY = 0;
           brainTiltX += (targetX - brainTiltX) * 0.08;
           brainTiltY += (targetY - brainTiltY) * 0.08;
           organism.style.setProperty("--brain-tilt-x", brainTiltX.toFixed(2) + "deg");

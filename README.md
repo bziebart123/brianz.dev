@@ -185,7 +185,7 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio launcher opens HTTP(S) app destinations in new tabs so the landing scene remains open while navigating.
 - Portfolio visual tuning update: thicker lattice links, calmer pulse cadence, and lower-motion digital-brain drift for reduced visual fatigue.
 - Portfolio brain centerpiece now runs on an ambient auto-rotation loop (no cursor tracking), and each brain load starts from a tiny scale before a rapid zoom-in to full size for a "target acquired" feel.
-- Portfolio brain centerpiece now completes a smooth full 360° yaw cycle and keeps rotating continuously, while preserving subtle tilt drift for ambient motion depth.
+- Portfolio brain centerpiece now completes a smooth full 360-degree yaw cycle with center-locked single-axis spin (no tilt/roll drift) to keep the model visually anchored.
 - TFTDuos + Site Performance frontends now share portfolio visual language tokens (thin luminous blue outlines, translucent navy cards, controlled glow/opacity) and starfield-backed atmospherics while preserving foreground readability.
 - Starfield parity pass: TFTDuos and Site Performance now use denser/brighter star specks plus stronger background drift/twinkle motion so non-portfolio apps better match the portfolio launcher's ambient movement profile.
 - Site Performance frontend has been refactored into a dedicated 40K Companion terminal app that mirrors the portfolio terminal styling and uses command-driven quick-reference responses for tabletop reminders.
