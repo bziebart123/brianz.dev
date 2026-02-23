@@ -814,9 +814,13 @@
       </section>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script>
+    <script type="module">
+      import * as THREE from "./vendor/three.module.min.js";
+      import { GLTFLoader } from "./vendor/GLTFLoader.js";
+
+      window.THREE = THREE;
+      window.THREE.GLTFLoader = GLTFLoader;
+
       (function () {
         var host = window.location.hostname;
         var isLocal = host === "localhost" || host === "127.0.0.1";
@@ -1052,7 +1056,7 @@
         }
 
         function buildFallbackBrainMesh() {
-          if (!window.THREE) return null;
+          if (!THREE) return null;
           var group = new THREE.Group();
           var material = new THREE.MeshStandardMaterial({
             color: 0x6fc2ff,
@@ -1085,7 +1089,7 @@
         }
 
         function styleLoadedBrain(rootModel) {
-          if (!window.THREE || !rootModel) return;
+          if (!THREE || !rootModel) return;
           rootModel.traverse(function (child) {
             if (!child || !child.isMesh) return;
             child.material = new THREE.MeshStandardMaterial({
@@ -1121,7 +1125,7 @@
         }
 
         function initThreeBrain() {
-          if (!brainViewport || !window.THREE) return;
+          if (!brainViewport || !THREE) return;
           if (brainRenderer) return;
 
           brainScene = new THREE.Scene();
@@ -1145,10 +1149,10 @@
           brainRoot = new THREE.Group();
           brainScene.add(brainRoot);
 
-          if (window.THREE.GLTFLoader) {
-            var loader = new THREE.GLTFLoader();
+          if (GLTFLoader) {
+            var loader = new GLTFLoader();
             loader.load(
-              "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/BrainStem/glTF-Binary/BrainStem.glb",
+              "./assets/brainstem.glb",
               function (gltf) {
                 var group = gltf && gltf.scene ? gltf.scene : null;
                 if (!group) {
