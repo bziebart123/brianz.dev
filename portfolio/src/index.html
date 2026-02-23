@@ -941,6 +941,7 @@
         var opsCollapseTimer = null;
         var brainTiltX = 0;
         var brainTiltY = 0;
+        var brainSpinRadians = 0;
         var brainLoadStartMs = (window.performance && typeof window.performance.now === "function") ? window.performance.now() : Date.now();
         var brainScene = null;
         var brainCamera = null;
@@ -1333,7 +1334,9 @@
         function renderThreeBrain(timeSec) {
           if (!brainRenderer || !brainScene || !brainCamera || !brainRoot) return;
           var rx = (brainTiltX * Math.PI / 180) * 0.8;
-          var ry = (brainTiltY * Math.PI / 180) * 0.85;
+          var spinRate = (Math.PI * 2) / 28;
+          brainSpinRadians = (timeSec * spinRate) % (Math.PI * 2);
+          var ry = brainSpinRadians + ((brainTiltY * Math.PI / 180) * 0.35);
           brainRoot.rotation.x = rx;
           brainRoot.rotation.y = ry;
           brainRoot.rotation.z = Math.sin(timeSec * 0.22) * 0.03;

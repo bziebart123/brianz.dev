@@ -185,6 +185,7 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio launcher opens HTTP(S) app destinations in new tabs so the landing scene remains open while navigating.
 - Portfolio visual tuning update: thicker lattice links, calmer pulse cadence, and lower-motion digital-brain drift for reduced visual fatigue.
 - Portfolio brain centerpiece now runs on an ambient auto-rotation loop (no cursor tracking), and each brain load starts from a tiny scale before a rapid zoom-in to full size for a "target acquired" feel.
+- Portfolio brain centerpiece now completes a smooth full 360° yaw cycle and keeps rotating continuously, while preserving subtle tilt drift for ambient motion depth.
 - TFTDuos + Site Performance frontends now share portfolio visual language tokens (thin luminous blue outlines, translucent navy cards, controlled glow/opacity) and starfield-backed atmospherics while preserving foreground readability.
 - Portfolio launcher link assumptions:
   - production node links: `https://tftduos.brianz.dev` (TFT) and `https://api.brianz.dev` (shared backend + Render Meta terminal data source)
