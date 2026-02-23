@@ -1051,6 +1051,8 @@
         var introTransitionActive = false;
         var mapActivated = false;
         var brainDockedY = null;
+        var brainShakeMeter = 0;
+        var brainShakeAlertUntil = 0;
 
         nodes.forEach(function (node) {
           node.removeAttribute("target");
@@ -1263,6 +1265,18 @@
         function setTerminalStatusText(text, thinking) {
           if (!terminalStatus) return;
           terminalStatus.textContent = text;
+        }
+
+        function signalBrainShakeWarning() {
+          var nowMs = Date.now();
+          if (nowMs < brainShakeAlertUntil) return;
+          brainShakeAlertUntil = nowMs + 9500;
+          pushBootLine("> Warning: be careful with the subject.", true);
+          setTerminalStatusText("warning // subject stability at risk", false);
+          setTimeout(function () {
+            if (Date.now() < brainShakeAlertUntil) return;
+            setTerminalStatusText("terminal synced // node lattice online", false);
+          }, 2200);
         }
 
         function setTerminalOutputLoading(text) {
@@ -2165,6 +2179,7 @@
             if (event.button !== 0) return;
             brainDragActive = true;
             brainDragPointerId = event.pointerId;
+            brainShakeMeter = 0;
             if (brainCore.setPointerCapture) {
               brainCore.setPointerCapture(event.pointerId);
             }
@@ -2177,6 +2192,12 @@
             var nextX = brainUserRotX + (event.movementY * 0.24);
             brainUserRotY = Math.max(-70, Math.min(70, nextY));
             brainUserRotX = Math.max(-42, Math.min(42, nextX));
+            var dragDelta = Math.abs(event.movementX) + Math.abs(event.movementY);
+            brainShakeMeter = (brainShakeMeter * 0.86) + dragDelta;
+            if (brainShakeMeter > 120) {
+              signalBrainShakeWarning();
+              brainShakeMeter = 42;
+            }
           });
           brainCore.addEventListener("pointerup", function (event) {
             if (event.pointerId !== brainDragPointerId) return;
