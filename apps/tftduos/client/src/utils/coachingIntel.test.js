@@ -98,4 +98,58 @@ describe("buildCoachingIntel", () => {
     expect(intel.coordination.candidates.length).toBeGreaterThan(0);
     expect(intel.wild.fallbackCards.length).toBe(3);
   });
+
+  it("supports alternate elimination and elimination-count fields used by older payload snapshots", () => {
+    const matches = [
+      {
+        ...makeMatch({ id: "legacy-1", placementA: 1, placementB: 2, gameDatetime: Date.UTC(2026, 0, 1) }),
+        playerA: {
+          placement: 1,
+          totalDamageToPlayers: 90,
+          playerEliminations: 4,
+          eliminationTimestamp: 1860000,
+          traits: [{ name: "TFT16_Ionia", style: 3 }],
+          units: [{ characterId: "TFT16_Ahri" }],
+        },
+        playerB: {
+          placement: 2,
+          totalDamageToPlayers: 60,
+          playersEliminated: 2,
+          eliminatedAt: 1800000,
+          traits: [{ name: "TFT16_Sorcerer", style: 2 }],
+          units: [{ characterId: "TFT16_Taric" }],
+        },
+      },
+      {
+        ...makeMatch({ id: "legacy-2", placementA: 7, placementB: 8, gameDatetime: Date.UTC(2026, 0, 2) }),
+        playerA: {
+          placement: 7,
+          totalDamageToPlayers: 20,
+          playerEliminations: 0,
+          timeEliminatedSeconds: 1100,
+          traits: [{ name: "TFT16_Ionia", style: 2 }],
+          units: [{ characterId: "TFT16_Ahri" }],
+        },
+        playerB: {
+          placement: 8,
+          totalDamageToPlayers: 15,
+          playersEliminated: 1,
+          eliminationTime: 1140,
+          traits: [{ name: "TFT16_Sorcerer", style: 2 }],
+          units: [{ characterId: "TFT16_Taric" }],
+        },
+      },
+    ];
+
+    const intel = buildCoachingIntel({
+      filteredMatches: matches,
+      scorecard: { decisionQuality: { biggestLeaks: [] }, econCoordination: { overlapStages: [] } },
+      computed: { metaTraits: [] },
+      kpis: { teamTop2Rate: 50 },
+    });
+
+    expect(intel.derivedMetrics.playersEliminatedTrend.winAvg).toBe(6);
+    expect(intel.derivedMetrics.eliminationTiming.bucketRates.late).toBeGreaterThan(0);
+    expect(intel.derivedMetrics.carryPressureIndex.playerA.avg).toBeGreaterThan(0);
+  });
 });
