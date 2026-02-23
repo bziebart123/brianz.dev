@@ -41,6 +41,8 @@ From repo root:
 - `npm run dev:brianz:backend`
 - `npm run dev:tftduos:server` (alias for backward compatibility)
 - `npm run dev:site-performance:client`
+- Site Performance local URL: `http://localhost:4174` (pinned in Vite config)
+- Portfolio SFX audition page: `http://localhost:8080/sfx-lab.html` (if portfolio dev server is running)
 
 From `apps/tftduos`:
 
@@ -200,15 +202,31 @@ Use exactly what Render Custom Domains asks for:
 - Memory Access now uses the same in-output loading indicator pattern (`> processing api manifest ...`) before route-manifest lines stream, matching Protocol Access churn visibility.
 - Portfolio background ambient glow now follows the brain position dynamically (instead of staying statically centered), so the faint halo remains directly behind the brain across intro and map states.
 - Lattice links from the brain are now rendered brighter/thicker and their traveling data pulses move faster for stronger readability and livelier network motion.
+- Portfolio now includes synthesized sci-fi UI SFX tuned for tight, percussive click feedback (short high-passed ticks on hover/focus plus a sharper press tick on click/tap), unlocked after first user gesture and rate-limited to stay subtle.
+- Added `portfolio/src/sfx-lab.html`, a local click-sound audition page with six short WebAudio click profiles (A-F) and master volume so SFX can be selected before integrating into main UI interactions.
+- Portfolio live UI SFX is now tuned to the auditioned `E - Tight Dual` profile (with a slightly stronger press tick) for tighter hover/click feedback.
+- Portfolio node SFX hotspoting is now icon-scoped: star-node sounds fire from `.node-icon` hover/click (plus keyboard focus), avoiding early triggers from surrounding node padding.
+- Portfolio includes a two-stage shake easter egg in map mode: sustained aggressive brain dragging triggers a caution warning, and heavier continued shaking escalates to a critical stabilization warning (both cooldown-gated to avoid log spam).
+- Critical shake escalation now has an accompanying visual state: the brain-centered ambient glow blinks red while severe shaking continues, then smoothly fades back to the normal blue glow once motion settles/stops.
+- Critical/red escalation sensitivity has been tuned slightly higher than the initial rollout so users must sustain stronger shake input before entering the critical state.
+- Portfolio terminal output now auto-follows newest appended lines (including shake warnings and stream logs), so latest status stays visible at the bottom while preserving normal manual scroll behavior between new messages.
+- Shake alerts now include explicit recovery behavior: after a longer cool-down, footer status switches to `stabalizing // subject returning to baseline`; once the alert glow fully decays, terminal history logs `Stabalizing complete...` and footer status settles to `stable // subject stability nominal`.
+- Brain drag capture hit-testing is now constrained to the brain silhouette area (ellipse around the model) so map-mode rotation starts only when pointer-down occurs over the brain itself, not the wider glow/container region.
+- In map mode, brain cursor affordance and brain-specific hover/click SFX now activate only while pointer is over the brain hit area (not the surrounding glow field).
+- Brain hover SFX is now one-shot per hover entry (re-arms on leave), preventing rapid repeated hover ticks while moving within the same brain hit area.
+- Portfolio launcher node ordering now prioritizes app nodes first (`TFT Duos`, `Warhammer`) and groups utility nodes after (`Memory Access`, `Contact`, `Source`), with app nodes on `core` yellow styling and utility nodes on `meta` green styling (including hover state).
+- Portfolio `Source` node icon now uses a GitHub mark, and app node glyphs were refreshed toward a TFT crest and Warhammer banner motif.
+- App node glyphs are now intentionally generic/custom: TFT icon uses a yellow-only `TFT` crest (no blue accent), and Warhammer icon uses a simple `40K` text mark to avoid dependency on third-party trademark logo assets.
 - Portfolio HUD now uses a reboot icon (top-right) to reload/reboot the interface, replacing the prior textual explore chip and superseding the old Home node.
 - Portfolio brain is now draggable after map activation: click-drag rotates freely across axes, then releases back toward ambient rotation when pointer is released.
 - Protocol control affordance now includes a soft internal pulse glow to emphasize that it is actionable.
+- Portfolio node map now exposes a dedicated `Warhammer` launcher node that routes to the Site Performance 40K companion app (`site-performance.brianz.dev` in production, `localhost:4174` locally).
 - TFTDuos + Site Performance frontends now share portfolio visual language tokens (thin luminous blue outlines, translucent navy cards, controlled glow/opacity) and starfield-backed atmospherics while preserving foreground readability.
 - Starfield parity pass: TFTDuos and Site Performance now use denser/brighter star specks plus stronger background drift/twinkle motion so non-portfolio apps better match the portfolio launcher's ambient movement profile.
 - Site Performance frontend has been refactored into a dedicated 40K Companion terminal app that mirrors the portfolio terminal styling and uses command-driven quick-reference responses for tabletop reminders.
 - Portfolio launcher link assumptions:
   - production node links: `https://tftduos.brianz.dev` (TFT) and `https://api.brianz.dev` (shared backend + Render Meta terminal data source)
-  - local host node links: `http://localhost:4173` (TFT) and `http://localhost:3001` (shared backend + Render Meta terminal data source)
+  - local host node links: `http://localhost:4173` (TFT), `http://localhost:4174` (Warhammer), and `http://localhost:3001` (shared backend + Render Meta terminal data source)
   - contact fallback: `https://www.linkedin.com/in/brian-ziebart/`
 
 ## AI Context Files

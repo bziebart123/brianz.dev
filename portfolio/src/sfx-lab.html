@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SFX Lab - brianz.dev</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #040b1f;
+        --panel: rgba(10, 26, 58, 0.86);
+        --line: rgba(108, 175, 255, 0.42);
+        --text: #d7e6ff;
+        --muted: #8ea7cf;
+        --glow: rgba(108, 175, 255, 0.28);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Consolas", "Menlo", "Monaco", monospace;
+        background:
+          radial-gradient(circle at 22% 18%, rgba(95, 148, 255, 0.18), transparent 45%),
+          radial-gradient(circle at 75% 80%, rgba(90, 210, 190, 0.12), transparent 46%),
+          var(--bg);
+        color: var(--text);
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .panel {
+        width: min(920px, 100%);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: linear-gradient(145deg, rgba(9, 20, 47, 0.9), var(--panel));
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), 0 0 26px var(--glow);
+        padding: 18px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.02rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      p {
+        margin: 0 0 16px;
+        color: var(--muted);
+      }
+      .toolbar {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+      .toolbar input[type="range"] {
+        width: 220px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 10px;
+      }
+      button {
+        border: 1px solid var(--line);
+        background: linear-gradient(145deg, rgba(22, 41, 86, 0.75), rgba(16, 34, 72, 0.65));
+        border-radius: 12px;
+        color: var(--text);
+        padding: 11px 12px;
+        text-align: left;
+        font: inherit;
+        cursor: pointer;
+        transition: border-color 0.12s ease, transform 0.08s ease, box-shadow 0.12s ease;
+      }
+      button:hover,
+      button:focus-visible {
+        border-color: rgba(150, 210, 255, 0.9);
+        box-shadow: 0 0 0 1px rgba(133, 194, 255, 0.45) inset;
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      .hint {
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="panel">
+      <h1>UI Click SFX Lab</h1>
+      <p>Tap each profile. Pick the one you want wired into portfolio hover/click.</p>
+      <div class="toolbar">
+        <label for="volume">Master Volume</label>
+        <input id="volume" type="range" min="0" max="100" value="30" />
+        <span id="vol-label">30%</span>
+      </div>
+      <section class="grid" id="grid"></section>
+      <p class="hint">Tip: Use headphones and test quickly in sequence: A, B, C...</p>
+    </main>
+
+    <script>
+      (function () {
+        var ctx = null;
+        var volumeInput = document.getElementById("volume");
+        var volumeLabel = document.getElementById("vol-label");
+        var grid = document.getElementById("grid");
+
+        var profiles = [
+          { id: "a", name: "A - Micro Tick", base: 1700, top: 2500, attack: 0.0015, decay: 0.018, gain: 0.017, hp: 950, waveA: "square", waveB: "triangle" },
+          { id: "b", name: "B - Hard Click", base: 1820, top: 2760, attack: 0.001, decay: 0.016, gain: 0.021, hp: 1050, waveA: "square", waveB: "square" },
+          { id: "c", name: "C - Glass Tap", base: 1560, top: 3200, attack: 0.0018, decay: 0.023, gain: 0.015, hp: 1200, waveA: "triangle", waveB: "sine" },
+          { id: "d", name: "D - UI Blip", base: 1480, top: 2340, attack: 0.002, decay: 0.028, gain: 0.018, hp: 760, waveA: "triangle", waveB: "triangle" },
+          { id: "e", name: "E - Tight Dual", base: 1900, top: 2920, attack: 0.001, decay: 0.014, gain: 0.019, hp: 1300, waveA: "square", waveB: "triangle" },
+          { id: "f", name: "F - Soft Tick", base: 1360, top: 2140, attack: 0.0024, decay: 0.03, gain: 0.014, hp: 700, waveA: "triangle", waveB: "sine" }
+        ];
+
+        function ensureCtx() {
+          if (!ctx) {
+            var AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return null;
+            ctx = new AudioCtx();
+          }
+          if (ctx.state === "suspended") {
+            ctx.resume().catch(function () {});
+          }
+          return ctx;
+        }
+
+        function play(profile) {
+          var audio = ensureCtx();
+          if (!audio) return;
+          var now = audio.currentTime;
+          var vol = Number(volumeInput.value || "30") / 100;
+          var oscA = audio.createOscillator();
+          var oscB = audio.createOscillator();
+          var hp = audio.createBiquadFilter();
+          var gain = audio.createGain();
+
+          oscA.type = profile.waveA;
+          oscA.frequency.setValueAtTime(profile.base, now);
+          oscA.frequency.exponentialRampToValueAtTime(profile.base * 0.68, now + profile.decay * 0.65);
+
+          oscB.type = profile.waveB;
+          oscB.frequency.setValueAtTime(profile.top, now);
+          oscB.frequency.exponentialRampToValueAtTime(profile.top * 0.62, now + profile.decay * 0.52);
+
+          hp.type = "highpass";
+          hp.frequency.setValueAtTime(profile.hp, now);
+          hp.Q.setValueAtTime(0.45, now);
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.exponentialRampToValueAtTime(profile.gain * vol, now + profile.attack);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + profile.decay);
+
+          oscA.connect(hp);
+          oscB.connect(hp);
+          hp.connect(gain);
+          gain.connect(audio.destination);
+
+          oscA.start(now);
+          oscB.start(now);
+          oscA.stop(now + profile.decay + 0.01);
+          oscB.stop(now + profile.decay + 0.008);
+        }
+
+        function mount() {
+          profiles.forEach(function (profile) {
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.textContent = profile.name;
+            btn.addEventListener("click", function () {
+              play(profile);
+            });
+            grid.appendChild(btn);
+          });
+        }
+
+        volumeInput.addEventListener("input", function () {
+          volumeLabel.textContent = volumeInput.value + "%";
+        });
+
+        mount();
+      })();
+    </script>
+  </body>
+</html>

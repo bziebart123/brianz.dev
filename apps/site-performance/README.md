@@ -13,6 +13,7 @@
 From repo root:
 
 - `npm run dev:site-performance:client`
+- Local dev URL is pinned to `http://localhost:4174` (`strictPort` enabled in `apps/site-performance/client/vite.config.js`).
 
 ## Site Performance frontend env vars
 
