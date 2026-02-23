@@ -42,6 +42,7 @@ From repo root:
 - `npm run dev:tftduos:server` (alias for backward compatibility)
 - `npm run dev:site-performance:client`
 - Site Performance local URL: `http://localhost:4174` (pinned in Vite config)
+- Portfolio SFX audition page: `http://localhost:8080/sfx-lab.html` (if portfolio dev server is running)
 
 From `apps/tftduos`:
 
@@ -202,6 +203,7 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio background ambient glow now follows the brain position dynamically (instead of staying statically centered), so the faint halo remains directly behind the brain across intro and map states.
 - Lattice links from the brain are now rendered brighter/thicker and their traveling data pulses move faster for stronger readability and livelier network motion.
 - Portfolio now includes synthesized sci-fi UI SFX tuned for tight, percussive click feedback (short high-passed ticks on hover/focus plus a sharper press tick on click/tap), unlocked after first user gesture and rate-limited to stay subtle.
+- Added `portfolio/src/sfx-lab.html`, a local click-sound audition page with six short WebAudio click profiles (A-F) and master volume so SFX can be selected before integrating into main UI interactions.
 - Portfolio HUD now uses a reboot icon (top-right) to reload/reboot the interface, replacing the prior textual explore chip and superseding the old Home node.
 - Portfolio brain is now draggable after map activation: click-drag rotates freely across axes, then releases back toward ambient rotation when pointer is released.
 - Protocol control affordance now includes a soft internal pulse glow to emphasize that it is actionable.
