@@ -210,6 +210,7 @@ Use exactly what Render Custom Domains asks for:
 - Critical shake escalation now has an accompanying visual state: the brain-centered ambient glow blinks red while severe shaking continues, then smoothly fades back to the normal blue glow once motion settles/stops.
 - Critical/red escalation sensitivity has been tuned slightly higher than the initial rollout so users must sustain stronger shake input before entering the critical state.
 - Portfolio terminal output now auto-follows newest appended lines (including shake warnings and stream logs), so latest status stays visible at the bottom while preserving normal manual scroll behavior between new messages.
+- Shake alerts now include explicit recovery behavior: once the alert glow decays back to baseline, terminal history logs a stability-recovered line and the footer status settles to `stable // subject stability nominal`.
 - Portfolio launcher node ordering now prioritizes app nodes first (`TFT Duos`, `Warhammer`) and groups utility nodes after (`Memory Access`, `Contact`, `Source`), with app nodes on `core` yellow styling and utility nodes on `meta` green styling (including hover state).
 - Portfolio `Source` node icon now uses a GitHub mark, and app node glyphs were refreshed toward a TFT crest and Warhammer banner motif.
 - Portfolio HUD now uses a reboot icon (top-right) to reload/reboot the interface, replacing the prior textual explore chip and superseding the old Home node.

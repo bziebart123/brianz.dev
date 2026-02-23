@@ -1103,12 +1103,12 @@
         var brainShakeSessionEnergy = 0;
         var brainShakeMildIssued = false;
         var brainShakeStrongIssued = false;
-        var brainShakeAlertUntil = 0;
         var brainShakeMildCooldownUntil = 0;
         var brainShakeStrongCooldownUntil = 0;
         var subjectAlertLevel = 0;
         var subjectAlertTarget = 0;
         var subjectAlertLastMotionAt = 0;
+        var subjectRecoveryPending = false;
 
         nodes.forEach(function (node) {
           node.removeAttribute("target");
@@ -1327,6 +1327,10 @@
           terminalStatus.textContent = text;
         }
 
+        function getStableStatusText() {
+          return "stable // subject stability nominal";
+        }
+
         function signalBrainShakeWarning(level) {
           var nowMs = Date.now();
           var isStrong = level === "strong";
@@ -1337,20 +1341,17 @@
             if (nowMs < brainShakeMildCooldownUntil) return;
             brainShakeMildCooldownUntil = nowMs + 9000;
           }
-          brainShakeAlertUntil = nowMs + (isStrong ? 11500 : 9000);
           if (isStrong) {
             pushBootLine("> Critical Warning: neural stress spike detected. stabilize the subject immediately.", true);
             setTerminalStatusText("critical // subject stability compromised", false);
             subjectAlertTarget = 1;
             subjectAlertLastMotionAt = nowMs;
+            subjectRecoveryPending = true;
           } else {
             pushBootLine("> Warning: be careful with the subject.", true);
             setTerminalStatusText("warning // subject stability at risk", false);
+            subjectRecoveryPending = true;
           }
-          setTimeout(function () {
-            if (Date.now() < brainShakeAlertUntil) return;
-            setTerminalStatusText("terminal synced // node lattice online", false);
-          }, isStrong ? 3200 : 2200);
         }
 
         function setTerminalOutputLoading(text) {
@@ -1400,7 +1401,7 @@
             setTerminalStatusText("contact relay mode // esc or close to collapse", false);
             return;
           }
-          setTerminalStatusText("terminal synced // node lattice online", false);
+          setTerminalStatusText(getStableStatusText(), false);
         }
 
         setTerminalStatusText("searching // locating subject", true);
@@ -2375,6 +2376,11 @@
           subjectAlertLevel += (subjectAlertTarget - subjectAlertLevel) * (subjectAlertTarget > subjectAlertLevel ? 0.16 : 0.08);
           if (Math.abs(subjectAlertTarget - subjectAlertLevel) < 0.01) {
             subjectAlertLevel = subjectAlertTarget;
+          }
+          if (subjectRecoveryPending && subjectAlertTarget === 0 && subjectAlertLevel < 0.02) {
+            pushBootLine("> Stability decay complete. subject returned to nominal baseline.", true);
+            subjectRecoveryPending = false;
+            applyTerminalModeStatus();
           }
           if (starfield) {
             starfield.style.setProperty("--subject-alert-opacity", subjectAlertLevel.toFixed(3));
