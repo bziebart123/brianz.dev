@@ -213,6 +213,7 @@ Use exactly what Render Custom Domains asks for:
 - Shake alerts now include explicit recovery behavior: once the alert glow decays back to baseline, terminal history logs a stability-recovered line and the footer status settles to `stable // subject stability nominal`.
 - Portfolio launcher node ordering now prioritizes app nodes first (`TFT Duos`, `Warhammer`) and groups utility nodes after (`Memory Access`, `Contact`, `Source`), with app nodes on `core` yellow styling and utility nodes on `meta` green styling (including hover state).
 - Portfolio `Source` node icon now uses a GitHub mark, and app node glyphs were refreshed toward a TFT crest and Warhammer banner motif.
+- App node glyphs are now intentionally generic/custom: TFT icon uses a yellow-only `TFT` crest (no blue accent), and Warhammer icon uses a simple `40K` text mark to avoid dependency on third-party trademark logo assets.
 - Portfolio HUD now uses a reboot icon (top-right) to reload/reboot the interface, replacing the prior textual explore chip and superseding the old Home node.
 - Portfolio brain is now draggable after map activation: click-drag rotates freely across axes, then releases back toward ambient rotation when pointer is released.
 - Protocol control affordance now includes a soft internal pulse glow to emphasize that it is actionable.
