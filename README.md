@@ -161,6 +161,7 @@ Use exactly what Render Custom Domains asks for:
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.
 - Portfolio landing (`portfolio/src/index.html`) now uses third-party 3D rendering (`three.js` + `GLTFLoader`) for the brain centerpiece, with vendored module assets in `portfolio/src/vendor/` and a local GLB model at `portfolio/src/assets/brainstem.glb` for reliable deploy/runtime loading.
+- Portfolio 3D vendor dependencies are fully local-resolved (`GLTFLoader` + `utils/BufferGeometryUtils`) to prevent MIME/import failures from missing external module paths.
 - A built-in procedural fallback brain mesh is rendered if the local GLB cannot be loaded, so the scene remains functional in degraded mode.
 - Portfolio node constellation has been pulled closer to the brain center for tighter navigation focus, and a parent `Systems` node now expands `Render Meta` + `Backend` subnodes on hover/focus (tap-to-toggle on mobile).
 - Portfolio landing now boots through a terminal-style intro ("MY BRAIN" protocol handshake + "Mapping out Brian's mind") and keeps that terminal docked at the bottom with message history plus a blinking prompt-style status line while generated star-map nodes come online.
