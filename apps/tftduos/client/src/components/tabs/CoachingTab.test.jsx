@@ -58,9 +58,9 @@ describe("CoachingTab", () => {
   it("renders AI-first coaching layout", () => {
     render(<CoachingTab {...baseProps} />);
 
-    expect(screen.getByText("Duo Coaching")).toBeInTheDocument();
-    expect(screen.getByText("AI Coach Brief")).toBeInTheDocument();
-    expect(screen.getByText("Individual Action Plans")).toBeInTheDocument();
+    expect(screen.getByText("Duo Coaching Console")).toBeInTheDocument();
+    expect(screen.getByText(/AI COACH BRIEF/i)).toBeInTheDocument();
+    expect(screen.getByText("Team Actions")).toBeInTheDocument();
     expect(screen.getByText("Meta vs Your Builds")).toBeInTheDocument();
     expect(screen.getByText("Top Improvement Areas")).toBeInTheDocument();
     expect(screen.getByText("Win Conditions")).toBeInTheDocument();
