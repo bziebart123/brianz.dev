@@ -1288,8 +1288,10 @@
           line.className = "boot-line";
           line.innerHTML = isHighlight ? "<strong>" + text + "</strong>" : text;
           bootLog.appendChild(line);
+          bootLog.scrollTop = bootLog.scrollHeight;
           requestAnimationFrame(function () {
             line.classList.add("show");
+            bootLog.scrollTop = bootLog.scrollHeight;
           });
         }
 
@@ -1299,8 +1301,10 @@
           line.className = "boot-line" + (className ? " " + className : "");
           line.innerHTML = html;
           bootLog.appendChild(line);
+          bootLog.scrollTop = bootLog.scrollHeight;
           requestAnimationFrame(function () {
             line.classList.add("show");
+            bootLog.scrollTop = bootLog.scrollHeight;
           });
         }
 
