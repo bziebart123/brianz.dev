@@ -137,6 +137,23 @@
         text-transform: uppercase;
       }
 
+      button.chip {
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .chip-reset-btn {
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        justify-content: center;
+      }
+
+      .chip-reset-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+
       .chip-dot {
         width: 8px;
         height: 8px;
@@ -221,6 +238,39 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
+      }
+
+      .terminal-protocol-btn {
+        border: 1px solid rgba(111, 194, 255, 0.44);
+        border-radius: 999px;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(142, 240, 200, 0.22), rgba(9, 17, 33, 0.78) 64%),
+          rgba(9, 17, 33, 0.78);
+        color: #d4e4ff;
+        font-family: inherit;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        cursor: pointer;
+        animation: protocolGlowPulse 2.6s ease-in-out infinite;
+      }
+
+      .terminal-protocol-btn:hover,
+      .terminal-protocol-btn:focus-visible {
+        border-color: rgba(142, 240, 200, 0.72);
+        color: #8ef0c8;
+        outline: none;
+      }
+
+      @keyframes protocolGlowPulse {
+        0%,
+        100% {
+          box-shadow: inset 0 0 0 rgba(142, 240, 200, 0), 0 0 0 rgba(142, 240, 200, 0);
+        }
+        50% {
+          box-shadow: inset 0 0 14px rgba(142, 240, 200, 0.22), 0 0 8px rgba(111, 194, 255, 0.16);
+        }
       }
 
       .terminal-close {
@@ -362,6 +412,15 @@
         height: clamp(122px, 16vh, 148px);
       }
 
+      .starfield.intro-locked .terminal-close {
+        display: none;
+      }
+
+      .starfield.intro-locked .terminal-protocol-btn {
+        pointer-events: none;
+        opacity: 0.7;
+      }
+
       .starfield.intro-locked .organism {
         opacity: 1;
         filter: blur(0);
@@ -393,8 +452,13 @@
       .starfield.map-active .brain-core {
         transform: translate(-50%, -50%) scale(0.84) rotateX(var(--brain-tilt-x, 0deg)) rotateY(var(--brain-tilt-y, 0deg));
         opacity: 0.86;
-        pointer-events: none;
+        pointer-events: auto;
+        cursor: grab;
         filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 26px rgba(111, 194, 255, 0.2));
+      }
+
+      .starfield.map-active .brain-core.is-dragging {
+        cursor: grabbing;
       }
 
       .brain-viewport {
@@ -789,9 +853,9 @@
         <div class="terminal-dock" aria-live="polite">
           <div class="terminal">
             <div class="terminal-head">
-              <span>SUBJECT // Cognitive Navigation Terminal</span>
+              <span>Cognitive Navigation Terminal</span>
               <div class="terminal-head-actions">
-                <span>Protocol Handshake</span>
+                <button type="button" class="terminal-protocol-btn" id="protocol-link">Protocol NX-7A19.442</button>
                 <button type="button" class="terminal-close" id="terminal-close-btn" aria-label="Expand terminal panel">^</button>
               </div>
             </div>
@@ -802,7 +866,12 @@
 
         <div class="map-hud">
           <div class="chip"><span class="chip-dot" aria-hidden="true"></span> brianz.dev lattice</div>
-          <div class="chip">tap nodes to explore</div>
+          <button type="button" class="chip chip-reset-btn" id="reboot-link" aria-label="Reboot interface" title="Reboot interface">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M19 8A8 8 0 1 0 20 12" stroke="#8EF0C8" stroke-width="2" stroke-linecap="round"/>
+              <path d="M20 4V9H15" stroke="#8EF0C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
 
         <div class="organism" id="organism">
@@ -830,7 +899,7 @@
             <span>TFT Duos</span>
           </a>
 
-          <a class="star-node star-node--primary star-node--ops" id="ops-link" data-kind="meta" data-x="74" data-y="44" href="#" aria-label="Expand systems intelligence nodes" aria-haspopup="true">
+          <a class="star-node star-node--primary" id="memory-link" data-kind="meta" data-x="74" data-y="44" href="#" aria-label="Open subject memory access stream">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
@@ -838,32 +907,7 @@
                 <circle cx="45" cy="43" r="3" fill="#8EF0C8"/>
               </svg>
             </div>
-            <span>Systems</span>
-          </a>
-
-          <a class="star-sub-node" id="meta-link" data-kind="meta" data-parent="ops" data-offset-x="108" data-offset-y="-52" href="https://api.brianz.dev/api/site-performance/render/overview?hours=24" aria-label="Load Render Meta in terminal">
-            <div class="node-icon">
-              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
-                <path d="M17 42L25 33L31 37L40 25L47 30" stroke="#8EF0C8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="25" cy="33" r="2.6" fill="#8EF0C8"/>
-                <circle cx="31" cy="37" r="2.6" fill="#8EF0C8"/>
-                <circle cx="40" cy="25" r="2.6" fill="#8EF0C8"/>
-              </svg>
-            </div>
-            <span>Render Meta</span>
-          </a>
-
-          <a class="star-sub-node" id="backend-link" data-kind="meta" data-parent="ops" data-offset-x="112" data-offset-y="52" href="https://api.brianz.dev/health" aria-label="Open Backend Health">
-            <div class="node-icon">
-              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="32" cy="32" r="24" fill="#11253E" stroke="#6FC2FF" stroke-width="2.2"/>
-                <path d="M19 32H45" stroke="#6FC2FF" stroke-width="3" stroke-linecap="round"/>
-                <path d="M32 19V45" stroke="#6FC2FF" stroke-width="3" stroke-linecap="round"/>
-                <circle cx="32" cy="32" r="6" fill="#E0BD72"/>
-              </svg>
-            </div>
-            <span>Backend</span>
+            <span>Memory Access</span>
           </a>
 
           <a class="star-node star-node--primary" data-x="38" data-y="74" href="https://github.com/bziebart123/brianz.dev" aria-label="Open GitHub Repository">
@@ -875,16 +919,6 @@
               </svg>
             </div>
             <span>Source</span>
-          </a>
-
-          <a class="star-node star-node--primary" data-x="50" data-y="20" href="https://brianz.dev" aria-label="Reload home hub">
-            <div class="node-icon">
-              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M32 8L52 24V52H12V24L32 8Z" fill="#13233A" stroke="#6FC2FF" stroke-width="2.2"/>
-                <rect x="27" y="33" width="10" height="19" rx="2" fill="#6FC2FF"/>
-              </svg>
-            </div>
-            <span>Home</span>
           </a>
 
           <a class="star-node star-node--primary" id="contact-link" data-kind="meta" data-x="62" data-y="74" href="#" aria-label="Open contact relay">
@@ -910,6 +944,7 @@
         var isLocal = host === "localhost" || host === "127.0.0.1";
 
         var tftLink = document.getElementById("tftduos-link");
+        var memoryLink = document.getElementById("memory-link");
         var opsLink = document.getElementById("ops-link");
         var metaLink = document.getElementById("meta-link");
         var backendLink = document.getElementById("backend-link");
@@ -918,6 +953,8 @@
         var terminalDock = document.querySelector(".terminal-dock");
         var terminalPanel = document.querySelector(".terminal");
         var mapHud = document.querySelector(".map-hud");
+        var rebootLink = document.getElementById("reboot-link");
+        var protocolLink = document.getElementById("protocol-link");
         var bootLog = document.getElementById("boot-log");
         var terminalStatus = document.getElementById("terminal-status");
         var terminalCloseBtn = document.getElementById("terminal-close-btn");
@@ -928,6 +965,7 @@
         var contactRequestCount = 0;
         var terminalQueueOffset = 0;
         var renderMetaChain = Promise.resolve();
+        var systemAccessMode = "memory";
         var linkedinUrl = "https://www.linkedin.com/in/brian-ziebart/";
         var subAppHosts = [
           "tftduos.brianz.dev",
@@ -960,6 +998,10 @@
         var brainTiltY = 0;
         var brainSpinRadians = 0;
         var brainLoadStartMs = (window.performance && typeof window.performance.now === "function") ? window.performance.now() : Date.now();
+        var brainDragActive = false;
+        var brainDragPointerId = null;
+        var brainUserRotX = 0;
+        var brainUserRotY = 0;
         var brainScene = null;
         var brainCamera = null;
         var brainRenderer = null;
@@ -1073,6 +1115,16 @@
           terminalCloseBtn.textContent = isExpanded ? "v" : "^";
           terminalCloseBtn.setAttribute("aria-label", isExpanded ? "Collapse terminal panel" : "Expand terminal panel");
           terminalCloseBtn.setAttribute("title", isExpanded ? "Collapse terminal panel" : "Expand terminal panel");
+        }
+
+        function beginSubjectMemoryAccess(mode) {
+          systemAccessMode = mode === "protocol" ? "protocol" : "memory";
+          if (!terminalExpanded) setTerminalExpanded(true);
+          renderMetaChain = renderMetaChain.then(function () {
+            return appendRenderMetaSnapshot();
+          }).catch(function () {
+            return appendRenderMetaSnapshot();
+          });
         }
 
         function applyTerminalModeStatus() {
@@ -1340,8 +1392,10 @@
           var spinRate = (Math.PI * 2) / 28;
           brainSpinRadians = (timeSec * spinRate) % (Math.PI * 2);
           brainRoot.position.set(0, 0, 0);
-          brainRoot.rotation.x = 0;
-          brainRoot.rotation.y = brainSpinRadians;
+          var userRotXRad = (brainUserRotX * Math.PI) / 180;
+          var userRotYRad = (brainUserRotY * Math.PI) / 180;
+          brainRoot.rotation.x = userRotXRad;
+          brainRoot.rotation.y = brainSpinRadians + userRotYRad;
           brainRoot.rotation.z = 0;
 
           var nowMs = (window.performance && typeof window.performance.now === "function") ? window.performance.now() : Date.now();
@@ -1584,13 +1638,17 @@
           var stamp = hh + ":" + mm + ":" + ss;
           var delay = 170;
           var cursor = 0;
+          var accessLabel = systemAccessMode === "protocol" ? "Protocol access" : "Subject memory access";
+          var accessCommand = systemAccessMode === "protocol"
+            ? "protocol.access --window 24h --origin \"" + backendBase + "\""
+            : "subject.memory.access --window 24h --origin \"" + backendBase + "\"";
 
           queueTerminalLine(cursor, delay, function () {
-            pushBootLine("> Render Meta snapshot request accepted [" + stamp + "] #" + renderMetaRequestCount, true);
+            pushBootLine("> " + accessLabel + " accepted [" + stamp + "] #" + renderMetaRequestCount, true);
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
-            pushBootLineHtml("&gt; run render.meta --hours 24 --origin \"" + backendBase + "\"", "api-line");
+            pushBootLineHtml("&gt; run " + accessCommand, "api-line");
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
@@ -1598,10 +1656,10 @@
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
-            pushBootLine("> Connected API origin: " + backendBase, false);
+            pushBootLine("> Memory channel: render telemetry + service state", false);
           });
           cursor += 1;
-          setTerminalStatusText("render.meta // awaiting response", true);
+          setTerminalStatusText((systemAccessMode === "protocol" ? "protocol.access" : "subject.memory") + " // awaiting response", true);
 
           try {
             var response = await fetch(url);
@@ -1638,6 +1696,10 @@
               pushBootLine("> Avg memory: " + avgMemory, false);
             });
             cursor += 1;
+            queueTerminalLine(cursor, delay, function () {
+              pushBootLine("> Postgres memory-health channel: pending integration", false);
+            });
+            cursor += 1;
 
             if (services.length) {
               services.slice(0, 8).forEach(function (service) {
@@ -1667,12 +1729,12 @@
             }
 
             queueTerminalLine(cursor, delay, function () {
-              pushBootLine("> Render Meta snapshot stream complete", true);
+              pushBootLine("> " + accessLabel + " stream complete", true);
             });
             cursor += 1;
           } catch (error) {
             queueTerminalLine(cursor, delay, function () {
-              pushBootLine("> Render Meta stream error: " + String(error && error.message ? error.message : error), true);
+              pushBootLine("> " + accessLabel + " stream error: " + String(error && error.message ? error.message : error), true);
             });
             cursor += 1;
           }
@@ -1688,12 +1750,15 @@
           metaLink.addEventListener("click", function (event) {
             if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
             event.preventDefault();
-            if (!terminalExpanded) setTerminalExpanded(true);
-            renderMetaChain = renderMetaChain.then(function () {
-              return appendRenderMetaSnapshot();
-            }).catch(function () {
-              return appendRenderMetaSnapshot();
-            });
+            beginSubjectMemoryAccess();
+          });
+        }
+
+        if (protocolLink) {
+          protocolLink.addEventListener("click", function (event) {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            beginSubjectMemoryAccess("protocol");
           });
         }
 
@@ -1703,6 +1768,21 @@
             event.preventDefault();
             setContactTerminalExpanded(true);
             beginContactRelay();
+          });
+        }
+
+        if (rebootLink) {
+          rebootLink.addEventListener("click", function (event) {
+            event.preventDefault();
+            window.location.reload();
+          });
+        }
+
+        if (memoryLink) {
+          memoryLink.addEventListener("click", function (event) {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            beginSubjectMemoryAccess("memory");
           });
         }
 
@@ -1728,12 +1808,11 @@
         syncTerminalToggleControl();
 
         var bootSequence = [
-          { text: "> Initiating protocol: SUBJECT", highlight: false },
-          { text: "> Calibrating semi-sentient navigator...", highlight: false },
+          { text: "> Initiating protocol: NX-7A19.442", highlight: false },
+          { text: "> Calibrating navigation bus...", highlight: false },
           { text: "> Mapping subject neural topology", highlight: true },
-          { text: "> Compiling project constellations", highlight: false },
           { text: "> Rendering neural routes and access nodes", highlight: false },
-          { text: "> Subject acquired. Interface online.", highlight: true }
+          { text: "> Interface online.", highlight: true }
         ];
         var referrer = String(document.referrer || "");
         var shouldSkipBoot = subAppHosts.some(function (hostMarker) {
@@ -1890,6 +1969,39 @@
           brainCore.addEventListener("click", function () {
             triggerBrainEntry(shouldSkipBoot, bootSequence);
           });
+          brainCore.addEventListener("pointerdown", function (event) {
+            if (!mapActivated) return;
+            if (event.button !== 0) return;
+            brainDragActive = true;
+            brainDragPointerId = event.pointerId;
+            if (brainCore.setPointerCapture) {
+              brainCore.setPointerCapture(event.pointerId);
+            }
+            brainCore.classList.add("is-dragging");
+            event.preventDefault();
+          });
+          brainCore.addEventListener("pointermove", function (event) {
+            if (!brainDragActive || event.pointerId !== brainDragPointerId) return;
+            var nextY = brainUserRotY + (event.movementX * 0.28);
+            var nextX = brainUserRotX + (event.movementY * 0.24);
+            brainUserRotY = Math.max(-70, Math.min(70, nextY));
+            brainUserRotX = Math.max(-42, Math.min(42, nextX));
+          });
+          brainCore.addEventListener("pointerup", function (event) {
+            if (event.pointerId !== brainDragPointerId) return;
+            brainDragActive = false;
+            brainDragPointerId = null;
+            if (brainCore.releasePointerCapture) {
+              try { brainCore.releasePointerCapture(event.pointerId); } catch (_error) {}
+            }
+            brainCore.classList.remove("is-dragging");
+          });
+          brainCore.addEventListener("pointercancel", function (event) {
+            if (event.pointerId !== brainDragPointerId) return;
+            brainDragActive = false;
+            brainDragPointerId = null;
+            brainCore.classList.remove("is-dragging");
+          });
           brainCore.addEventListener("keydown", function (event) {
             if (event.key === "Enter" || event.key === " ") {
               event.preventDefault();
@@ -1957,6 +2069,12 @@
 
         function updateLattice(now) {
           var timeSec = now * 0.001;
+          if (mapActivated && !brainDragActive) {
+            brainUserRotX *= 0.92;
+            brainUserRotY *= 0.92;
+            if (Math.abs(brainUserRotX) < 0.01) brainUserRotX = 0;
+            if (Math.abs(brainUserRotY) < 0.01) brainUserRotY = 0;
+          }
           updateBrainTilt(timeSec);
           if (mapActivated || introTransitionActive) {
             updateNodeLayout();
