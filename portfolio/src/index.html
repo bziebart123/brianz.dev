@@ -346,15 +346,15 @@
       }
 
       .starfield.intro-locked,
-      .starfield.intro-zooming,
-      .starfield.intro-faded {
+      .starfield.intro-sinking,
+      .starfield.map-active {
         display: grid;
         align-items: center;
       }
 
       .starfield.intro-locked .organism,
-      .starfield.intro-zooming .organism,
-      .starfield.intro-faded .organism {
+      .starfield.intro-sinking .organism,
+      .starfield.map-active .organism {
         height: min(46vh, 430px);
       }
 
@@ -1403,7 +1403,6 @@
           window.setTimeout(function () {
             if (starfield) {
               starfield.classList.remove("intro-locked");
-              starfield.classList.remove("intro-sinking");
               starfield.classList.add("map-active");
             }
             introTransitionActive = false;
