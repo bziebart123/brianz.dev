@@ -207,6 +207,7 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio live UI SFX is now tuned to the auditioned `E - Tight Dual` profile (with a slightly stronger press tick) for tighter hover/click feedback.
 - Portfolio node SFX hotspoting is now icon-scoped: star-node sounds fire from `.node-icon` hover/click (plus keyboard focus), avoiding early triggers from surrounding node padding.
 - Portfolio includes a two-stage shake easter egg in map mode: sustained aggressive brain dragging triggers a caution warning, and heavier continued shaking escalates to a critical stabilization warning (both cooldown-gated to avoid log spam).
+- Critical shake escalation now has an accompanying visual state: the brain-centered ambient glow blinks red while severe shaking continues, then smoothly fades back to the normal blue glow once motion settles/stops.
 - Portfolio HUD now uses a reboot icon (top-right) to reload/reboot the interface, replacing the prior textual explore chip and superseding the old Home node.
 - Portfolio brain is now draggable after map activation: click-drag rotates freely across axes, then releases back toward ambient rotation when pointer is released.
 - Protocol control affordance now includes a soft internal pulse glow to emphasize that it is actionable.

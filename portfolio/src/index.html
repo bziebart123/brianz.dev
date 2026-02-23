@@ -116,6 +116,40 @@
         transition: background-position 120ms linear;
       }
 
+      .starfield::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: var(--subject-alert-opacity, 0);
+        background:
+          radial-gradient(
+            circle at var(--brain-glow-x, 50%) var(--brain-glow-y, 50%),
+            rgba(255, 72, 72, 0.34),
+            transparent 36%
+          ),
+          radial-gradient(
+            circle at var(--brain-glow-x, 50%) var(--brain-glow-y, 50%),
+            rgba(255, 22, 22, 0.16),
+            transparent 24%
+          );
+        transition: opacity 420ms ease;
+      }
+
+      .starfield.subject-alert-critical::after {
+        animation: subjectCriticalBlink 0.72s ease-in-out infinite;
+      }
+
+      @keyframes subjectCriticalBlink {
+        0%,
+        100% {
+          filter: brightness(0.9) saturate(1);
+        }
+        50% {
+          filter: brightness(1.26) saturate(1.25);
+        }
+      }
+
       .map-hud {
         position: absolute;
         top: 14px;
@@ -1056,6 +1090,11 @@
         var brainShakeMildIssued = false;
         var brainShakeStrongIssued = false;
         var brainShakeAlertUntil = 0;
+        var brainShakeMildCooldownUntil = 0;
+        var brainShakeStrongCooldownUntil = 0;
+        var subjectAlertLevel = 0;
+        var subjectAlertTarget = 0;
+        var subjectAlertLastMotionAt = 0;
 
         nodes.forEach(function (node) {
           node.removeAttribute("target");
@@ -1272,12 +1311,20 @@
 
         function signalBrainShakeWarning(level) {
           var nowMs = Date.now();
-          if (nowMs < brainShakeAlertUntil) return;
           var isStrong = level === "strong";
+          if (isStrong) {
+            if (nowMs < brainShakeStrongCooldownUntil) return;
+            brainShakeStrongCooldownUntil = nowMs + 12000;
+          } else {
+            if (nowMs < brainShakeMildCooldownUntil) return;
+            brainShakeMildCooldownUntil = nowMs + 9000;
+          }
           brainShakeAlertUntil = nowMs + (isStrong ? 11500 : 9000);
           if (isStrong) {
             pushBootLine("> Critical Warning: neural stress spike detected. stabilize the subject immediately.", true);
             setTerminalStatusText("critical // subject stability compromised", false);
+            subjectAlertTarget = 1;
+            subjectAlertLastMotionAt = nowMs;
           } else {
             pushBootLine("> Warning: be careful with the subject.", true);
             setTerminalStatusText("warning // subject stability at risk", false);
@@ -2192,6 +2239,7 @@
             brainShakeSessionEnergy = 0;
             brainShakeMildIssued = false;
             brainShakeStrongIssued = false;
+            subjectAlertLastMotionAt = Date.now();
             if (brainCore.setPointerCapture) {
               brainCore.setPointerCapture(event.pointerId);
             }
@@ -2207,12 +2255,15 @@
             var dragDelta = Math.abs(event.movementX) + Math.abs(event.movementY);
             brainShakeMeter = (brainShakeMeter * 0.86) + dragDelta;
             brainShakeSessionEnergy += dragDelta;
+            if (dragDelta > 10) {
+              subjectAlertLastMotionAt = Date.now();
+            }
             if (!brainShakeMildIssued && (brainShakeMeter > 120 || brainShakeSessionEnergy > 650)) {
               signalBrainShakeWarning("mild");
               brainShakeMildIssued = true;
               brainShakeMeter = 42;
             }
-            if (!brainShakeStrongIssued && (brainShakeMeter > 200 || brainShakeSessionEnergy > 1800)) {
+            if (!brainShakeStrongIssued && (brainShakeMeter > 155 || brainShakeSessionEnergy > 1050)) {
               signalBrainShakeWarning("strong");
               brainShakeStrongIssued = true;
               brainShakeMeter = 58;
@@ -2300,6 +2351,17 @@
 
         function updateLattice(now) {
           var timeSec = now * 0.001;
+          if (subjectAlertTarget > 0 && (!brainDragActive || (Date.now() - subjectAlertLastMotionAt) > 520)) {
+            subjectAlertTarget = 0;
+          }
+          subjectAlertLevel += (subjectAlertTarget - subjectAlertLevel) * (subjectAlertTarget > subjectAlertLevel ? 0.16 : 0.08);
+          if (Math.abs(subjectAlertTarget - subjectAlertLevel) < 0.01) {
+            subjectAlertLevel = subjectAlertTarget;
+          }
+          if (starfield) {
+            starfield.style.setProperty("--subject-alert-opacity", subjectAlertLevel.toFixed(3));
+            starfield.classList.toggle("subject-alert-critical", subjectAlertLevel > 0.06);
+          }
           if (mapActivated && !brainDragActive) {
             brainUserRotX *= 0.92;
             brainUserRotY *= 0.92;
