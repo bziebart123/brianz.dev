@@ -1,54 +1,27 @@
-# Site Performance - Render Meta Dashboard
+# Site Performance - 40K Companion Console
 
-`site-performance` is a static frontend that visualizes Render service performance by calling the existing shared backend (`apps/backend`).
+`site-performance` is now a static frontend companion app for Warhammer 40,000 play sessions. It keeps the same portfolio visual language and centers the UX on a terminal-style quick-reference workflow for forgotten rules and turn sequencing.
 
 ## Architecture
 
 - Frontend: `apps/site-performance/client` (Vite + React)
-- Backend API source: shared brianz backend route namespace (`/api/site-performance/*`)
+- No backend dependency required for core terminal references
 - No dedicated `apps/site-performance/server` required
 
 ## Local development
 
 From repo root:
 
-- `npm run dev:brianz:backend`
 - `npm run dev:site-performance:client`
-
-By default, the Site Performance frontend proxies `/api` to `http://localhost:3001` via Vite.
 
 ## Site Performance frontend env vars
 
 See `apps/site-performance/client/.env.example`:
 
-- `VITE_API_BASE_URL` (optional; defaults to same-origin `/api`)
-
-## Shared backend env vars
-
-The shared backend (`apps/backend`) must include:
-
-- `RENDER_API_KEY` (required for Site Performance metrics)
-- `RENDER_API_BASE_URL` (optional, default: `https://api.render.com/v1`)
-- `RENDER_DASHBOARD_SERVICE_IDS` (optional comma-separated service IDs to scope dashboard)
+- `VITE_API_BASE_URL` (currently unused by the 40K console, kept for compatibility)
 
 ## UI notes
 
-- `apps/site-performance/client/src/theme.css` now includes a subtle fixed starfield/glow background layer (`body::before`/`body::after`) behind dashboard content to match the broader portfolio aesthetic while preserving panel readability.
-- Site Performance dashboard panels/controls now share the same portfolio-style visual system (thin luminous blue outlines, translucent navy surfaces, soft blue glow, and higher-contrast glass cards).
-
-## API route
-
-`GET /api/site-performance/render/overview`
-
-Query params:
-
-- `hours` (1-168, default `24`)
-- `resolutionSeconds` (30-3600, default `300`)
-
-Response includes:
-
-- tracked services
-- summary KPIs (request count, bandwidth, CPU, memory)
-- raw metric rollups by endpoint/resource
-- warnings for partial metric failures
-- no public dashboard deep links in UI (service list is informational only)
+- Main app view is a full terminal panel in `apps/site-performance/client/src/App.jsx`.
+- Styling in `apps/site-performance/client/src/theme.css` mirrors the portfolio terminal chrome (gradient shell, luminous border, terminal header/body/prompt treatment).
+- The terminal supports command-driven quick refs (`help`, `phases`, `command-points`, `scoring`, `terrain`, `save-sequence`, `factions`, `checklist`, `clear`, `boot`).
