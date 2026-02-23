@@ -137,6 +137,23 @@
         text-transform: uppercase;
       }
 
+      button.chip {
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .chip-reset-btn {
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        justify-content: center;
+      }
+
+      .chip-reset-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+
       .chip-dot {
         width: 8px;
         height: 8px;
@@ -226,7 +243,9 @@
       .terminal-protocol-btn {
         border: 1px solid rgba(111, 194, 255, 0.44);
         border-radius: 999px;
-        background: rgba(9, 17, 33, 0.78);
+        background:
+          radial-gradient(circle at 50% 50%, rgba(142, 240, 200, 0.22), rgba(9, 17, 33, 0.78) 64%),
+          rgba(9, 17, 33, 0.78);
         color: #d4e4ff;
         font-family: inherit;
         font-size: 0.72rem;
@@ -234,6 +253,7 @@
         text-transform: uppercase;
         padding: 4px 10px;
         cursor: pointer;
+        animation: protocolGlowPulse 2.6s ease-in-out infinite;
       }
 
       .terminal-protocol-btn:hover,
@@ -241,6 +261,16 @@
         border-color: rgba(142, 240, 200, 0.72);
         color: #8ef0c8;
         outline: none;
+      }
+
+      @keyframes protocolGlowPulse {
+        0%,
+        100% {
+          box-shadow: inset 0 0 0 rgba(142, 240, 200, 0), 0 0 0 rgba(142, 240, 200, 0);
+        }
+        50% {
+          box-shadow: inset 0 0 14px rgba(142, 240, 200, 0.22), 0 0 8px rgba(111, 194, 255, 0.16);
+        }
       }
 
       .terminal-close {
@@ -422,8 +452,13 @@
       .starfield.map-active .brain-core {
         transform: translate(-50%, -50%) scale(0.84) rotateX(var(--brain-tilt-x, 0deg)) rotateY(var(--brain-tilt-y, 0deg));
         opacity: 0.86;
-        pointer-events: none;
+        pointer-events: auto;
+        cursor: grab;
         filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 26px rgba(111, 194, 255, 0.2));
+      }
+
+      .starfield.map-active .brain-core.is-dragging {
+        cursor: grabbing;
       }
 
       .brain-viewport {
@@ -831,7 +866,12 @@
 
         <div class="map-hud">
           <div class="chip"><span class="chip-dot" aria-hidden="true"></span> brianz.dev lattice</div>
-          <div class="chip">tap nodes to explore</div>
+          <button type="button" class="chip chip-reset-btn" id="reboot-link" aria-label="Reboot interface" title="Reboot interface">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M19 8A8 8 0 1 0 20 12" stroke="#8EF0C8" stroke-width="2" stroke-linecap="round"/>
+              <path d="M20 4V9H15" stroke="#8EF0C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
 
         <div class="organism" id="organism">
@@ -881,16 +921,6 @@
             <span>Source</span>
           </a>
 
-          <a class="star-node star-node--primary" data-x="50" data-y="20" href="https://brianz.dev" aria-label="Reload home hub">
-            <div class="node-icon">
-              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M32 8L52 24V52H12V24L32 8Z" fill="#13233A" stroke="#6FC2FF" stroke-width="2.2"/>
-                <rect x="27" y="33" width="10" height="19" rx="2" fill="#6FC2FF"/>
-              </svg>
-            </div>
-            <span>Home</span>
-          </a>
-
           <a class="star-node star-node--primary" id="contact-link" data-kind="meta" data-x="62" data-y="74" href="#" aria-label="Open contact relay">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -923,6 +953,7 @@
         var terminalDock = document.querySelector(".terminal-dock");
         var terminalPanel = document.querySelector(".terminal");
         var mapHud = document.querySelector(".map-hud");
+        var rebootLink = document.getElementById("reboot-link");
         var protocolLink = document.getElementById("protocol-link");
         var bootLog = document.getElementById("boot-log");
         var terminalStatus = document.getElementById("terminal-status");
@@ -967,6 +998,10 @@
         var brainTiltY = 0;
         var brainSpinRadians = 0;
         var brainLoadStartMs = (window.performance && typeof window.performance.now === "function") ? window.performance.now() : Date.now();
+        var brainDragActive = false;
+        var brainDragPointerId = null;
+        var brainUserRotX = 0;
+        var brainUserRotY = 0;
         var brainScene = null;
         var brainCamera = null;
         var brainRenderer = null;
@@ -1357,8 +1392,10 @@
           var spinRate = (Math.PI * 2) / 28;
           brainSpinRadians = (timeSec * spinRate) % (Math.PI * 2);
           brainRoot.position.set(0, 0, 0);
-          brainRoot.rotation.x = 0;
-          brainRoot.rotation.y = brainSpinRadians;
+          var userRotXRad = (brainUserRotX * Math.PI) / 180;
+          var userRotYRad = (brainUserRotY * Math.PI) / 180;
+          brainRoot.rotation.x = userRotXRad;
+          brainRoot.rotation.y = brainSpinRadians + userRotYRad;
           brainRoot.rotation.z = 0;
 
           var nowMs = (window.performance && typeof window.performance.now === "function") ? window.performance.now() : Date.now();
@@ -1734,6 +1771,13 @@
           });
         }
 
+        if (rebootLink) {
+          rebootLink.addEventListener("click", function (event) {
+            event.preventDefault();
+            window.location.reload();
+          });
+        }
+
         if (memoryLink) {
           memoryLink.addEventListener("click", function (event) {
             if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -1925,6 +1969,39 @@
           brainCore.addEventListener("click", function () {
             triggerBrainEntry(shouldSkipBoot, bootSequence);
           });
+          brainCore.addEventListener("pointerdown", function (event) {
+            if (!mapActivated) return;
+            if (event.button !== 0) return;
+            brainDragActive = true;
+            brainDragPointerId = event.pointerId;
+            if (brainCore.setPointerCapture) {
+              brainCore.setPointerCapture(event.pointerId);
+            }
+            brainCore.classList.add("is-dragging");
+            event.preventDefault();
+          });
+          brainCore.addEventListener("pointermove", function (event) {
+            if (!brainDragActive || event.pointerId !== brainDragPointerId) return;
+            var nextY = brainUserRotY + (event.movementX * 0.28);
+            var nextX = brainUserRotX + (event.movementY * 0.24);
+            brainUserRotY = Math.max(-70, Math.min(70, nextY));
+            brainUserRotX = Math.max(-42, Math.min(42, nextX));
+          });
+          brainCore.addEventListener("pointerup", function (event) {
+            if (event.pointerId !== brainDragPointerId) return;
+            brainDragActive = false;
+            brainDragPointerId = null;
+            if (brainCore.releasePointerCapture) {
+              try { brainCore.releasePointerCapture(event.pointerId); } catch (_error) {}
+            }
+            brainCore.classList.remove("is-dragging");
+          });
+          brainCore.addEventListener("pointercancel", function (event) {
+            if (event.pointerId !== brainDragPointerId) return;
+            brainDragActive = false;
+            brainDragPointerId = null;
+            brainCore.classList.remove("is-dragging");
+          });
           brainCore.addEventListener("keydown", function (event) {
             if (event.key === "Enter" || event.key === " ") {
               event.preventDefault();
@@ -1992,6 +2069,12 @@
 
         function updateLattice(now) {
           var timeSec = now * 0.001;
+          if (mapActivated && !brainDragActive) {
+            brainUserRotX *= 0.92;
+            brainUserRotY *= 0.92;
+            if (Math.abs(brainUserRotX) < 0.01) brainUserRotX = 0;
+            if (Math.abs(brainUserRotY) < 0.01) brainUserRotY = 0;
+          }
           updateBrainTilt(timeSec);
           if (mapActivated || introTransitionActive) {
             updateNodeLayout();
