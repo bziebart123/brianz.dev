@@ -5,6 +5,10 @@ import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
 import { asArray, prettyName } from "../../utils/tft";
 
 const MOBILE_BREAKPOINT = 1024;
+const AI_STREAM_SPEED_MS = {
+  cache: 120,
+  fresh: 520,
+};
 const AI_TERMINAL_BOOT_LINES = [
   "Initializing duo coaching terminal...",
   "Syncing filtered duo match timeline...",
@@ -169,6 +173,7 @@ export default function CoachingTab({
     typeof window !== "undefined" ? window.innerWidth <= MOBILE_BREAKPOINT : false
   );
   const [visibleBootLines, setVisibleBootLines] = useState(1);
+  const [visibleAiLines, setVisibleAiLines] = useState(0);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -223,6 +228,15 @@ export default function CoachingTab({
     : fallbackPlans;
   const mentionCatalog = buildMentionCatalog(filteredMatches, aiCoaching);
   const isAiPending = aiCoachingLoading || (!aiCoaching && !aiCoachingError);
+  const totalAiLines = aiCoaching?.brief
+    ? 2
+      + asArray(aiCoaching?.brief?.teamPlan).slice(0, 4).length
+      + asArray(aiCoaching?.brief?.metaDelta).slice(0, 4).length
+      + asArray(aiCoaching?.brief?.topImprovementAreas).slice(0, 4).length
+      + asArray(aiCoaching?.brief?.winConditions).slice(0, 4).length
+      + asArray(aiCoaching?.brief?.fiveGamePlan).slice(0, 5).length
+      + asArray(aiCoaching?.brief?.championBuilds).slice(0, 6).length
+    : 0;
 
   useEffect(() => {
     if (!isAiPending) {
@@ -242,6 +256,50 @@ export default function CoachingTab({
 
     return () => window.clearInterval(timer);
   }, [isAiPending]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    if (!aiCoaching?.brief || !totalAiLines) {
+      setVisibleAiLines(0);
+      return undefined;
+    }
+    if (process.env.NODE_ENV === "test") {
+      setVisibleAiLines(totalAiLines);
+      return undefined;
+    }
+
+    const intervalMs = aiCoaching?.cacheHit ? AI_STREAM_SPEED_MS.cache : AI_STREAM_SPEED_MS.fresh;
+    setVisibleAiLines(1);
+    let cursor = 1;
+    const timer = window.setInterval(() => {
+      cursor += 1;
+      setVisibleAiLines(Math.min(cursor, totalAiLines));
+      if (cursor >= totalAiLines) {
+        window.clearInterval(timer);
+      }
+    }, intervalMs);
+    return () => window.clearInterval(timer);
+  }, [aiCoaching?.brief, aiCoaching?.cacheHit, totalAiLines]);
+
+  function withLineBudget(lines, budgetStart) {
+    const source = asArray(lines);
+    const visibleCount = Math.max(0, Math.min(source.length, visibleAiLines - budgetStart));
+    return source.slice(0, visibleCount);
+  }
+
+  const teamPlanLines = asArray(aiCoaching?.brief?.teamPlan).slice(0, 4);
+  const metaDeltaLines = asArray(aiCoaching?.brief?.metaDelta).slice(0, 4);
+  const improveLines = asArray(aiCoaching?.brief?.topImprovementAreas).slice(0, 4);
+  const winConditionLines = asArray(aiCoaching?.brief?.winConditions).slice(0, 4);
+  const plan5Lines = asArray(aiCoaching?.brief?.fiveGamePlan).slice(0, 5);
+  const championBuildRows = asArray(aiCoaching?.brief?.championBuilds).slice(0, 6);
+
+  const teamPlanOffset = 2;
+  const metaDeltaOffset = teamPlanOffset + teamPlanLines.length;
+  const improveOffset = metaDeltaOffset + metaDeltaLines.length;
+  const winOffset = improveOffset + improveLines.length;
+  const plan5Offset = winOffset + winConditionLines.length;
+  const championOffset = plan5Offset + plan5Lines.length;
 
   function renderLineWithIcons(text, key) {
     const segments = splitTextByMentions(sanitizeModelText(text), mentionCatalog);
@@ -403,10 +461,8 @@ export default function CoachingTab({
         {aiCoaching?.brief ? (
           <Pane marginTop={10} display="grid" gap={8}>
             <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
-              <Strong>{sanitizeModelText(aiCoaching.brief.headline || "AI Coaching Brief")}</Strong>
-              <Pane marginTop={6}>
-                {renderLineWithIcons(aiCoaching.brief.summary || "No summary returned.", "ai-summary")}
-              </Pane>
+              {visibleAiLines >= 1 ? <Strong>{sanitizeModelText(aiCoaching.brief.headline || "AI Coaching Brief")}</Strong> : null}
+              {visibleAiLines >= 2 ? <Pane marginTop={6}>{renderLineWithIcons(aiCoaching.brief.summary || "No summary returned.", "ai-summary")}</Pane> : null}
               <Text size={300} color="muted" display="block" marginTop={6}>
                 Confidence: {aiCoaching.brief.confidence || "unknown"}
                 {aiCoaching?.reason ? ` | ${aiCoaching.reason}` : ""}
@@ -414,11 +470,11 @@ export default function CoachingTab({
               </Text>
             </Pane>
 
-            {asArray(aiCoaching.brief.teamPlan).length ? (
+            {teamPlanLines.length ? (
               <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
                 <Text size={400} color="muted">Team Actions</Text>
                 <Pane marginTop={6} display="grid" gap={4}>
-                  {asArray(aiCoaching.brief.teamPlan).slice(0, 4).map((line, idx) => (
+                  {withLineBudget(teamPlanLines, teamPlanOffset).map((line, idx) => (
                     <Pane key={`ai-team-${idx}`} display="flex" alignItems="flex-start" gap={6}>
                       <Text size={gptLineTextSize}>-</Text>
                       {renderLineWithIcons(line, `ai-team-line-${idx}`)}
@@ -428,11 +484,11 @@ export default function CoachingTab({
               </Pane>
             ) : null}
 
-            {asArray(aiCoaching.brief.metaDelta).length ? (
+            {metaDeltaLines.length ? (
               <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
                 <Text size={400} color="muted">Meta vs Your Builds</Text>
                 <Pane marginTop={6} display="grid" gap={4}>
-                  {asArray(aiCoaching.brief.metaDelta).slice(0, 4).map((line, idx) => (
+                  {withLineBudget(metaDeltaLines, metaDeltaOffset).map((line, idx) => (
                     <Pane key={`ai-meta-delta-${idx}`} display="flex" alignItems="flex-start" gap={6}>
                       <Text size={gptLineTextSize}>-</Text>
                       {renderLineWithIcons(line, `ai-meta-delta-line-${idx}`)}
@@ -442,11 +498,11 @@ export default function CoachingTab({
               </Pane>
             ) : null}
 
-            {asArray(aiCoaching.brief.topImprovementAreas).length ? (
+            {improveLines.length ? (
               <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
                 <Text size={400} color="muted">Top Improvement Areas</Text>
                 <Pane marginTop={6} display="grid" gap={4}>
-                  {asArray(aiCoaching.brief.topImprovementAreas).slice(0, 4).map((line, idx) => (
+                  {withLineBudget(improveLines, improveOffset).map((line, idx) => (
                     <Pane key={`ai-improve-${idx}`} display="flex" alignItems="flex-start" gap={6}>
                       <Text size={gptLineTextSize}>-</Text>
                       {renderLineWithIcons(line, `ai-improve-line-${idx}`)}
@@ -456,11 +512,11 @@ export default function CoachingTab({
               </Pane>
             ) : null}
 
-            {asArray(aiCoaching.brief.winConditions).length ? (
+            {winConditionLines.length ? (
               <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
                 <Text size={400} color="muted">Win Conditions</Text>
                 <Pane marginTop={6} display="grid" gap={4}>
-                  {asArray(aiCoaching.brief.winConditions).slice(0, 4).map((line, idx) => (
+                  {withLineBudget(winConditionLines, winOffset).map((line, idx) => (
                     <Pane key={`ai-wincon-${idx}`} display="flex" alignItems="flex-start" gap={6}>
                       <Text size={gptLineTextSize}>-</Text>
                       {renderLineWithIcons(line, `ai-wincon-line-${idx}`)}
@@ -470,11 +526,11 @@ export default function CoachingTab({
               </Pane>
             ) : null}
 
-            {asArray(aiCoaching.brief.fiveGamePlan).length ? (
+            {plan5Lines.length ? (
               <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
                 <Text size={400} color="muted">Next 5 Games Plan</Text>
                 <Pane marginTop={6} display="grid" gap={4}>
-                  {asArray(aiCoaching.brief.fiveGamePlan).slice(0, 5).map((line, idx) => (
+                  {withLineBudget(plan5Lines, plan5Offset).map((line, idx) => (
                     <Pane key={`ai-plan5-${idx}`} display="flex" alignItems="flex-start" gap={6}>
                       <Text size={gptLineTextSize}>-</Text>
                       {renderLineWithIcons(line, `ai-plan5-line-${idx}`)}
@@ -484,11 +540,11 @@ export default function CoachingTab({
               </Pane>
             ) : null}
 
-            {asArray(aiCoaching.brief.championBuilds).length ? (
+            {championBuildRows.length ? (
               <Pane padding={12} border="default" borderRadius={8} background="rgba(255,255,255,0.03)">
                 <Text size={400} color="muted">Champion Build Signals</Text>
                 <Pane marginTop={8} display="grid" gap={6}>
-                  {asArray(aiCoaching.brief.championBuilds).slice(0, 6).map((row, idx) => (
+                  {withLineBudget(championBuildRows, championOffset).map((row, idx) => (
                     <Pane key={`ai-build-${idx}`} padding={8} border="default" borderRadius={6} background="rgba(255,255,255,0.02)">
                       <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
                         <Strong>{row.player}</Strong>
