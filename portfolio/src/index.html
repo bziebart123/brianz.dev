@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preload" href="./assets/brainstem.glb" as="fetch" crossorigin />
-    <title>Brian Z Project Hub</title>
+    <title>Subject Project Hub</title>
     <style>
       :root {
         --bg-0: #070d1a;
@@ -340,9 +340,13 @@
       }
 
       .starfield.intro-locked .terminal-dock {
-        opacity: 0;
-        transform: translateY(20px);
+        opacity: 1;
+        transform: translateY(0);
         pointer-events: none;
+      }
+
+      .starfield.intro-locked .terminal {
+        height: clamp(122px, 16vh, 148px);
       }
 
       .starfield.intro-locked .organism {
@@ -769,14 +773,14 @@
         <div class="terminal-dock" aria-live="polite">
           <div class="terminal">
             <div class="terminal-head">
-              <span>MY BRAIN // Cognitive Navigation Terminal</span>
+              <span>SUBJECT // Cognitive Navigation Terminal</span>
               <div class="terminal-head-actions">
                 <span>Protocol Handshake</span>
                 <button type="button" class="terminal-close" id="terminal-close-btn" aria-label="Expand terminal panel">^</button>
               </div>
             </div>
             <div class="terminal-body" id="boot-log"></div>
-            <div class="terminal-prompt" id="terminal-status">awaiting protocol input</div>
+            <div class="terminal-prompt" id="terminal-status">searching // locating subject</div>
           </div>
         </div>
 
@@ -952,11 +956,8 @@
         var mapActivated = false;
 
         nodes.forEach(function (node) {
-          var href = node.getAttribute("href") || "";
-          if (href.indexOf("http://") === 0 || href.indexOf("https://") === 0) {
-            node.setAttribute("target", "_blank");
-            node.setAttribute("rel", "noopener noreferrer");
-          }
+          node.removeAttribute("target");
+          node.removeAttribute("rel");
         });
 
         if (backendLink) {
@@ -1031,7 +1032,7 @@
         function speakGreeting() {
           if (spokeGreeting || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
           spokeGreeting = true;
-          var utterance = new SpeechSynthesisUtterance("Protocol M Y Brian engaged. Mapping out Brian's mind.");
+          var utterance = new SpeechSynthesisUtterance("Protocol subject engaged. Mapping neural topology.");
           utterance.rate = 0.95;
           utterance.pitch = 0.86;
           utterance.volume = 0.78;
@@ -1090,6 +1091,8 @@
           }
           setTerminalStatusText("terminal synced // node lattice online", false);
         }
+
+        setTerminalStatusText("searching // locating subject", true);
 
         function setOpsExpanded(expanded) {
           opsExpanded = !!expanded;
@@ -1324,13 +1327,17 @@
               function (gltf) {
                 var group = gltf && gltf.scene ? gltf.scene : null;
                 if (!group) {
+                  setTerminalStatusText("subject signal unavailable", false);
                   return;
                 }
                 styleLoadedBrain(group);
                 attachBrainModel(group);
+                setTerminalStatusText("subject acquired // neural map ready", false);
               },
               undefined,
-              function () {}
+              function () {
+                setTerminalStatusText("subject signal unavailable", false);
+              }
             );
           }
         }
@@ -1516,7 +1523,7 @@
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
-            pushBootLineHtml("&gt; <strong>[LINKEDIN]</strong> <a class=\"terminal-link\" href=\"" + linkedinUrl + "\" target=\"_blank\" rel=\"noopener noreferrer\">Open Brian's LinkedIn</a>", "api-line");
+            pushBootLineHtml("&gt; <strong>[LINKEDIN]</strong> <a class=\"terminal-link\" href=\"" + linkedinUrl + "\" target=\"_blank\" rel=\"noopener noreferrer\">Open subject LinkedIn</a>", "api-line");
           });
           cursor += 1;
           queueTerminalLine(cursor, delay, function () {
@@ -1724,12 +1731,12 @@
         syncTerminalToggleControl();
 
         var bootSequence = [
-          { text: "> Initiating protocol: MY BRAIN", highlight: false },
+          { text: "> Initiating protocol: SUBJECT", highlight: false },
           { text: "> Calibrating semi-sentient navigator...", highlight: false },
-          { text: "> Mapping out Brian's mind", highlight: true },
+          { text: "> Mapping subject neural topology", highlight: true },
           { text: "> Compiling project constellations", highlight: false },
           { text: "> Rendering neural routes and access nodes", highlight: false },
-          { text: "> Handshake complete. Welcome aboard.", highlight: true }
+          { text: "> Subject acquired. Interface online.", highlight: true }
         ];
         var referrer = String(document.referrer || "");
         var shouldSkipBoot = subAppHosts.some(function (hostMarker) {
