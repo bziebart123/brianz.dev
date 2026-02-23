@@ -334,6 +334,19 @@
         transition: transform 140ms linear;
       }
 
+      .brain-viewport {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      .brain-core.is-3d-ready .brain-shell,
+      .brain-core.is-3d-ready .brain-grid,
+      .brain-core.is-3d-ready .brain-wireframe {
+        opacity: 0;
+      }
+
       .brain-shell,
       .brain-shell::before,
       .brain-shell::after {
@@ -707,6 +720,7 @@
 
         <div class="organism" id="organism">
           <div class="brain-core" id="brain-core" aria-hidden="true">
+            <div class="brain-viewport" id="brain-viewport"></div>
             <div class="brain-shell"></div>
             <div class="brain-grid"></div>
             <svg class="brain-wireframe" viewBox="0 0 420 260" xmlns="http://www.w3.org/2000/svg">
@@ -800,6 +814,8 @@
       </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/examples/js/loaders/GLTFLoader.js"></script>
     <script>
       (function () {
         var host = window.location.hostname;
@@ -842,6 +858,7 @@
 
         var organism = document.getElementById("organism");
         var brainCore = document.getElementById("brain-core");
+        var brainViewport = document.getElementById("brain-viewport");
         var nodes = Array.prototype.slice.call(document.querySelectorAll(".star-node--primary"));
         var opsSubNodes = Array.prototype.slice.call(document.querySelectorAll(".star-sub-node"));
         var nodeState = [];
@@ -853,6 +870,11 @@
         var brainTiltY = 0;
         var brainTiltTargetX = 0;
         var brainTiltTargetY = 0;
+        var brainScene = null;
+        var brainCamera = null;
+        var brainRenderer = null;
+        var brainRoot = null;
+        var brainModelGroup = null;
         var latticePulseLines = [];
         var nodeAnimationStarted = false;
         var spokeGreeting = false;
@@ -889,6 +911,9 @@
             brainTiltTargetY = 0;
           });
         }
+
+        initThreeBrain();
+        resizeBrainViewport();
 
         if (opsLink) {
           opsLink.addEventListener("mouseenter", function () {
@@ -1024,6 +1049,146 @@
           var clampedY = Math.max(0, Math.min(1, ny));
           brainTiltTargetY = (clampedX - 0.5) * 18;
           brainTiltTargetX = (0.5 - clampedY) * 14;
+        }
+
+        function buildFallbackBrainMesh() {
+          if (!window.THREE) return null;
+          var group = new THREE.Group();
+          var material = new THREE.MeshStandardMaterial({
+            color: 0x6fc2ff,
+            emissive: 0x1f5a88,
+            emissiveIntensity: 0.9,
+            roughness: 0.55,
+            metalness: 0.22,
+            transparent: true,
+            opacity: 0.9
+          });
+          var leftGeo = new THREE.IcosahedronGeometry(0.9, 4);
+          var rightGeo = new THREE.IcosahedronGeometry(0.9, 4);
+          leftGeo.scale(0.98, 0.92, 0.74);
+          rightGeo.scale(0.98, 0.92, 0.74);
+          var left = new THREE.Mesh(leftGeo, material);
+          var right = new THREE.Mesh(rightGeo, material);
+          left.position.x = -0.55;
+          right.position.x = 0.55;
+          group.add(left);
+          group.add(right);
+
+          var wireMat = new THREE.LineBasicMaterial({ color: 0xaadfff, transparent: true, opacity: 0.5 });
+          var leftEdges = new THREE.LineSegments(new THREE.EdgesGeometry(leftGeo, 16), wireMat);
+          var rightEdges = new THREE.LineSegments(new THREE.EdgesGeometry(rightGeo, 16), wireMat);
+          leftEdges.position.x = -0.55;
+          rightEdges.position.x = 0.55;
+          group.add(leftEdges);
+          group.add(rightEdges);
+          return group;
+        }
+
+        function styleLoadedBrain(rootModel) {
+          if (!window.THREE || !rootModel) return;
+          rootModel.traverse(function (child) {
+            if (!child || !child.isMesh) return;
+            child.material = new THREE.MeshStandardMaterial({
+              color: 0x6fc2ff,
+              emissive: 0x184f86,
+              emissiveIntensity: 0.95,
+              roughness: 0.56,
+              metalness: 0.24,
+              transparent: true,
+              opacity: 0.9
+            });
+          });
+          var box = new THREE.Box3().setFromObject(rootModel);
+          var size = new THREE.Vector3();
+          box.getSize(size);
+          var maxAxis = Math.max(size.x, size.y, size.z) || 1;
+          var scale = 2.1 / maxAxis;
+          rootModel.scale.setScalar(scale);
+          box.setFromObject(rootModel);
+          var center = new THREE.Vector3();
+          box.getCenter(center);
+          rootModel.position.sub(center);
+        }
+
+        function attachBrainModel(group) {
+          if (!brainRoot || !group) return;
+          if (brainModelGroup) {
+            brainRoot.remove(brainModelGroup);
+          }
+          brainModelGroup = group;
+          brainRoot.add(group);
+          if (brainCore) brainCore.classList.add("is-3d-ready");
+        }
+
+        function initThreeBrain() {
+          if (!brainViewport || !window.THREE) return;
+          if (brainRenderer) return;
+
+          brainScene = new THREE.Scene();
+          brainCamera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+          brainCamera.position.set(0, 0.22, 5.1);
+
+          brainRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+          brainRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          brainRenderer.setClearColor(0x000000, 0);
+          brainViewport.appendChild(brainRenderer.domElement);
+
+          var ambient = new THREE.AmbientLight(0x7bbcff, 0.95);
+          brainScene.add(ambient);
+          var key = new THREE.DirectionalLight(0x92d8ff, 1.15);
+          key.position.set(2.7, 2.1, 3.5);
+          brainScene.add(key);
+          var rim = new THREE.DirectionalLight(0xe0bd72, 0.68);
+          rim.position.set(-2.2, -1.4, -2.5);
+          brainScene.add(rim);
+
+          brainRoot = new THREE.Group();
+          brainScene.add(brainRoot);
+
+          if (window.THREE.GLTFLoader) {
+            var loader = new THREE.GLTFLoader();
+            loader.load(
+              "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/BrainStem/glTF-Binary/BrainStem.glb",
+              function (gltf) {
+                var group = gltf && gltf.scene ? gltf.scene : null;
+                if (!group) {
+                  attachBrainModel(buildFallbackBrainMesh());
+                  return;
+                }
+                styleLoadedBrain(group);
+                attachBrainModel(group);
+              },
+              undefined,
+              function () {
+                attachBrainModel(buildFallbackBrainMesh());
+              }
+            );
+          } else {
+            attachBrainModel(buildFallbackBrainMesh());
+          }
+        }
+
+        function resizeBrainViewport() {
+          if (!brainRenderer || !brainViewport || !brainCamera) return;
+          var w = Math.max(1, Math.floor(brainViewport.clientWidth));
+          var h = Math.max(1, Math.floor(brainViewport.clientHeight));
+          brainRenderer.setSize(w, h, false);
+          brainCamera.aspect = w / h;
+          brainCamera.updateProjectionMatrix();
+        }
+
+        function renderThreeBrain(timeSec) {
+          if (!brainRenderer || !brainScene || !brainCamera || !brainRoot) return;
+          var rx = (brainTiltX * Math.PI / 180) * 0.55;
+          var ry = (brainTiltY * Math.PI / 180) * 0.6;
+          brainRoot.rotation.x = rx;
+          brainRoot.rotation.y = ry;
+          brainRoot.rotation.z = Math.sin(timeSec * 0.22) * 0.03;
+          if (brainModelGroup) {
+            var s = 1 + (Math.sin(timeSec * 0.84) * 0.012);
+            brainRoot.scale.set(s, s, s);
+          }
+          brainRenderer.render(brainScene, brainCamera);
         }
 
         function queueTerminalLine(index, delayMs, fn) {
@@ -1462,6 +1627,7 @@
           latticeCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
           updateNodeLayout();
           updateOpsSubNodeLayout();
+          resizeBrainViewport();
         }
 
         window.addEventListener("resize", resizeLattice);
@@ -1544,7 +1710,9 @@
         function updateLattice(now) {
           updateBrainTilt();
           updateOpsSubNodeLayout();
-          drawLinks(now * 0.001);
+          var timeSec = now * 0.001;
+          drawLinks(timeSec);
+          renderThreeBrain(timeSec);
           requestAnimationFrame(updateLattice);
         }
 
