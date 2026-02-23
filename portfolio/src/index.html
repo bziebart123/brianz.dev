@@ -859,6 +859,17 @@
             <span>TFT Duos</span>
           </a>
 
+          <a class="star-node star-node--primary" id="memory-link" data-kind="meta" data-x="74" data-y="44" href="#" aria-label="Open subject memory access stream">
+            <div class="node-icon">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
+                <path d="M17 21H47M17 32H47M17 43H36" stroke="#8EF0C8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="45" cy="43" r="3" fill="#8EF0C8"/>
+              </svg>
+            </div>
+            <span>Memory Access</span>
+          </a>
+
           <a class="star-node star-node--primary" data-x="38" data-y="74" href="https://github.com/bziebart123/brianz.dev" aria-label="Open GitHub Repository">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -903,6 +914,7 @@
         var isLocal = host === "localhost" || host === "127.0.0.1";
 
         var tftLink = document.getElementById("tftduos-link");
+        var memoryLink = document.getElementById("memory-link");
         var opsLink = document.getElementById("ops-link");
         var metaLink = document.getElementById("meta-link");
         var backendLink = document.getElementById("backend-link");
@@ -1713,6 +1725,14 @@
             event.preventDefault();
             setContactTerminalExpanded(true);
             beginContactRelay();
+          });
+        }
+
+        if (memoryLink) {
+          memoryLink.addEventListener("click", function (event) {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            beginSubjectMemoryAccess();
           });
         }
 
