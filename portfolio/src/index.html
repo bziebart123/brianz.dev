@@ -970,6 +970,7 @@
         var latticeLoopStarted = false;
         var introTransitionActive = false;
         var mapActivated = false;
+        var brainDockedY = null;
 
         nodes.forEach(function (node) {
           node.removeAttribute("target");
@@ -1815,9 +1816,11 @@
           if (brainCore) {
             var sinking = !!(starfield && starfield.classList.contains("intro-sinking"));
             if (inMapMode || sinking) {
-              var panelHeight = terminalPanel ? terminalPanel.getBoundingClientRect().height : 210;
-              var dockedY = rect.height - (panelHeight * 0.34);
-              brainCore.style.top = dockedY.toFixed(2) + "px";
+              if (brainDockedY === null) {
+                var panelHeight = terminalPanel ? terminalPanel.getBoundingClientRect().height : 210;
+                brainDockedY = rect.height - (panelHeight * 0.34);
+              }
+              brainCore.style.top = brainDockedY.toFixed(2) + "px";
             } else {
               var centeredY = usableTop + (usableHeight * 0.5);
               brainCore.style.top = centeredY.toFixed(2) + "px";
