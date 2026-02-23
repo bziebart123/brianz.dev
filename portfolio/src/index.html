@@ -1051,6 +1051,8 @@
         var uiSfxUnlocked = false;
         var uiSfxLastAt = 0;
         var uiSfxElementAt = new WeakMap();
+        var terminalOutputSfxLastAt = 0;
+        var terminalLoadingSfxTimer = null;
         var subAppHosts = [
           "tftduos.brianz.dev",
           "site-performance.brianz.dev",
@@ -1191,6 +1193,60 @@
           oscB.stop(now + (isPress ? 0.02 : 0.018));
         }
 
+        function playTerminalOutputSfx(kind) {
+          var ctx = ensureUiSfxContext();
+          if (!ctx || !uiSfxUnlocked) return;
+          if (ctx.state === "suspended") {
+            ctx.resume().catch(function () {});
+          }
+          var nowMs = Date.now();
+          if (nowMs - terminalOutputSfxLastAt < 55) return;
+          terminalOutputSfxLastAt = nowMs;
+
+          var now = ctx.currentTime;
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+          var filter = ctx.createBiquadFilter();
+          var isLoading = kind === "loading";
+
+          osc.type = isLoading ? "triangle" : "square";
+          osc.frequency.setValueAtTime(isLoading ? 1480 : 1760, now);
+          osc.frequency.exponentialRampToValueAtTime(isLoading ? 1060 : 1210, now + (isLoading ? 0.018 : 0.013));
+
+          filter.type = "highpass";
+          filter.frequency.setValueAtTime(isLoading ? 980 : 1120, now);
+          filter.Q.setValueAtTime(0.4, now);
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.exponentialRampToValueAtTime(isLoading ? 0.0075 : 0.009, now + 0.0014);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + (isLoading ? 0.028 : 0.022));
+
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now);
+          osc.stop(now + (isLoading ? 0.032 : 0.026));
+        }
+
+        function stopTerminalLoadingSfx() {
+          if (terminalLoadingSfxTimer) {
+            window.clearInterval(terminalLoadingSfxTimer);
+            terminalLoadingSfxTimer = null;
+          }
+        }
+
+        function startTerminalLoadingSfx() {
+          stopTerminalLoadingSfx();
+          terminalLoadingSfxTimer = window.setInterval(function () {
+            if (!terminalOutputLoadingLine || !terminalOutputLoadingLine.parentNode) {
+              stopTerminalLoadingSfx();
+              return;
+            }
+            playTerminalOutputSfx("loading");
+          }, 190);
+        }
+
         function bindUiSfxToInteractive() {
           var interactive = Array.prototype.slice.call(document.querySelectorAll("a, button, [role=\"button\"]")).filter(function (el) {
             return !el.classList.contains("star-node") && el.id !== "brain-core";
@@ -1304,6 +1360,7 @@
           line.className = "boot-line";
           line.innerHTML = isHighlight ? "<strong>" + text + "</strong>" : text;
           bootLog.appendChild(line);
+          playTerminalOutputSfx("line");
           bootLog.scrollTop = bootLog.scrollHeight;
           requestAnimationFrame(function () {
             line.classList.add("show");
@@ -1317,6 +1374,7 @@
           line.className = "boot-line" + (className ? " " + className : "");
           line.innerHTML = html;
           bootLog.appendChild(line);
+          playTerminalOutputSfx("line");
           bootLog.scrollTop = bootLog.scrollHeight;
           requestAnimationFrame(function () {
             line.classList.add("show");
@@ -1363,12 +1421,17 @@
             terminalOutputLoadingLine.parentNode.removeChild(terminalOutputLoadingLine);
           }
           terminalOutputLoadingLine = null;
-          if (!text) return;
+          if (!text) {
+            stopTerminalLoadingSfx();
+            return;
+          }
           var line = document.createElement("div");
           line.className = "boot-line boot-line-loading show";
           line.innerHTML = text + " <span class=\"terminal-inline-loader\" aria-hidden=\"true\"><span class=\"terminal-inline-loader-dots\"></span></span>";
           bootLog.appendChild(line);
           terminalOutputLoadingLine = line;
+          playTerminalOutputSfx("loading");
+          startTerminalLoadingSfx();
           bootLog.scrollTop = bootLog.scrollHeight;
         }
 
