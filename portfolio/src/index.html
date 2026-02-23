@@ -516,38 +516,6 @@
         pointer-events: auto;
       }
 
-      .star-node--ops {
-        z-index: 6;
-      }
-
-      .star-sub-node {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 124px;
-        transform: translate(-50%, -50%);
-        display: grid;
-        justify-items: center;
-        gap: 6px;
-        text-decoration: none;
-        color: var(--text);
-        z-index: 7;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 220ms ease;
-      }
-
-      .star-sub-node .node-icon {
-        width: 54px;
-        height: 54px;
-        border-radius: 15px;
-      }
-
-      .star-sub-node span {
-        font-size: 0.64rem;
-        padding: 3px 8px;
-      }
-
       .node-icon {
         width: 66px;
         height: 66px;
@@ -668,20 +636,6 @@
           padding: 3px 8px;
         }
 
-        .star-sub-node {
-          width: 96px;
-        }
-
-        .star-sub-node .node-icon {
-          width: 46px;
-          height: 46px;
-          border-radius: 12px;
-        }
-
-        .star-sub-node span {
-          font-size: 0.58rem;
-          padding: 2px 7px;
-        }
       }
 
       @media (max-height: 860px) {
@@ -814,18 +768,7 @@
             <span>TFT Duos</span>
           </a>
 
-          <a class="star-node star-node--primary star-node--ops" id="ops-link" data-kind="meta" data-x="74" data-y="44" href="#" aria-label="Expand systems intelligence nodes" aria-haspopup="true">
-            <div class="node-icon">
-              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
-                <path d="M17 21H47M17 32H47M17 43H36" stroke="#8EF0C8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="45" cy="43" r="3" fill="#8EF0C8"/>
-              </svg>
-            </div>
-            <span>Systems</span>
-          </a>
-
-          <a class="star-sub-node" id="meta-link" data-kind="meta" data-parent="ops" data-offset-x="108" data-offset-y="-52" href="https://api.brianz.dev/api/site-performance/render/overview?hours=24" aria-label="Load Render Meta in terminal">
+          <a class="star-node star-node--primary" id="meta-link" data-kind="meta" data-x="78" data-y="34" href="https://api.brianz.dev/api/site-performance/render/overview?hours=24" aria-label="Load Render Meta in terminal">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="8" y="8" width="48" height="48" rx="12" fill="#12243A" stroke="#8EF0C8" stroke-width="2.2"/>
@@ -838,7 +781,7 @@
             <span>Render Meta</span>
           </a>
 
-          <a class="star-sub-node" id="backend-link" data-kind="meta" data-parent="ops" data-offset-x="112" data-offset-y="52" href="https://api.brianz.dev/health" aria-label="Open Backend Health">
+          <a class="star-node star-node--primary" id="backend-link" data-kind="meta" data-x="82" data-y="56" href="https://api.brianz.dev/health" aria-label="Open Backend Health">
             <div class="node-icon">
               <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="32" cy="32" r="24" fill="#11253E" stroke="#6FC2FF" stroke-width="2.2"/>
@@ -894,7 +837,6 @@
         var isLocal = host === "localhost" || host === "127.0.0.1";
 
         var tftLink = document.getElementById("tftduos-link");
-        var opsLink = document.getElementById("ops-link");
         var metaLink = document.getElementById("meta-link");
         var backendLink = document.getElementById("backend-link");
         var contactLink = document.getElementById("contact-link");
@@ -933,12 +875,7 @@
         var brainCore = document.getElementById("brain-core");
         var brainViewport = document.getElementById("brain-viewport");
         var nodes = Array.prototype.slice.call(document.querySelectorAll(".star-node--primary"));
-        var opsSubNodes = Array.prototype.slice.call(document.querySelectorAll(".star-sub-node"));
         var nodeState = [];
-        var opsAnchorState = null;
-        var opsExpanded = false;
-        var opsExpandProgress = 0;
-        var opsCollapseTimer = null;
         var brainTiltX = 0;
         var brainTiltY = 0;
         var brainTiltTargetX = 0;
@@ -968,13 +905,6 @@
           metaLink.removeAttribute("target");
           metaLink.removeAttribute("rel");
         }
-        if (opsLink) {
-          opsLink.removeAttribute("target");
-          opsLink.removeAttribute("rel");
-        }
-
-        setOpsExpanded(false);
-
         if (organism) {
           organism.addEventListener("pointermove", function (event) {
             setBrainTiltTarget(event.clientX, event.clientY);
@@ -987,47 +917,6 @@
 
         initThreeBrain();
         resizeBrainViewport();
-
-        if (opsLink) {
-          opsLink.addEventListener("mouseenter", function () {
-            cancelOpsCollapse();
-            setOpsExpanded(true);
-          });
-          opsLink.addEventListener("focus", function () {
-            cancelOpsCollapse();
-            setOpsExpanded(true);
-          });
-          opsLink.addEventListener("mouseleave", scheduleOpsCollapse);
-          opsLink.addEventListener("blur", scheduleOpsCollapse);
-          opsLink.addEventListener("click", function (event) {
-            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-            event.preventDefault();
-            setOpsExpanded(!opsExpanded);
-          });
-        }
-
-        opsSubNodes.forEach(function (subNode) {
-          subNode.addEventListener("mouseenter", function () {
-            cancelOpsCollapse();
-            setOpsExpanded(true);
-          });
-          subNode.addEventListener("focus", function () {
-            cancelOpsCollapse();
-            setOpsExpanded(true);
-          });
-          subNode.addEventListener("mouseleave", scheduleOpsCollapse);
-          subNode.addEventListener("blur", scheduleOpsCollapse);
-        });
-
-        document.addEventListener("pointerdown", function (event) {
-          var target = event.target;
-          if (!opsLink && !opsSubNodes.length) return;
-          if (opsLink && opsLink.contains(target)) return;
-          for (var i = 0; i < opsSubNodes.length; i += 1) {
-            if (opsSubNodes[i].contains(target)) return;
-          }
-          setOpsExpanded(false);
-        });
 
         function speakGreeting() {
           if (spokeGreeting || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
@@ -1093,27 +982,6 @@
         }
 
         setTerminalStatusText("searching // locating subject", true);
-
-        function setOpsExpanded(expanded) {
-          opsExpanded = !!expanded;
-          if (opsLink) {
-            opsLink.setAttribute("aria-expanded", opsExpanded ? "true" : "false");
-          }
-        }
-
-        function cancelOpsCollapse() {
-          if (opsCollapseTimer) {
-            window.clearTimeout(opsCollapseTimer);
-            opsCollapseTimer = null;
-          }
-        }
-
-        function scheduleOpsCollapse() {
-          cancelOpsCollapse();
-          opsCollapseTimer = window.setTimeout(function () {
-            setOpsExpanded(false);
-          }, 220);
-        }
 
         function setBrainTiltTarget(clientX, clientY) {
           if (!organism) return;
@@ -1710,9 +1578,6 @@
         }
 
         window.addEventListener("keydown", function (event) {
-          if (event.key === "Escape" && opsExpanded) {
-            setOpsExpanded(false);
-          }
           if (event.key === "Escape" && terminalExpanded) {
             setTerminalExpanded(false);
           }
@@ -1755,9 +1620,6 @@
             px: 0,
             py: 0
           };
-          if (node.id === "ops-link") {
-            opsAnchorState = state;
-          }
           return state;
         });
 
@@ -1813,31 +1675,6 @@
           }
         }
 
-        function updateOpsSubNodeLayout() {
-          if (!opsAnchorState) return;
-
-          var target = opsExpanded ? 1 : 0;
-          opsExpandProgress += (target - opsExpandProgress) * 0.16;
-          if (Math.abs(target - opsExpandProgress) < 0.002) {
-            opsExpandProgress = target;
-          }
-
-          for (var i = 0; i < opsSubNodes.length; i += 1) {
-            var node = opsSubNodes[i];
-            var offsetX = Number(node.getAttribute("data-offset-x") || 0);
-            var offsetY = Number(node.getAttribute("data-offset-y") || 0);
-            var x = opsAnchorState.lx + offsetX * opsExpandProgress;
-            var y = opsAnchorState.ly + offsetY * opsExpandProgress;
-            var scale = 0.8 + (opsExpandProgress * 0.2);
-            var interactive = opsExpandProgress > 0.46;
-            node.style.transform = "translate(-50%, -50%) translate(" + x.toFixed(2) + "px," + y.toFixed(2) + "px) scale(" + scale.toFixed(3) + ")";
-            node.style.opacity = (opsExpandProgress * 0.98).toFixed(3);
-            node.style.pointerEvents = interactive ? "auto" : "none";
-            node.setAttribute("aria-hidden", interactive ? "false" : "true");
-            node.setAttribute("tabindex", interactive ? "0" : "-1");
-          }
-        }
-
         function updateBrainTilt() {
           if (!organism) return;
           brainTiltX += (brainTiltTargetX - brainTiltX) * 0.12;
@@ -1856,7 +1693,6 @@
           }
           latticeCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
           updateNodeLayout();
-          updateOpsSubNodeLayout();
           resizeBrainViewport();
         }
 
@@ -1933,8 +1769,7 @@
           updateBrainTilt();
           var timeSec = now * 0.001;
           if (mapActivated) {
-            updateOpsSubNodeLayout();
-            drawLinks(timeSec);
+              drawLinks(timeSec);
           } else if (latticeCtx && latticeCanvas) {
             latticeCtx.clearRect(0, 0, latticeCanvas.width, latticeCanvas.height);
           }
