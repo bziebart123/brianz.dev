@@ -987,6 +987,10 @@
         var systemAccessMode = "memory";
         var terminalOutputLoadingLine = null;
         var linkedinUrl = "https://www.linkedin.com/in/brian-ziebart/";
+        var uiSfxContext = null;
+        var uiSfxUnlocked = false;
+        var uiSfxLastAt = 0;
+        var uiSfxElementAt = new WeakMap();
         var subAppHosts = [
           "tftduos.brianz.dev",
           "site-performance.brianz.dev",
@@ -1053,6 +1057,79 @@
         }
 
         setOpsExpanded(false);
+
+        function ensureUiSfxContext() {
+          if (!uiSfxContext) {
+            var AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return null;
+            uiSfxContext = new AudioCtx();
+          }
+          return uiSfxContext;
+        }
+
+        function unlockUiSfx() {
+          var ctx = ensureUiSfxContext();
+          if (!ctx) return;
+          if (ctx.state === "suspended") {
+            ctx.resume().catch(function () {});
+          }
+          uiSfxUnlocked = true;
+        }
+
+        function playUiHoverSfx() {
+          var ctx = ensureUiSfxContext();
+          if (!ctx || !uiSfxUnlocked) return;
+          if (ctx.state === "suspended") {
+            ctx.resume().catch(function () {});
+          }
+          var now = ctx.currentTime;
+          var oscA = ctx.createOscillator();
+          var oscB = ctx.createOscillator();
+          var gain = ctx.createGain();
+
+          oscA.type = "triangle";
+          oscA.frequency.setValueAtTime(1680, now);
+          oscA.frequency.exponentialRampToValueAtTime(1080, now + 0.035);
+
+          oscB.type = "sine";
+          oscB.frequency.setValueAtTime(2380, now);
+          oscB.frequency.exponentialRampToValueAtTime(1540, now + 0.03);
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.exponentialRampToValueAtTime(0.018, now + 0.008);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+
+          oscA.connect(gain);
+          oscB.connect(gain);
+          gain.connect(ctx.destination);
+
+          oscA.start(now);
+          oscB.start(now);
+          oscA.stop(now + 0.07);
+          oscB.stop(now + 0.055);
+        }
+
+        function bindUiSfxToInteractive() {
+          var interactive = Array.prototype.slice.call(document.querySelectorAll("a, button, [role=\"button\"]"));
+          interactive.forEach(function (el) {
+            var trigger = function () {
+              if (!el || el.hasAttribute("disabled") || el.getAttribute("aria-hidden") === "true") return;
+              var nowMs = Date.now();
+              var lastForElement = Number(uiSfxElementAt.get(el) || 0);
+              if (nowMs - lastForElement < 180) return;
+              if (nowMs - uiSfxLastAt < 70) return;
+              uiSfxElementAt.set(el, nowMs);
+              uiSfxLastAt = nowMs;
+              playUiHoverSfx();
+            };
+            el.addEventListener("pointerenter", trigger);
+            el.addEventListener("focus", trigger);
+          });
+        }
+
+        window.addEventListener("pointerdown", unlockUiSfx, { once: true });
+        window.addEventListener("keydown", unlockUiSfx, { once: true });
+        bindUiSfxToInteractive();
 
         initThreeBrain();
         resizeBrainViewport();
