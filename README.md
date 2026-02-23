@@ -160,13 +160,14 @@ Use exactly what Render Custom Domains asks for:
 - Backend API-only transition retains filesystem-backed analytics/cache persistence (`node:fs/promises`) so TFT requests do not fail with runtime `fs is not defined` errors.
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.
-- Portfolio landing (`portfolio/src/index.html`) is now a space-navigation style animated launcher (living star-map lattice with fixed app nodes, central-brain spokes, and pulsing energy travelling from the core to each icon) while keeping the existing blue/gold dark palette.
+- Portfolio landing (`portfolio/src/index.html`) now uses a digital 3D brain centerpiece (wireframe shell + scan-grid styling) that subtly rotates with pointer movement, while preserving the blue/gold dark palette and star-map lattice shell.
+- Portfolio node constellation has been pulled closer to the brain center for tighter navigation focus, and a parent `Systems` node now expands `Render Meta` + `Backend` subnodes on hover/focus (tap-to-toggle on mobile).
 - Portfolio landing now boots through a terminal-style intro ("MY BRAIN" protocol handshake + "Mapping out Brian's mind") and keeps that terminal docked at the bottom with message history plus a blinking prompt-style status line while generated star-map nodes come online.
 - The docked terminal now spans the full lattice container width, uses a fixed height, and keeps boot/message history scrollable inside the terminal body.
-- Clicking the `Backend` node now toggles an expanded full-height terminal mode and prints the connected backend API manifest (health, TFT, duo, coach, and site-performance routes); `Esc` still collapses back to docked mode and the terminal header now includes a caret toggle control (`^` expand, `v` collapse) for touch/mobile users.
+- Clicking the `Backend` subnode (under `Systems`) toggles an expanded full-height terminal mode and prints the connected backend API manifest (health, TFT, duo, coach, and site-performance routes); `Esc` still collapses back to docked mode and the terminal header now includes a caret toggle control (`^` expand, `v` collapse) for touch/mobile users.
 - Backend manifest output now streams line-by-line (terminal typing cadence), and terminal expansion/collapse is animated from the docked bottom edge (no top-hop before expansion).
 - Every `Backend` click now appends a fresh manifest request block at the bottom of terminal history (timestamped), replaying line-by-line like a new backend call.
-- `Render Meta` launcher node is now terminal-native (no separate dashboard navigation from the portfolio node): it queries `/api/site-performance/render/overview` from the shared backend and streams service/summary output line-by-line into the same terminal stack.
+- `Render Meta` launcher subnode (under `Systems`) is terminal-native (no separate dashboard navigation from the portfolio node): it queries `/api/site-performance/render/overview` from the shared backend and streams service/summary output line-by-line into the same terminal stack.
 - Backend and Render Meta terminal streams now prepend command-style execution lines (`run backend.manifest ...`, `run render.meta ...`) to reinforce terminal-call semantics.
 - Portfolio `Contact` node now opens the same terminal in expanded contact-relay mode and exposes LinkedIn-only contact routing (no email prompts or mailto popups).
 - When landing on portfolio from known app/subdomain hosts (`tftduos`, `site-performance`, and local app ports), boot handshake animation is skipped for immediate map access.
@@ -174,7 +175,7 @@ Use exactly what Render Custom Domains asks for:
 - Terminal loading affordances are now explicit in both surfaces: portfolio prompt shows inline thinking state while Render Meta waits on API response, and TFT Coaching terminal shows inline thinking status during GPT generation/refresh waits.
 - Portfolio scene suppresses ambient page caret/cursor artifacts in the lattice viewport while keeping terminal history selectable for copy.
 - Portfolio launcher opens HTTP(S) app destinations in new tabs so the landing scene remains open while navigating.
-- Portfolio visual tuning update: smaller center core, thicker lattice links, and calmer pulse cadence for lower motion intensity.
+- Portfolio visual tuning update: thicker lattice links, calmer pulse cadence, and lower-motion digital-brain drift for reduced visual fatigue.
 - TFTDuos + Site Performance frontends now share portfolio visual language tokens (thin luminous blue outlines, translucent navy cards, controlled glow/opacity) and starfield-backed atmospherics while preserving foreground readability.
 - Portfolio launcher link assumptions:
   - production node links: `https://tftduos.brianz.dev` (TFT) and `https://api.brianz.dev` (shared backend + Render Meta terminal data source)
