@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preload" href="./assets/brainstem.glb" as="fetch" crossorigin />
     <title>Brian Z Project Hub</title>
     <style>
       :root {
@@ -1253,7 +1254,7 @@
             };
           }
 
-          var targetNdcX = -0.31;
+          var targetNdcX = -0.36;
           var targetNdcY = 0.0;
           for (var i = 0; i < 7; i += 1) {
             rootModel.updateMatrixWorld(true);
