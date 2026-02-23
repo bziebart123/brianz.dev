@@ -385,7 +385,8 @@
       }
 
       .starfield.map-active .brain-core {
-        opacity: 0.62;
+        transform: translate(-50%, -50%) scale(0.84) rotateX(var(--brain-tilt-x, 0deg)) rotateY(var(--brain-tilt-y, 0deg));
+        opacity: 0.86;
         pointer-events: none;
         filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 26px rgba(111, 194, 255, 0.2));
       }
@@ -961,7 +962,6 @@
         var latticePulseLines = [];
         var nodeAnimationStarted = false;
         var latticeLoopStarted = false;
-        var spokeGreeting = false;
         var introTransitionActive = false;
         var mapActivated = false;
 
@@ -1028,18 +1028,6 @@
           }
           setOpsExpanded(false);
         });
-
-        function speakGreeting() {
-          if (spokeGreeting || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
-          spokeGreeting = true;
-          var utterance = new SpeechSynthesisUtterance("Protocol subject engaged. Mapping neural topology.");
-          utterance.rate = 0.95;
-          utterance.pitch = 0.86;
-          utterance.volume = 0.78;
-          window.speechSynthesis.speak(utterance);
-        }
-
-        window.addEventListener("pointerdown", speakGreeting, { once: true });
 
         function pushBootLine(text, isHighlight) {
           if (!bootLog) return;
@@ -1402,7 +1390,6 @@
 
           window.setTimeout(function () {
             beginStarMap();
-            speakGreeting();
           }, 180 + bootSequence.length * 420 + 300);
         }
 
