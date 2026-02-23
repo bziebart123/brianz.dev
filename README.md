@@ -188,6 +188,10 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio brain centerpiece now completes a smooth full 360-degree yaw cycle with center-locked single-axis spin (no tilt/roll drift) to keep the model visually anchored.
 - Portfolio intro staging now uses a vertically centered half-height brain viewport, and the decorative background ring/glow circle has been removed for a cleaner hero scene.
 - Portfolio entry transition now sinks the brain down behind the terminal (instead of zoom/fade out), keeps lattice links sourced from that docked brain position, and arranges primary navigation nodes in a centered top row once the map is active.
+- Portfolio landing no longer uses browser speech synthesis voice prompts, and the sink transition keeps a stable docked brain transform in map mode to prevent bounce-back zoom/fade hops after click.
+- Portfolio intro pipeline is now hard-locked to a single class path (`intro-locked` -> `intro-sinking` + `map-active`) with no legacy zoom/fade classes, removing transition-state hops during brain entry.
+- Portfolio entry states now keep `.organism` explicitly visible in both `intro-sinking` and `map-active`, preventing the brief mid-transition fade-out before `ready` is applied.
+- Brain docking now locks a single computed Y anchor during sink/map entry (instead of recalculating from terminal size), eliminating the slight pre-node upward nudge.
 - TFTDuos + Site Performance frontends now share portfolio visual language tokens (thin luminous blue outlines, translucent navy cards, controlled glow/opacity) and starfield-backed atmospherics while preserving foreground readability.
 - Starfield parity pass: TFTDuos and Site Performance now use denser/brighter star specks plus stronger background drift/twinkle motion so non-portfolio apps better match the portfolio launcher's ambient movement profile.
 - Site Performance frontend has been refactored into a dedicated 40K Companion terminal app that mirrors the portfolio terminal styling and uses command-driven quick-reference responses for tabletop reminders.

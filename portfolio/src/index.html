@@ -346,15 +346,15 @@
       }
 
       .starfield.intro-locked,
-      .starfield.intro-zooming,
-      .starfield.intro-faded {
+      .starfield.intro-sinking,
+      .starfield.map-active {
         display: grid;
         align-items: center;
       }
 
       .starfield.intro-locked .organism,
-      .starfield.intro-zooming .organism,
-      .starfield.intro-faded .organism {
+      .starfield.intro-sinking .organism,
+      .starfield.map-active .organism {
         height: min(46vh, 430px);
       }
 
@@ -363,6 +363,12 @@
       }
 
       .starfield.intro-locked .organism {
+        opacity: 1;
+        filter: blur(0);
+      }
+
+      .starfield.intro-sinking .organism,
+      .starfield.map-active .organism {
         opacity: 1;
         filter: blur(0);
       }
@@ -385,7 +391,8 @@
       }
 
       .starfield.map-active .brain-core {
-        opacity: 0.62;
+        transform: translate(-50%, -50%) scale(0.84) rotateX(var(--brain-tilt-x, 0deg)) rotateY(var(--brain-tilt-y, 0deg));
+        opacity: 0.86;
         pointer-events: none;
         filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 26px rgba(111, 194, 255, 0.2));
       }
@@ -961,9 +968,9 @@
         var latticePulseLines = [];
         var nodeAnimationStarted = false;
         var latticeLoopStarted = false;
-        var spokeGreeting = false;
         var introTransitionActive = false;
         var mapActivated = false;
+        var brainDockedY = null;
 
         nodes.forEach(function (node) {
           node.removeAttribute("target");
@@ -1028,18 +1035,6 @@
           }
           setOpsExpanded(false);
         });
-
-        function speakGreeting() {
-          if (spokeGreeting || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
-          spokeGreeting = true;
-          var utterance = new SpeechSynthesisUtterance("Protocol subject engaged. Mapping neural topology.");
-          utterance.rate = 0.95;
-          utterance.pitch = 0.86;
-          utterance.volume = 0.78;
-          window.speechSynthesis.speak(utterance);
-        }
-
-        window.addEventListener("pointerdown", speakGreeting, { once: true });
 
         function pushBootLine(text, isHighlight) {
           if (!bootLog) return;
@@ -1402,7 +1397,6 @@
 
           window.setTimeout(function () {
             beginStarMap();
-            speakGreeting();
           }, 180 + bootSequence.length * 420 + 300);
         }
 
@@ -1416,7 +1410,6 @@
           window.setTimeout(function () {
             if (starfield) {
               starfield.classList.remove("intro-locked");
-              starfield.classList.remove("intro-sinking");
               starfield.classList.add("map-active");
             }
             introTransitionActive = false;
@@ -1823,9 +1816,11 @@
           if (brainCore) {
             var sinking = !!(starfield && starfield.classList.contains("intro-sinking"));
             if (inMapMode || sinking) {
-              var panelHeight = terminalPanel ? terminalPanel.getBoundingClientRect().height : 210;
-              var dockedY = rect.height - (panelHeight * 0.34);
-              brainCore.style.top = dockedY.toFixed(2) + "px";
+              if (brainDockedY === null) {
+                var panelHeight = terminalPanel ? terminalPanel.getBoundingClientRect().height : 210;
+                brainDockedY = rect.height - (panelHeight * 0.34);
+              }
+              brainCore.style.top = brainDockedY.toFixed(2) + "px";
             } else {
               var centeredY = usableTop + (usableHeight * 0.5);
               brainCore.style.top = centeredY.toFixed(2) + "px";
