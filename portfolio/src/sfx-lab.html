@@ -130,12 +130,21 @@
           { id: "c", name: "C - Glass Tap", base: 1560, top: 3200, attack: 0.0018, decay: 0.023, gain: 0.015, hp: 1200, waveA: "triangle", waveB: "sine" },
           { id: "d", name: "D - UI Blip", base: 1480, top: 2340, attack: 0.002, decay: 0.028, gain: 0.018, hp: 760, waveA: "triangle", waveB: "triangle" },
           { id: "e", name: "E - Tight Dual", base: 1900, top: 2920, attack: 0.001, decay: 0.014, gain: 0.019, hp: 1300, waveA: "square", waveB: "triangle" },
-          { id: "f", name: "F - Soft Tick", base: 1360, top: 2140, attack: 0.0024, decay: 0.03, gain: 0.014, hp: 700, waveA: "triangle", waveB: "sine" }
+          { id: "f", name: "F - Soft Tick", base: 1360, top: 2140, attack: 0.0024, decay: 0.03, gain: 0.014, hp: 700, waveA: "triangle", waveB: "sine" },
+          { id: "g", name: "G - Ceramic Snap", base: 2420, top: 3900, attack: 0.001, decay: 0.012, gain: 0.015, hp: 1700, waveA: "triangle", waveB: "sine" },
+          { id: "h", name: "H - Analog Button", base: 620, top: 1180, attack: 0.002, decay: 0.04, gain: 0.018, hp: 320, waveA: "square", waveB: "triangle" },
+          { id: "i", name: "I - Radio Chirp", base: 1180, top: 4200, attack: 0.001, decay: 0.02, gain: 0.014, hp: 1400, waveA: "sawtooth", waveB: "sine", noise: { hp: 2600, gain: 0.004, decay: 0.022 } },
+          { id: "j", name: "J - Servo Tick", base: 920, top: 1320, attack: 0.0014, decay: 0.026, gain: 0.02, hp: 520, waveA: "square", waveB: "square", sub: { wave: "sine", freq: 260, gain: 0.004, decay: 0.03 } },
+          { id: "k", name: "K - Holo Ping", base: 1880, top: 3060, attack: 0.0015, decay: 0.032, gain: 0.013, hp: 900, waveA: "sine", waveB: "triangle" },
+          { id: "l", name: "L - Crunch Dot", base: 1340, top: 2140, attack: 0.0012, decay: 0.018, gain: 0.017, hp: 760, waveA: "square", waveB: "triangle", noise: { hp: 1800, gain: 0.006, decay: 0.02 } }
         ];
         var terminalProfiles = [
           { id: "t1", name: "T1 - Crisp Telemetry", base: 1760, decay: 0.022, gain: 0.009, hp: 1120, wave: "square" },
           { id: "t2", name: "T2 - Soft Console", base: 1540, decay: 0.028, gain: 0.008, hp: 900, wave: "triangle" },
-          { id: "t3", name: "T3 - Dense Pulse", base: 1890, decay: 0.019, gain: 0.010, hp: 1260, wave: "square" }
+          { id: "t3", name: "T3 - Dense Pulse", base: 1890, decay: 0.019, gain: 0.010, hp: 1260, wave: "square" },
+          { id: "t4", name: "T4 - Sonar Pip", base: 980, decay: 0.045, gain: 0.0075, hp: 420, wave: "sine" },
+          { id: "t5", name: "T5 - Glitch Bit", base: 2120, decay: 0.017, gain: 0.009, hp: 1500, wave: "square", noise: { hp: 2800, gain: 0.004, decay: 0.018 } },
+          { id: "t6", name: "T6 - Tape Relay", base: 760, decay: 0.038, gain: 0.01, hp: 300, wave: "triangle", noise: { hp: 1200, gain: 0.0035, decay: 0.04 } }
         ];
 
         function ensureCtx() {
@@ -152,6 +161,35 @@
 
         function masterVolume() {
           return Number(volumeInput.value || "30") / 100;
+        }
+
+        function playNoiseTexture(audio, now, texture, volumeScale) {
+          if (!texture) return;
+          var frameCount = Math.max(128, Math.floor(audio.sampleRate * (texture.decay || 0.02)));
+          var buffer = audio.createBuffer(1, frameCount, audio.sampleRate);
+          var data = buffer.getChannelData(0);
+          for (var i = 0; i < frameCount; i += 1) {
+            data[i] = (Math.random() * 2 - 1) * (1 - (i / frameCount));
+          }
+
+          var src = audio.createBufferSource();
+          src.buffer = buffer;
+
+          var hp = audio.createBiquadFilter();
+          hp.type = "highpass";
+          hp.frequency.setValueAtTime(texture.hp || 1600, now);
+          hp.Q.setValueAtTime(0.55, now);
+
+          var gain = audio.createGain();
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.exponentialRampToValueAtTime((texture.gain || 0.004) * volumeScale, now + 0.0012);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + (texture.decay || 0.02));
+
+          src.connect(hp);
+          hp.connect(gain);
+          gain.connect(audio.destination);
+          src.start(now);
+          src.stop(now + (texture.decay || 0.02) + 0.01);
         }
 
         function playUi(profile) {
@@ -187,6 +225,20 @@
 
           oscA.start(now);
           oscB.start(now);
+          if (profile.sub) {
+            var sub = audio.createOscillator();
+            var subGain = audio.createGain();
+            sub.type = profile.sub.wave || "sine";
+            sub.frequency.setValueAtTime(profile.sub.freq || 280, now);
+            subGain.gain.setValueAtTime(0.0001, now);
+            subGain.gain.exponentialRampToValueAtTime((profile.sub.gain || 0.004) * vol, now + 0.0012);
+            subGain.gain.exponentialRampToValueAtTime(0.0001, now + (profile.sub.decay || profile.decay));
+            sub.connect(subGain);
+            subGain.connect(audio.destination);
+            sub.start(now);
+            sub.stop(now + (profile.sub.decay || profile.decay) + 0.01);
+          }
+          playNoiseTexture(audio, now, profile.noise, vol);
           oscA.stop(now + profile.decay + 0.01);
           oscB.stop(now + profile.decay + 0.008);
         }
@@ -218,6 +270,7 @@
           hp.connect(gain);
           gain.connect(audio.destination);
           osc.start(now);
+          playNoiseTexture(audio, now, profile.noise, vol);
           osc.stop(now + decay + 0.01);
         }
 
