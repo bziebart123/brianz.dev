@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  COACHING_GPT_MODELS,
   DISPLAY_NAME_A,
   DISPLAY_NAME_B,
   HARD_CODED_QUERY,
@@ -58,13 +59,14 @@ async function fetchJsonWithRetry(path, { attempts = MANIFEST_FETCH_ATTEMPTS, si
   throw lastError || new Error("Request failed.");
 }
 
-function aiCoachCacheKey({ duoId, timelineDays, setFilter, patchFilter }) {
+function aiCoachCacheKey({ duoId, timelineDays, setFilter, patchFilter, model }) {
   return [
     AI_COACH_CACHE_KEY_PREFIX,
     String(duoId || "unknown"),
     String(timelineDays || "30"),
     String(setFilter || "all"),
     String(patchFilter || "all"),
+    String(model || COACHING_GPT_MODELS[0]),
   ].join(":");
 }
 
@@ -217,6 +219,7 @@ export default function useDuoAnalysis() {
   const [aiCoaching, setAiCoaching] = useState(null);
   const [aiCoachingLoading, setAiCoachingLoading] = useState(false);
   const [aiCoachingError, setAiCoachingError] = useState("");
+  const [selectedAiModel, setSelectedAiModel] = useState(COACHING_GPT_MODELS[0]);
   const [iconManifest, setIconManifest] = useState(EMPTY_ICON_MANIFEST);
   const [companionManifest, setCompanionManifest] = useState(EMPTY_COMPANION_MANIFEST);
   const hasAutoLoadedRef = useRef(false);
@@ -636,6 +639,7 @@ export default function useDuoAnalysis() {
       timelineDays,
       setFilter,
       patchFilter: resolvedPatch,
+      model: selectedAiModel,
     });
     const newestSharedMatch = [...filteredMatches]
       .filter((match) => Boolean(match?.sameTeam))
@@ -688,11 +692,13 @@ export default function useDuoAnalysis() {
         suggestions: asArray(computed?.suggestions).slice(0, 4),
       },
       matches: compactMatches,
+      model: selectedAiModel,
     };
     const requestKey = JSON.stringify({
       filter: requestBody.filter,
       metrics: requestBody.metrics,
       matches: requestBody.matches.map((m) => m.id),
+      model: requestBody.model,
     });
 
     if (!force) {
@@ -760,6 +766,7 @@ export default function useDuoAnalysis() {
     scorecard,
     coachingIntel,
     rankContext,
+    selectedAiModel,
   ]);
 
   const displayedError =
@@ -813,5 +820,7 @@ export default function useDuoAnalysis() {
     aiCoachingLoading,
     aiCoachingError,
     loadAiCoaching,
+    selectedAiModel,
+    setSelectedAiModel,
   };
 }

@@ -14,6 +14,12 @@ const port = Number(process.env.PORT || 3001);
 const riotApiKey = process.env.RIOT_API_KEY;
 const openAiApiKey = String(process.env.OPENAI_API_KEY || "").trim();
 const openAiModel = String(process.env.OPENAI_MODEL || "gpt-4o-mini").trim();
+const openAiAllowedModels = dedupeStrings(
+  String(process.env.OPENAI_ALLOWED_MODELS || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+);
 const openAiTimeoutMs = Math.max(3000, Number(process.env.OPENAI_TIMEOUT_MS || 15000));
 const openAiWebSearchEnabled = String(process.env.OPENAI_WEB_SEARCH_ENABLED || "1") !== "0";
 const renderApiKey = String(process.env.RENDER_API_KEY || "").trim();
@@ -1645,7 +1651,15 @@ function fallbackAiCoaching(payload) {
   return fallback;
 }
 
-async function fetchOpenAiCoaching(payload, deterministicFindings = null) {
+function resolveRequestedOpenAiModel(requestedModel) {
+  const normalized = String(requestedModel || "").trim();
+  if (!normalized) return openAiModel;
+  if (!normalized.startsWith("gpt-")) return openAiModel;
+  if (openAiAllowedModels.length && !openAiAllowedModels.includes(normalized)) return openAiModel;
+  return normalized;
+}
+
+async function fetchOpenAiCoaching(payload, deterministicFindings = null, selectedModel = openAiModel) {
   if (!openAiApiKey) {
     return {
       fallback: true,
@@ -1758,7 +1772,7 @@ async function fetchOpenAiCoaching(payload, deterministicFindings = null) {
     async function requestResponses(useWebSearch) {
       try {
         const responsePayload = {
-          model: openAiModel,
+          model: selectedModel,
           temperature: 0.45,
           text: {
             format: {
@@ -1903,7 +1917,7 @@ async function fetchOpenAiCoaching(payload, deterministicFindings = null) {
             Authorization: `Bearer ${openAiApiKey}`,
           },
           body: JSON.stringify({
-            model: openAiModel,
+            model: selectedModel,
             temperature: 0.35,
             max_tokens: 1100,
             response_format: { type: "json_object" },
@@ -2553,13 +2567,14 @@ app.post("/api/coach/llm-brief", async (req, res) => {
       })),
     };
 
+    const selectedModel = resolveRequestedOpenAiModel(input?.model);
     const deterministicFindings = buildDeterministicCoachFindings(payload);
-    const ai = await fetchOpenAiCoaching(payload, deterministicFindings);
+    const ai = await fetchOpenAiCoaching(payload, deterministicFindings, selectedModel);
     return res.json({
       ok: true,
       fallback: ai.fallback,
       reason: ai.reason || null,
-      model: openAiModel,
+      model: selectedModel,
       webSearchUsed: Boolean(ai.webSearchUsed),
       generatedAt: Date.now(),
       deterministicFindings,

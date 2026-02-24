@@ -130,6 +130,8 @@ export default function App() {
               aiCoachingLoading={state.aiCoachingLoading}
               aiCoachingError={state.aiCoachingError}
               loadAiCoaching={state.loadAiCoaching}
+              selectedAiModel={state.selectedAiModel}
+              setSelectedAiModel={state.setSelectedAiModel}
               filteredMatches={state.filteredMatches}
               iconManifest={state.iconManifest}
               rankContext={state.rankContext}

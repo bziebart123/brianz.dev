@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Badge, Button, Card, Heading, Pane, Strong, Text, Tooltip } from "evergreen-ui";
+import { Badge, Button, Card, Heading, Pane, Select, Strong, Text, Tooltip } from "evergreen-ui";
 import IconWithLabel from "../IconWithLabel";
-import { DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
+import { COACHING_GPT_MODELS, DISPLAY_NAME_A, DISPLAY_NAME_B } from "../../config/constants";
 import { asArray, prettyName } from "../../utils/tft";
 
 const MOBILE_BREAKPOINT = 1024;
@@ -174,6 +174,8 @@ export default function CoachingTab({
   aiCoachingLoading,
   aiCoachingError,
   loadAiCoaching,
+  selectedAiModel,
+  setSelectedAiModel,
   filteredMatches,
   iconManifest,
   rankContext,
@@ -382,6 +384,19 @@ export default function CoachingTab({
             {aiCoaching?.webSearchUsed ? <Badge color="blue">Web Meta</Badge> : null}
           </Pane>
           <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
+            <Pane display="flex" alignItems="center" gap={6}>
+              <Text size={300}>Model</Text>
+              <Select
+                value={selectedAiModel}
+                height={32}
+                onChange={(event) => setSelectedAiModel(event.target.value)}
+                disabled={aiCoachingLoading}
+              >
+                {COACHING_GPT_MODELS.map((model) => (
+                  <option key={model} value={model}>{model}</option>
+                ))}
+              </Select>
+            </Pane>
             <Badge color={toneForRisk(duoRisk)}>Duo Risk {duoRisk}%</Badge>
             <Badge color={dynamicSignal >= 70 ? "green" : dynamicSignal >= 50 ? "yellow" : "red"}>Dynamic Signal {dynamicSignal}</Badge>
             <Badge color="blue">{String(rankContext?.platform || "-").toUpperCase()}</Badge>

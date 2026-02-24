@@ -40,6 +40,7 @@ Server env vars (see `.env.example` and server code):
 - `ALLOWED_ORIGINS`
 - `OPENAI_API_KEY` (optional, enables live AI coaching brief generation)
 - `OPENAI_MODEL` (optional, default `gpt-4o-mini`)
+- `OPENAI_ALLOWED_MODELS` (optional comma-separated allowlist for coaching model picker; defaults to allowing any `gpt-*` model string)
 - `OPENAI_TIMEOUT_MS` (optional request timeout, default `15000`)
 - `OPENAI_WEB_SEARCH_ENABLED` (optional, default `1`; enables OpenAI web search tool for live meta lookups)
 - `RENDER_API_KEY` (required for Site Performance dashboard routes)
@@ -121,6 +122,7 @@ Server env vars (see `.env.example` and server code):
   - champion + item build conversion signals from recent matches
 - Champion build analysis is inferred from each player's core units and attached item names in your recent games, then surfaced as `Champion Build Signals` in the coaching brief.
 - AI coaching request payload is now compacted client-side (most recent 32 minimal match records) to avoid large-timeline network/request-size failures when generating the brief.
+- Coaching tab now includes a GPT model picker in the terminal header; selected model is sent with `Refresh AI` and cached per filter+model combination.
 - AI coaching responses are now cached per duo/filter in local storage and automatically reused until a newer shared match appears in that filtered view (manual `Refresh AI` still forces regeneration).
 - `AI Coach Brief` now reveals generated output line-by-line after payload load (terminal style): cache hits stream faster for quick review, while fresh/regenerated runs use the standard terminal pacing.
 - Sidebar/coaching/history warnings and errors now use high-contrast custom banners for readability, and refresh actions use a dedicated CTA button style.

@@ -71,6 +71,8 @@ function makeState(overrides = {}) {
     aiCoachingLoading: false,
     aiCoachingError: "",
     loadAiCoaching: vi.fn(),
+    selectedAiModel: "gpt-4o-mini",
+    setSelectedAiModel: vi.fn(),
     coachingIntel: {},
     ...overrides,
   };

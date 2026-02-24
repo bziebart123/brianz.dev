@@ -93,6 +93,7 @@ Windows PowerShell note:
   - `ALLOWED_ORIGINS=https://tftduos.brianz.dev,https://site-performance.brianz.dev,https://brianz.dev,https://www.brianz.dev`
   - `OPENAI_API_KEY=<optional, enables AI coaching brief>`
   - `OPENAI_MODEL=gpt-4o-mini` (optional)
+  - `OPENAI_ALLOWED_MODELS=gpt-4o-mini,gpt-4.1-mini,gpt-4.1,gpt-5-mini,gpt-5` (optional allowlist for coaching model picker)
   - `OPENAI_TIMEOUT_MS=15000` (optional)
   - `OPENAI_WEB_SEARCH_ENABLED=1` (optional; enables web-backed meta lookup during AI brief generation)
   - `RENDER_API_KEY=<required for Site Performance dashboard>`
@@ -149,6 +150,7 @@ Use exactly what Render Custom Domains asks for:
 - Legacy root app files were removed. Active deploy targets are `portfolio` and `apps/tftduos/*`.
 - TFTDuos client builds now embed release metadata (`major.minor.build` + recent commit subjects) for in-app release notes display, using commit-epoch build IDs and GitHub-API-first commit notes so local/prod stay consistent even with shallow clones.
 - TFTDuos Analysis tab now renders a dashboard-style analytics view with a full-width team rank trend chart, team trend KPIs, patch performance, and per-player breakdowns from filtered match data.
+- TFTDuos Coaching tab now includes a GPT model picker so you can switch coaching generation models per refresh, with per-model AI brief caching in the client.
 - TFTDuos Coaching tab now renders a dynamic coaching command center with team priorities, individualized player plans, and a stage-based action workflow driven by filtered match + event data.
 - TFTDuos backend now supports optional OpenAI-powered coaching synthesis (`/api/coach/llm-brief`) with deterministic fallback output when model access is unavailable.
 - TFTDuos backend now uses persisted per-player sync timestamps to call Riot TFT match-id time-window queries (`startTime`) before falling back to `start/count` pagination (including automatic fallback when time-window query support fails), reducing repeat API pulls while preserving first-load/backward-compatible pagination behavior.

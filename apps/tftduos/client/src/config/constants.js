@@ -30,3 +30,10 @@ export function toDisplayName(value) {
 export const DISPLAY_NAME_A = toDisplayName(HARD_CODED_QUERY.gameNameA);
 export const DISPLAY_NAME_B = toDisplayName(HARD_CODED_QUERY.gameNameB);
 
+export const COACHING_GPT_MODELS = [
+  "gpt-4o-mini",
+  "gpt-4.1-mini",
+  "gpt-4.1",
+  "gpt-5-mini",
+  "gpt-5",
+];
