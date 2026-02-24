@@ -206,6 +206,7 @@ Use exactly what Render Custom Domains asks for:
 - Added `portfolio/src/sfx-lab.html`, a local click-sound audition page with six short WebAudio click profiles (A-F) and master volume so SFX can be selected before integrating into main UI interactions.
 - Portfolio live UI SFX is now tuned to the auditioned `E - Tight Dual` profile (with a slightly stronger press tick) for tighter hover/click feedback.
 - Portfolio node SFX hotspoting is now icon-scoped: star-node sounds fire from `.node-icon` hover/click (plus keyboard focus), avoiding early triggers from surrounding node padding.
+- Portfolio map node rail now keeps all primary nodes fully visible on narrow mobile screens by using viewport-aware spacing in map mode, and safe-area-aware top/bottom offsets prevent HUD/terminal controls from colliding with phone notches or home indicators.
 - Portfolio includes a two-stage shake easter egg in map mode: sustained aggressive brain dragging triggers a caution warning, and heavier continued shaking escalates to a critical stabilization warning (both cooldown-gated to avoid log spam).
 - Critical shake escalation now has an accompanying visual state: the brain-centered ambient glow blinks red while severe shaking continues, then smoothly fades back to the normal blue glow once motion settles/stops.
 - Critical/red escalation sensitivity has been tuned slightly higher than the initial rollout so users must sustain stronger shake input before entering the critical state.

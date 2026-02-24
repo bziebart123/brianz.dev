@@ -881,12 +881,18 @@
           overflow: auto;
         }
 
+        .cosmos-shell {
+          min-height: 100dvh;
+          padding-top: calc(10px + env(safe-area-inset-top, 0px));
+          padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+        }
+
         .organism {
           height: 740px;
         }
 
         .map-hud {
-          top: 10px;
+          top: calc(10px + env(safe-area-inset-top, 0px));
           left: 10px;
           right: 10px;
         }
@@ -899,8 +905,8 @@
         .terminal-dock {
           left: 10px;
           right: 10px;
-          top: 10px;
-          bottom: 10px;
+          top: calc(10px + env(safe-area-inset-top, 0px));
+          bottom: calc(10px + env(safe-area-inset-bottom, 0px));
         }
 
         .terminal-head {
@@ -2285,8 +2291,15 @@
           if (inMapMode) {
             var rowY = usableTop + Math.min(58, Math.max(36, usableHeight * 0.12));
             var rowCount = Math.max(1, nodeState.length);
-            var rowSpacing = Math.min(178, Math.max(104, rect.width / (rowCount + 1)));
-            var rowStart = (rect.width * 0.5) - (((rowCount - 1) * rowSpacing) * 0.5);
+            var narrowViewport = window.innerWidth <= 640;
+            var rowEdgePadding = narrowViewport ? 52 : 74;
+            var rowUsableWidth = Math.max(1, rect.width - (rowEdgePadding * 2));
+            var rowSpacing = rowCount <= 1 ? 0 : rowUsableWidth / (rowCount - 1);
+            if (!narrowViewport) {
+              rowSpacing = Math.min(178, Math.max(108, rowSpacing));
+            }
+            var rowSpan = (rowCount - 1) * rowSpacing;
+            var rowStart = (rect.width * 0.5) - (rowSpan * 0.5);
 
             for (var i = 0; i < nodeState.length; i += 1) {
               var rowState = nodeState[i];
