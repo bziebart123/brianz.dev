@@ -76,7 +76,7 @@ export default function Sidebar({
                 boxSizing: "border-box",
                 flexShrink: 0,
                 borderRadius: 8,
-                border: "1px solid rgba(255,255,255,0.14)",
+                border: "1px solid rgba(103, 150, 228, 0.52)",
                 color: "inherit",
                 textDecoration: "none",
                 fontWeight: 700,

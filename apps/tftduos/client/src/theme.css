@@ -77,36 +77,19 @@ body::after {
 
 .tft-app-shell::before {
   z-index: 1;
-  opacity: 0.7;
+  opacity: 0.46;
   background-image:
-    linear-gradient(rgba(132, 194, 255, 0.9), rgba(132, 194, 255, 0.9)),
-    linear-gradient(rgba(132, 194, 255, 0.9), rgba(132, 194, 255, 0.9)),
-    linear-gradient(rgba(132, 194, 255, 0.82), rgba(132, 194, 255, 0.82)),
-    linear-gradient(rgba(132, 194, 255, 0.86), rgba(132, 194, 255, 0.86)),
-    linear-gradient(rgba(132, 194, 255, 0.78), rgba(132, 194, 255, 0.78)),
-    linear-gradient(rgba(132, 194, 255, 0.74), rgba(132, 194, 255, 0.74)),
-    linear-gradient(rgba(132, 194, 255, 0.84), rgba(132, 194, 255, 0.84)),
-    linear-gradient(rgba(132, 194, 255, 0.8), rgba(132, 194, 255, 0.8)),
-    linear-gradient(rgba(224, 189, 114, 0.72), rgba(224, 189, 114, 0.72)),
-    linear-gradient(rgba(224, 189, 114, 0.66), rgba(224, 189, 114, 0.66)),
-    linear-gradient(rgba(224, 189, 114, 0.62), rgba(224, 189, 114, 0.62)),
-    linear-gradient(rgba(132, 194, 255, 0.86), rgba(132, 194, 255, 0.86)),
-    linear-gradient(rgba(132, 194, 255, 0.84), rgba(132, 194, 255, 0.84)),
-    linear-gradient(rgba(132, 194, 255, 0.8), rgba(132, 194, 255, 0.8)),
-    linear-gradient(rgba(132, 194, 255, 0.78), rgba(132, 194, 255, 0.78)),
-    linear-gradient(rgba(132, 194, 255, 0.74), rgba(132, 194, 255, 0.74)),
-    linear-gradient(rgba(132, 194, 255, 0.88), rgba(132, 194, 255, 0.88)),
-    linear-gradient(rgba(132, 194, 255, 0.82), rgba(132, 194, 255, 0.82)),
-    linear-gradient(rgba(224, 189, 114, 0.64), rgba(224, 189, 114, 0.64)),
-    linear-gradient(rgba(132, 194, 255, 0.8), rgba(132, 194, 255, 0.8));
-  background-size:
-    3px 3px, 2px 2px, 3px 3px, 2px 2px, 2px 2px, 3px 3px, 2px 2px, 3px 3px, 2px 2px, 2px 2px,
-    2px 2px, 3px 3px, 2px 2px, 2px 2px, 3px 3px, 2px 2px, 3px 3px, 2px 2px, 2px 2px, 3px 3px;
-  background-position:
-    2% 12%, 9% 72%, 14% 42%, 21% 84%, 28% 30%, 34% 67%, 41% 16%, 48% 77%, 53% 40%, 58% 24%,
-    63% 88%, 69% 54%, 74% 18%, 79% 71%, 84% 34%, 89% 62%, 93% 14%, 96% 82%, 38% 92%, 17% 56%;
-  background-repeat: no-repeat;
-  animation: tftStarDrift 16s linear infinite, tftStarTwinkle 6s ease-in-out infinite;
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.014) 0px,
+      rgba(255, 255, 255, 0.014) 1px,
+      transparent 2px,
+      transparent 4px
+    ),
+    radial-gradient(circle at 22% 16%, rgba(255, 255, 255, 0.07), transparent 34%),
+    radial-gradient(circle at 72% 74%, rgba(255, 255, 255, 0.06), transparent 38%);
+  mix-blend-mode: screen;
+  animation: tftStarTwinkle 6s ease-in-out infinite;
 }
 
 .tft-app-shell::after {
@@ -176,6 +159,7 @@ body::after {
 .tft-app-shell div,
 .tft-app-shell strong {
   color: #eaf1ff !important;
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif !important;
 }
 
 .tft-app-shell [data-evergreen-id="heading"] {
@@ -408,12 +392,19 @@ body::after {
 
 
 .coaching-terminal-shell {
+  height: clamp(520px, 62vh, 900px);
   border: 1px solid rgba(111, 194, 255, 0.48);
   border-radius: 14px;
   background: linear-gradient(180deg, rgba(12, 22, 42, 0.86), rgba(8, 14, 28, 0.82));
   box-shadow: 0 22px 44px rgba(0, 0, 0, 0.56), 0 0 32px rgba(111, 194, 255, 0.2);
   backdrop-filter: blur(3px);
   overflow: hidden;
+}
+
+.coaching-terminal-shell.expanded {
+  height: min(84vh, 980px);
+  border-color: rgba(111, 194, 255, 0.62);
+  box-shadow: 0 28px 56px rgba(0, 0, 0, 0.62), 0 0 42px rgba(111, 194, 255, 0.28);
 }
 
 .coaching-terminal-head {
@@ -428,6 +419,36 @@ body::after {
   color: #9ab0dd;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.coaching-terminal-head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coaching-terminal-close {
+  border: 1px solid rgba(111, 194, 255, 0.44);
+  border-radius: 999px;
+  background: rgba(9, 17, 33, 0.78);
+  color: #d4e4ff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  width: 30px;
+  height: 24px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.coaching-terminal-close:hover,
+.coaching-terminal-close:focus-visible {
+  border-color: rgba(142, 240, 200, 0.72) !important;
+  color: #8ef0c8 !important;
+  outline: none;
 }
 
 .coaching-terminal-head [data-evergreen-id="text"],
@@ -448,6 +469,9 @@ body::after {
 
 .coaching-terminal-body {
   padding: 12px 14px 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
   font-family: "Consolas", "Menlo", "SFMono-Regular", monospace;
   font-size: 0.78rem;
   line-height: 1.48;
@@ -892,7 +916,8 @@ body::after {
 
 .tft-main-content [data-evergreen-id="card"],
 .tft-sidebar [data-evergreen-id="card"],
-.tft-main-content .history-player-card {
+.tft-main-content .history-player-card,
+.tft-app-shell [data-evergreen-id="pane"][style*="border"] {
   border: 1px solid var(--bz-border-soft) !important;
   background: linear-gradient(170deg, rgba(16, 28, 52, 0.72), rgba(11, 19, 36, 0.84)) !important;
   box-shadow: var(--bz-glow) !important;

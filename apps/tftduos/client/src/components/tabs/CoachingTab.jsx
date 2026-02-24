@@ -183,6 +183,16 @@ export default function CoachingTab({
   );
   const [visibleBootLines, setVisibleBootLines] = useState(1);
   const [visibleAiLines, setVisibleAiLines] = useState(0);
+  const [terminalExpanded, setTerminalExpanded] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    function onEscape(event) {
+      if (event.key === "Escape") setTerminalExpanded(false);
+    }
+    window.addEventListener("keydown", onEscape);
+    return () => window.removeEventListener("keydown", onEscape);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -338,10 +348,15 @@ export default function CoachingTab({
   if (isAiPending) {
     return (
       <Pane className="coaching-tab-root" display="grid" gap={12}>
-        <Card className="coaching-terminal-shell" elevation={0} padding={0} background="transparent" minHeight={420}>
+        <Card className={`coaching-terminal-shell${terminalExpanded ? " expanded" : ""}`} elevation={0} padding={0} background="transparent" minHeight={420}>
           <Pane className="coaching-terminal-head" display="flex" alignItems="center" justifyContent="space-between" gap={12}>
             <Text size={300}>ai-coach://duo-terminal</Text>
-            <Badge color="blue">THINKING</Badge>
+            <Pane className="coaching-terminal-head-actions">
+              <Badge color="blue">THINKING</Badge>
+              <button type="button" className="coaching-terminal-close" onClick={() => setTerminalExpanded((value) => !value)}>
+                {terminalExpanded ? "v" : "^"}
+              </button>
+            </Pane>
           </Pane>
           <Pane className="coaching-terminal-body" display="grid" gap={8}>
             {AI_TERMINAL_BOOT_LINES.slice(0, visibleBootLines).map((line, idx) => (
@@ -372,7 +387,7 @@ export default function CoachingTab({
 
   return (
     <Pane className="coaching-tab-root" display="grid" gap={12}>
-      <Card className="coaching-terminal-shell" elevation={0} padding={0} background="transparent">
+      <Card className={`coaching-terminal-shell${terminalExpanded ? " expanded" : ""}`} elevation={0} padding={0} background="transparent">
         <Pane className="coaching-terminal-head" display="flex" alignItems="center" justifyContent="space-between" gap={10} flexWrap="wrap">
           <Pane display="flex" alignItems="center" gap={8}>
             <Tooltip content="AI-first coaching dashboard with compact high-signal KPIs.">
@@ -381,7 +396,7 @@ export default function CoachingTab({
             {aiCoaching?.fallback ? <Badge color="yellow">Fallback</Badge> : <Badge color="green">Live LLM</Badge>}
             {aiCoaching?.webSearchUsed ? <Badge color="blue">Web Meta</Badge> : null}
           </Pane>
-          <Pane display="flex" alignItems="center" gap={8} flexWrap="wrap">
+          <Pane className="coaching-terminal-head-actions" display="flex" alignItems="center" gap={8} flexWrap="wrap">
             <Badge color={toneForRisk(duoRisk)}>Duo Risk {duoRisk}%</Badge>
             <Badge color={dynamicSignal >= 70 ? "green" : dynamicSignal >= 50 ? "yellow" : "red"}>Dynamic Signal {dynamicSignal}</Badge>
             <Badge color="blue">{String(rankContext?.platform || "-").toUpperCase()}</Badge>
@@ -389,6 +404,9 @@ export default function CoachingTab({
             <Button className="tft-cta-btn" onClick={() => loadAiCoaching(true)} disabled={aiCoachingLoading}>
               {aiCoachingLoading ? "Generating..." : "Refresh AI"}
             </Button>
+            <button type="button" className="coaching-terminal-close" onClick={() => setTerminalExpanded((value) => !value)}>
+              {terminalExpanded ? "v" : "^"}
+            </button>
           </Pane>
         </Pane>
 

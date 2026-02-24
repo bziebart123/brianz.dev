@@ -215,6 +215,9 @@ CI:
   - Transient manifest failures no longer clear previously loaded icon/companion manifests, preventing post-deploy icon disappearance.
   - `client/src/components/IconWithLabel.jsx` and `client/src/components/PlayerBannerCard.jsx` now perform bounded delayed image retries with a retry query param to recover from temporary CDN misses.
 - Visual shell update:
+  - Coaching terminal now mirrors portfolio terminal interaction patterns (`client/src/components/tabs/CoachingTab.jsx`, `client/src/theme.css`): matching blue glass panel treatment, shared monospace terminal typography, expand/collapse control (`^`/`v`), and `Esc` collapse behavior.
+  - Star/noise background layers now use the same scanline + nebula blend style as portfolio so History/Analysis/Coaching/Wild views keep a consistent launcher-like backdrop instead of isolated star sprites (`client/src/theme.css`).
+  - Global Evergreen surface overrides now enforce blue edge treatments on bordered panes/cards and remove legacy bright/white border accents across tabs (`client/src/theme.css`, `client/src/components/Sidebar.jsx`).
   - `client/src/theme.css` now renders a higher-density animated starfield/glow layer on `.tft-app-shell` (`::before`/`::after`) using explicit square-point stars (blue/gold pixel look), with stronger drift + twinkle motion so particle behavior more closely matches the portfolio launcher while interactive content stays foregrounded/readable.
   - TFT surface styling (cards, badges, tabs, controls, sidebar cards) now aligns with portfolio visual language: thinner luminous blue borders, glassy blue panel gradients, and subtle glow rings/shadows.
 - Coaching client-state cleanup (no user-facing behavior change):
