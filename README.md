@@ -43,6 +43,7 @@ From repo root:
 - `npm run dev:site-performance:client`
 - Site Performance local URL: `http://localhost:4174` (pinned in Vite config)
 - Portfolio SFX audition page: `http://localhost:8080/sfx-lab.html` (if portfolio dev server is running)
+- Portfolio secret code playground: `http://localhost:8080/code-playground.html` (unlinked mini coding sandbox page)
 
 From `apps/tftduos`:
 
@@ -217,6 +218,8 @@ Use exactly what Render Custom Domains asks for:
 - Portfolio terminal now emits subtle synthesized output SFX: each appended terminal line plays a short tick, and active loading/churn rows (`processing ...`) run a low-volume pulse until completion.
 - Portfolio HUD now includes a mute toggle icon next to reboot; it mutes/unmutes all synthesized SFX (node/UI, brain interaction, terminal output/loading), persists preference via localStorage, and updates icon state for muted/unmuted.
 - `portfolio/src/sfx-lab.html` now covers all current live sounds (UI hover/press + terminal line/loading) and adds alternate UI/terminal options for quick A/B testing before adopting new profiles.
+- Added `portfolio/src/code-playground.html`, an unlinked kid-friendly coding sandbox page with drag-to-reorder logic blocks (variables, equations, loops, and if statements) plus guided mission prompts and run output.
+- Secret code playground copy now uses simpler, younger-reader wording for instructions, block labels, and run feedback.
 - SFX Lab option sets now include higher-variance timbres (ceramic snap, analog button, radio chirp, servo tick, holo ping, crunch/noise textures, sonar, glitch-bit, tape relay) so UI and terminal sound direction can be chosen across distinct styles instead of minor variants.
 - Live SFX mapping is now: UI hover=`Ceramic Snap`, UI press=`Crunch Dot`, terminal line output=`Sonar Pip`; terminal loading/churn loops are intentionally silent.
 - Portfolio launcher node ordering now prioritizes app nodes first (`TFT Duos`, `Warhammer`) and groups utility nodes after (`Memory Access`, `Contact`, `Source`), with app nodes on `core` yellow styling and utility nodes on `meta` green styling (including hover state).
