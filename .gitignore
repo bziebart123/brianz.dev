@@ -7,3 +7,5 @@ node_modules/
 .cache/
 .vscode/
 *.log
+__pycache__/
+*.pyc
