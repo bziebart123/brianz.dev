@@ -165,6 +165,7 @@ Use exactly what Render Custom Domains asks for:
 - Site Performance now exists as a frontend-only Render Meta Dashboard (`apps/site-performance/client`) and consumes shared backend routes under `/api/site-performance/*` from `apps/backend`.
 - Shared backend (`apps/backend`) is API-only for the whole portfolio platform (no static frontend fallback from backend root); direct non-API paths return a generic 404.
 - Backend runtime is now Python/FastAPI (`apps/backend/main.py`) and no longer requires Node for API execution.
+- Legacy Node backend artifacts were removed from `apps/backend` (`index.js`, `lib/duoAnalytics.js`, backend `package.json`/`package-lock.json`) so backend deploy/runtime is Python-only.
 - Python migration status: `/api/tft/*`, `/api/duo/*`, `/api/coach/llm-brief`, and `/api/site-performance/render/overview` are available; detailed Render metric rollups are currently returned as a simplified summary during migration.
 - Backend API-only transition retains filesystem-backed analytics/cache persistence (`node:fs/promises`) so TFT requests do not fail with runtime `fs is not defined` errors.
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.

@@ -15,6 +15,7 @@ Build and maintain a **personal portfolio hub with sub-apps**:
   - `portfolio/` -> static portfolio hub (Render Static Site, root domain)
   - `apps/site-performance/client/` -> Render meta dashboard frontend (Vite + React)
   - `apps/backend/` -> Python + FastAPI brianz backend API (`/api/tft*`, `/api/duo*`, `/api/coach*`, `/api/site-performance*`)
+    - backend runtime is Python-only; legacy Node backend source/lockfiles are removed
   - `apps/tftduos/` -> TFT frontend app sources
   - `apps/tftduos/client/` -> Vite + React + Evergreen UI frontend
 - Canonical frontend entry:
