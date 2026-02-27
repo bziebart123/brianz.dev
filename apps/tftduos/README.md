@@ -11,6 +11,7 @@ TFT duo coaching/analysis sub-app in the portfolio monorepo.
 
 From repo root:
 
+- `npm run dev:all` (starts portfolio + backend + TFTDuos client + Site Performance client)
 - `npm run dev:tftduos:client`
 - `npm run dev:brianz:backend` (`npm run dev:tftduos:server` still works as an alias; starts FastAPI on `:3001`)
 

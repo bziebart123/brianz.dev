@@ -58,6 +58,14 @@ Build and maintain a **personal portfolio hub with sub-apps**:
 - Avoid regressions in filtering, API integration, and coaching workflows.
 - Validate with builds after meaningful changes.
 
+## Build/Run Intent (Required)
+- If the user asks to "build", "run", "build and run", or equivalent wording, treat it as full monorepo scope unless they explicitly narrow it.
+- Full monorepo scope means:
+  - Build/verify: `npm run verify:local` from repo root.
+  - Run/dev: `npm run dev:all` from repo root.
+- `dev:all` must include all active local surfaces: portfolio (`:8080`), backend (`:3001`), TFTDuos client (`:5173`), and Site Performance client (`:4174`).
+- `dev:all` should open these local hosts in the default browser once per run for quick smoke testing.
+
 ## Documentation Maintenance (Required)
 - Any meaningful code change must include documentation updates in the same task/PR.
 - Do not treat docs as optional or "later" work.
