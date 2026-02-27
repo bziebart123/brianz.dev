@@ -32,11 +32,12 @@ Create a personal portfolio site at the root domain and host multiple sub-apps o
 
 From repo root:
 
-- `npm run dev:all` (starts backend + TFTDuos client + Site Performance client together)
+- `npm run dev:all` (starts portfolio + backend + TFTDuos client + Site Performance client together)
 - `npm run verify:local` (runs TFT client tests + backend syntax check + all builds)
 - `npm run build:portfolio`
 - `npm run build:tftduos`
 - `npm run build:site-performance`
+- `npm run dev:portfolio` (builds and serves portfolio at `http://localhost:8080`)
 - `npm run dev:tftduos:client`
 - `npm run dev:brianz:backend` (starts FastAPI on `http://localhost:3001`)
 - `npm run dev:tftduos:server` (alias for backward compatibility)
