@@ -64,6 +64,7 @@ Build and maintain a **personal portfolio hub with sub-apps**:
   - Build/verify: `npm run verify:local` from repo root.
   - Run/dev: `npm run dev:all` from repo root.
 - `dev:all` must include all active local surfaces: portfolio (`:8080`), backend (`:3001`), TFTDuos client (`:5173`), and Site Performance client (`:4174`).
+- `dev:all` should open these local hosts in the default browser once per run for quick smoke testing.
 
 ## Documentation Maintenance (Required)
 - Any meaningful code change must include documentation updates in the same task/PR.
