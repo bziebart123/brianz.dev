@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "scripts": {
     "dev:client": "npm --prefix client run dev",
-    "dev:server": "npm --prefix ../backend run start",
-    "build": "npm ci --prefix client && npm run build --prefix client && npm ci --prefix ../backend",
-    "start": "npm run start --prefix ../backend"
+    "dev:server": "python -m uvicorn main:app --reload --host 0.0.0.0 --port 3001 --app-dir ../backend",
+    "build": "npm ci --prefix client && npm run build --prefix client && python -m pip install -r ../backend/requirements.txt",
+    "start": "python ../backend/main.py"
   }
 }
 

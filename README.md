@@ -16,7 +16,7 @@ Create a personal portfolio site at the root domain and host multiple sub-apps o
 /portfolio          # Static site for brianz.dev
 /apps/site-performance          # Site Performance 40K companion app (frontend-only terminal UX)
   /client           # Vite React app
-/apps/backend       # brianz backend (shared Express API service)
+/apps/backend       # brianz backend (shared FastAPI service)
 /apps/tftduos       # TFTDuos app sources
   /client           # Vite React app
 ```
@@ -38,7 +38,7 @@ From repo root:
 - `npm run build:tftduos`
 - `npm run build:site-performance`
 - `npm run dev:tftduos:client`
-- `npm run dev:brianz:backend`
+- `npm run dev:brianz:backend` (starts FastAPI on `http://localhost:3001`)
 - `npm run dev:tftduos:server` (alias for backward compatibility)
 - `npm run dev:site-performance:client`
 - Site Performance local URL: `http://localhost:4174` (pinned in Vite config)
@@ -85,8 +85,8 @@ Windows PowerShell note:
 
 - Service type: `Web Service`
 - Root Directory: `apps/backend`
-- Build Command: `npm ci`
-- Start Command: `npm start`
+- Build Command: `python -m pip install -r requirements.txt`
+- Start Command: `python main.py`
 - Domain: `api.brianz.dev` (recommended canonical API domain)
 - Env vars:
   - `RIOT_API_KEY=<your key>`
@@ -114,8 +114,8 @@ Windows PowerShell note:
 
 For backend Web Service apps in this repo:
 
-- Build Command: `npm ci`
-- Start Command: `npm start`
+- Build Command: `python -m pip install -r requirements.txt`
+- Start Command: `python main.py`
 
 For static sites:
 
@@ -127,12 +127,11 @@ For static sites:
 - GitHub Actions workflow: `.github/workflows/ci.yml`
 - Triggers: `pull_request` and `push` on `main`
 - `verify-tftduos-client`: runs `apps/tftduos/client` tests and production build.
-- `verify-brianz-backend`: runs `node --check apps/backend/index.js`.
+- `verify-brianz-backend`: installs `apps/backend/requirements.txt` and runs `python -m py_compile apps/backend/main.py apps/backend/duo_analytics.py`.
 - `verify-portfolio`: runs `npm run build:portfolio`.
 - `verify-site-performance-client`: builds `apps/site-performance/client`.
 - Render deployment should use test-inclusive build commands so a failing test blocks publish.
-- `portfolio` and `apps/backend` currently include placeholder `test` scripts (exit 0) so
-test-inclusive pipelines can run consistently until real tests are added.
+- `portfolio` currently includes a placeholder `test` script (exit 0) so test-inclusive pipelines can run consistently until real tests are added.
 
 ## DNS (Porkbun)
 
@@ -165,6 +164,8 @@ Use exactly what Render Custom Domains asks for:
 - Analysis + Coaching now render this `rankContext` as a Regional Meta Pressure context card to keep recommendations grounded in current ladder pressure.
 - Site Performance now exists as a frontend-only Render Meta Dashboard (`apps/site-performance/client`) and consumes shared backend routes under `/api/site-performance/*` from `apps/backend`.
 - Shared backend (`apps/backend`) is API-only for the whole portfolio platform (no static frontend fallback from backend root); direct non-API paths return a generic 404.
+- Backend runtime is now Python/FastAPI (`apps/backend/main.py`) and no longer requires Node for API execution.
+- Python migration status: `/api/tft/*`, `/api/duo/*`, `/api/coach/llm-brief`, and `/api/site-performance/render/overview` are available; detailed Render metric rollups are currently returned as a simplified summary during migration.
 - Backend API-only transition retains filesystem-backed analytics/cache persistence (`node:fs/promises`) so TFT requests do not fail with runtime `fs is not defined` errors.
 - TFTDuos now includes extended inference modules (tilt detection, fingerprints, win-condition mining, loss autopsy, contested pressure, timing coach, coordination scoring) and an optional Wild Correlations view gated by a sidebar settings toggle.
 - TFTDuos client test suite now covers key utility inference logic and integration rendering for History, Coaching, and Wild Correlations tabs.

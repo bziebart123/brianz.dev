@@ -38,13 +38,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          node-version: 20
+          python-version: "3.11"
+
+      - name: Install backend deps
+        run: python -m pip install -r apps/backend/requirements.txt
 
       - name: Check backend syntax
-        run: node --check apps/backend/index.js
+        run: python -m py_compile apps/backend/main.py apps/backend/duo_analytics.py
 
   verify-portfolio:
     runs-on: ubuntu-latest

@@ -14,7 +14,7 @@ Build and maintain a **personal portfolio hub with sub-apps**:
 - Monorepo layout:
   - `portfolio/` -> static portfolio hub (Render Static Site, root domain)
   - `apps/site-performance/client/` -> Render meta dashboard frontend (Vite + React)
-  - `apps/backend/` -> Node + Express brianz backend API (`/api/tft*`, `/api/duo*`, `/api/coach*`, `/api/site-performance*`)
+  - `apps/backend/` -> Python + FastAPI brianz backend API (`/api/tft*`, `/api/duo*`, `/api/coach*`, `/api/site-performance*`)
   - `apps/tftduos/` -> TFT frontend app sources
   - `apps/tftduos/client/` -> Vite + React + Evergreen UI frontend
 - Canonical frontend entry:

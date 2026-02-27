@@ -5,19 +5,19 @@ TFT duo coaching/analysis sub-app in the portfolio monorepo.
 ## Architecture
 
 - `client/`: Vite + React + Evergreen UI
-- Shared backend lives at `apps/backend/`: brianz backend Express API (Riot integration + analytics helpers)
+- Shared backend lives at `apps/backend/`: brianz backend FastAPI service (Riot integration + analytics helpers)
 
 ## Local Development
 
 From repo root:
 
 - `npm run dev:tftduos:client`
-- `npm run dev:brianz:backend` (`npm run dev:tftduos:server` still works as an alias)
+- `npm run dev:brianz:backend` (`npm run dev:tftduos:server` still works as an alias; starts FastAPI on `:3001`)
 
 From `apps/tftduos`:
 
 - `npm run dev:client`
-- `npm run dev:server` (starts `apps/backend`)
+- `npm run dev:server` (starts `apps/backend` FastAPI runtime)
 - `npm run build`
 - `npm start`
 
@@ -196,7 +196,7 @@ CI:
 - Runs on `pull_request` and `push` for `main`.
 - Validates:
   - `apps/tftduos/client` tests + production build
-  - `apps/backend` syntax (`node --check`)
+  - `apps/backend` syntax (`python -m py_compile apps/backend/main.py apps/backend/duo_analytics.py`)
   - `portfolio` static build (`npm run build:portfolio`)
 - Recommended Render frontend build command:
   - `npm ci && npm run test && npm run build`
@@ -209,6 +209,7 @@ CI:
   - `.github/copilot-instructions.md`
 - Legacy root runtime files were removed; use `apps/tftduos/client` and `apps/backend` paths for dev/deploy.
 - Shared backend (`apps/backend`) now runs as API-only (no client static file serving/fallback), so backend root/non-API routes intentionally return a generic 404 while TFT and portfolio consume `/api/*`.
+- Backend runtime migration note: API execution now uses Python/FastAPI (`apps/backend/main.py`) with route parity for TFT/duo/coach plus simplified Site Performance Render telemetry output during migration hardening.
 - `client/src/hooks/useDuoAnalysis.js` keeps an identity-stable empty `matches` list and skips redundant manifest resets to prevent React effect loops (`Maximum update depth exceeded`) before payload data loads.
 - Icon resilience hardening:
   - `client/src/hooks/useDuoAnalysis.js` now retries `/api/tft/icon-manifest` and `/api/tft/companion-manifest` with short exponential backoff and abort support.

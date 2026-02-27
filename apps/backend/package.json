@@ -2,14 +2,10 @@
   "name": "brianz-backend",
   "private": true,
   "version": "1.0.0",
-  "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "test": "node -e \"process.exit(0)\""
-  },
-  "dependencies": {
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "start": "python main.py",
+    "dev": "python -m uvicorn main:app --reload --host 0.0.0.0 --port 3001",
+    "test": "python -m py_compile main.py duo_analytics.py"
   }
 }
 
