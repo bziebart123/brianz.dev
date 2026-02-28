@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Code Playground - brianz.dev</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #071326;
+        --panel: rgba(14, 34, 74, 0.88);
+        --line: rgba(126, 188, 255, 0.42);
+        --text: #e2eeff;
+        --muted: #9ab2db;
+        --good: #76e4b7;
+        --warn: #ffd987;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Consolas", "Menlo", "Monaco", monospace;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 14% 20%, rgba(94, 146, 255, 0.2), transparent 44%),
+          radial-gradient(circle at 84% 76%, rgba(123, 231, 198, 0.15), transparent 46%),
+          var(--bg);
+        padding: 24px;
+      }
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: linear-gradient(155deg, rgba(9, 23, 51, 0.92), var(--panel));
+        box-shadow: 0 22px 42px rgba(0, 0, 0, 0.35);
+        padding: 18px;
+      }
+      h1 { margin: 0 0 8px; font-size: 1.12rem; text-transform: uppercase; letter-spacing: 0.08em; }
+      .lead { margin: 0 0 18px; color: var(--muted); line-height: 1.55; }
+      .layout { display: grid; grid-template-columns: 300px 1fr; gap: 14px; }
+      .card {
+        border: 1px solid rgba(120, 175, 255, 0.34);
+        border-radius: 14px;
+        background: rgba(7, 19, 44, 0.72);
+        padding: 12px;
+      }
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 0.84rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #b5d2fb;
+      }
+      .card p { margin: 0 0 8px; color: var(--muted); font-size: 0.9rem; line-height: 1.45; }
+      .toolbox { display: grid; gap: 8px; }
+      .block {
+        width: 100%;
+        border: 1px solid rgba(154, 206, 255, 0.5);
+        border-radius: 10px;
+        background: linear-gradient(145deg, rgba(31, 67, 128, 0.78), rgba(20, 46, 90, 0.72));
+        color: var(--text);
+        padding: 9px;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+      }
+      .block:hover,
+      .block:focus-visible { border-color: #d2ebff; }
+      .editor {
+        min-height: 360px;
+        display: grid;
+        gap: 8px;
+      }
+      .slot {
+        border: 1px dashed rgba(150, 200, 255, 0.45);
+        border-radius: 10px;
+        padding: 10px;
+        background: rgba(8, 17, 38, 0.72);
+        cursor: grab;
+      }
+      .slot.dragging { opacity: 0.5; }
+      .slot strong { color: #b6ffde; }
+      .slot small { color: #b0c7ea; }
+      .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+      button.action {
+        border: 1px solid rgba(148, 206, 255, 0.58);
+        background: linear-gradient(145deg, rgba(31, 72, 135, 0.86), rgba(22, 52, 102, 0.76));
+        color: var(--text);
+        border-radius: 10px;
+        padding: 9px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+      button.action.alt { border-color: rgba(255, 217, 132, 0.55); color: var(--warn); }
+      pre {
+        margin: 10px 0 0;
+        min-height: 150px;
+        max-height: 240px;
+        overflow: auto;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(114, 173, 255, 0.4);
+        background: #06122b;
+        color: var(--good);
+        line-height: 1.5;
+      }
+      .helper { margin-top: 10px; font-size: 0.85rem; color: var(--muted); }
+      @media (max-width: 900px) {
+        .layout { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Secret Coding Game</h1>
+      <p class="lead">Build a tiny program by using blocks. Click blocks on the left, drag them up or down, then press Run Program. You can practice variables, math, if/then, and loops.</p>
+      <section class="layout">
+        <aside class="card">
+          <h2>Fun Steps</h2>
+          <p>1) Set <strong>stars = 3</strong>.</p>
+          <p>2) Add a loop block to grow stars.</p>
+          <p>3) Add an if block to check if stars are 5 or more.</p>
+          <p>4) Add print to show your stars and message.</p>
+          <div class="toolbox" id="toolbox"></div>
+          <p class="helper">Tip: move blocks up or down to change what happens first.</p>
+        </aside>
+
+        <section class="card">
+          <h2>My Program</h2>
+          <div class="editor" id="editor" aria-live="polite"></div>
+          <div class="controls">
+            <button class="action" id="run-btn" type="button">Run Program</button>
+            <button class="action alt" id="clear-btn" type="button">Clear Program</button>
+          </div>
+          <pre id="output">Your results will show here...</pre>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        var toolbox = document.getElementById("toolbox");
+        var editor = document.getElementById("editor");
+        var output = document.getElementById("output");
+        var runBtn = document.getElementById("run-btn");
+        var clearBtn = document.getElementById("clear-btn");
+
+        var blockTypes = [
+          {
+            id: "set",
+            label: "Set a value",
+            make: function () { return { id: crypto.randomUUID(), type: "set", name: "stars", value: 3 }; },
+            render: function (b) { return "set <strong>" + b.name + "</strong> = " + b.value; }
+          },
+          {
+            id: "math",
+            label: "Add with math",
+            make: function () { return { id: crypto.randomUUID(), type: "math", name: "stars", value: 2 }; },
+            render: function (b) { return "change <strong>" + b.name + "</strong> by +" + b.value; }
+          },
+          {
+            id: "if",
+            label: "If / Then",
+            make: function () { return { id: crypto.randomUUID(), type: "if", left: "stars", op: ">=", right: 5, say: "Awesome! You did it!" }; },
+            render: function (b) { return "if <strong>" + b.left + " " + b.op + " " + b.right + "</strong> then print: \"" + b.say + "\""; }
+          },
+          {
+            id: "loop",
+            label: "Repeat loop",
+            make: function () { return { id: crypto.randomUUID(), type: "loop", times: 3, name: "stars", value: 1 }; },
+            render: function (b) { return "repeat " + b.times + " times: add " + b.value + " to <strong>" + b.name + "</strong>"; }
+          },
+          {
+            id: "print",
+            label: "Show text",
+            make: function () { return { id: crypto.randomUUID(), type: "print", text: "I have {stars} stars!" }; },
+            render: function (b) { return "print: \"" + b.text + "\""; }
+          }
+        ];
+
+        var program = [];
+
+        function addBlock(typeId) {
+          var type = blockTypes.find(function (item) { return item.id === typeId; });
+          if (!type) return;
+          program.push(type.make());
+          renderProgram();
+        }
+
+        function renderToolbox() {
+          blockTypes.forEach(function (type) {
+            var btn = document.createElement("button");
+            btn.className = "block";
+            btn.type = "button";
+            btn.textContent = "+ " + type.label;
+            btn.addEventListener("click", function () { addBlock(type.id); });
+            toolbox.appendChild(btn);
+          });
+        }
+
+        function blockDisplay(block) {
+          var type = blockTypes.find(function (item) { return item.id === block.type; });
+          return type ? type.render(block) : "Unknown block";
+        }
+
+        function renderProgram() {
+          editor.innerHTML = "";
+          if (!program.length) {
+            var empty = document.createElement("p");
+            empty.className = "helper";
+            empty.textContent = "No blocks yet. Click one on the left to start.";
+            editor.appendChild(empty);
+            return;
+          }
+
+          program.forEach(function (block, index) {
+            var line = document.createElement("div");
+            line.className = "slot";
+            line.draggable = true;
+            line.dataset.index = String(index);
+            line.innerHTML = "<small>Step " + (index + 1) + "</small><br />" + blockDisplay(block);
+
+            line.addEventListener("dragstart", function (event) {
+              line.classList.add("dragging");
+              event.dataTransfer.setData("text/plain", String(index));
+            });
+
+            line.addEventListener("dragend", function () {
+              line.classList.remove("dragging");
+            });
+
+            line.addEventListener("dragover", function (event) {
+              event.preventDefault();
+            });
+
+            line.addEventListener("drop", function (event) {
+              event.preventDefault();
+              var fromIndex = Number(event.dataTransfer.getData("text/plain"));
+              var toIndex = Number(line.dataset.index || "0");
+              if (Number.isNaN(fromIndex) || Number.isNaN(toIndex) || fromIndex === toIndex) return;
+              var moved = program.splice(fromIndex, 1)[0];
+              program.splice(toIndex, 0, moved);
+              renderProgram();
+            });
+
+            editor.appendChild(line);
+          });
+        }
+
+        function compare(left, op, right) {
+          if (op === ">=") return left >= right;
+          if (op === "<=") return left <= right;
+          if (op === "==") return left === right;
+          if (op === ">") return left > right;
+          if (op === "<") return left < right;
+          return false;
+        }
+
+        function runProgram() {
+          var vars = {};
+          var lines = [];
+          lines.push("Starting...");
+
+          program.forEach(function (block) {
+            if (block.type === "set") {
+              vars[block.name] = block.value;
+              lines.push("Made " + block.name + " = " + vars[block.name]);
+              return;
+            }
+
+            if (block.type === "math") {
+              vars[block.name] = (vars[block.name] || 0) + block.value;
+              lines.push("Math: " + block.name + " + " + block.value + " = " + vars[block.name]);
+              return;
+            }
+
+            if (block.type === "loop") {
+              var i;
+              for (i = 0; i < block.times; i += 1) {
+                vars[block.name] = (vars[block.name] || 0) + block.value;
+              }
+              lines.push("Repeated " + block.times + " times -> " + block.name + " is now " + vars[block.name]);
+              return;
+            }
+
+            if (block.type === "if") {
+              var left = vars[block.left] || 0;
+              var ok = compare(left, block.op, block.right);
+              lines.push("If check: " + left + " " + block.op + " " + block.right + " -> " + (ok ? "TRUE" : "FALSE"));
+              if (ok) lines.push(block.say);
+              return;
+            }
+
+            if (block.type === "print") {
+              var text = block.text.replace("{stars}", String(vars.stars || 0));
+              lines.push(text);
+            }
+          });
+
+          if (!program.length) {
+            lines.push("Add at least one block first.");
+          }
+
+          lines.push("All done!");
+          output.textContent = lines.join("\n");
+        }
+
+        runBtn.addEventListener("click", runProgram);
+        clearBtn.addEventListener("click", function () {
+          program = [];
+          renderProgram();
+          output.textContent = "Your results will show here...";
+        });
+
+        renderToolbox();
+        renderProgram();
+      })();
+    </script>
+  </body>
+</html>
